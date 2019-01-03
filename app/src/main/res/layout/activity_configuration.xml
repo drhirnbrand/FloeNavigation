@@ -1,0 +1,190 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="20dp"
+    android:background="@drawable/background_bg"
+    tools:context=".admin.ConfigurationActivity">
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="30dp"
+        android:orientation="vertical"
+        android:padding="5dp">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="15dp"
+                android:text="@string/paramName"
+                android:textAllCaps="true"
+                android:textColor="@color/white"
+                android:textSize="30sp" />
+
+            <Spinner
+                android:id="@+id/parameterSelect"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:spinnerMode="dialog"
+                android:focusableInTouchMode="true"
+                android:prompt="@string/paramNamePrompt" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/normalParam"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="30dp"
+            android:layout_marginBottom="30dp"
+            android:layout_weight="2"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="15dp"
+                android:text="@string/paramValue"
+                android:textAllCaps="true"
+                android:textColor="@color/white"
+                android:textSize="30sp" />
+
+            <EditText
+                android:id="@+id/parameterValue"
+                android:textColor="@color/white"
+                android:layout_width="500dp"
+                android:layout_height="wrap_content" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/normalInitialRangeParam"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="30dp"
+            android:layout_marginBottom="30dp"
+            android:layout_weight="2"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="15dp"
+                android:text="@string/paramValue"
+                android:textAllCaps="true"
+                android:textColor="@color/white"
+                android:textSize="30sp" />
+
+            <SeekBar
+                android:id="@+id/seekBarInitialTimeRange"
+                android:layout_width="500dp"
+                android:layout_height="wrap_content"
+                android:progress="0"
+                android:max="50"/>
+
+            <TextView
+                android:id="@+id/progressBarInitValue"
+                android:layout_width="500dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="10dp"
+                android:textAllCaps="true"
+                android:textColor="@color/white"
+                android:textSize="30sp" />
+
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/latLonViewParam"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="30dp"
+            android:layout_marginBottom="30dp"
+            android:layout_weight="2"
+            android:orientation="horizontal"
+            android:visibility="gone">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="15dp"
+                android:text="@string/paramValue"
+                android:textAllCaps="true"
+                android:textColor="@color/white"
+                android:textSize="30sp" />
+
+            <RadioGroup
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:id="@+id/latLonViewRadioSelect">
+
+                <RadioButton
+                    android:id="@+id/fractionDegrees"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/latLonFraction"
+                    android:onClick="onClickDegreeFraction"
+                    android:textColor="@color/white"/>
+
+                <RadioButton
+                    android:id="@+id/degMinSec"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/latLonDegMinSec"
+                    android:onClick="onClickDegMinSec"
+                    android:textColor="@color/white"/>
+
+            </RadioGroup>
+
+        </LinearLayout>
+
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/view_Params_Button_config"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="right"
+                android:layout_margin="5dp"
+                android:layout_weight="2"
+                android:onClick="onClickViewConfigurationParams"
+                android:text="@string/viewParamsBtn"
+                android:textAllCaps="true"
+                android:textColor="@color/white"
+                android:textSize="30sp" />
+
+            <Button
+                android:id="@+id/confirm_Button_config"
+                android:layout_width="200dp"
+                android:layout_height="wrap_content"
+                android:layout_gravity="right"
+                android:layout_margin="5dp"
+                android:layout_weight="2"
+                android:onClick="onClickConfigurationParamsconfirm"
+                android:text="@string/confirmBtn"
+                android:textAllCaps="true"
+                android:textColor="@color/white"
+                android:textSize="30sp" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+
+
+</LinearLayout>

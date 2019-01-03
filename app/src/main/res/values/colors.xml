@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorPrimary">#3F51B5</color>
+    <color name="colorPrimaryDark">#303F9F</color>
+
+
+    <color name="colorBlue">#42a5f5</color>
+    <!--Dashboard Icons Color -->
+    <color name="backgroundGradStart">#212121</color>
+    <color name="backgroundGradStop">#9E9E9E</color>
+    <color name="backgroundColor">#fcfcfc</color>
+    <color name="deepPurple">#7c4dff</color>
+    <color name="lightGray">#ededed</color>
+    <color name="green">#00bfa5</color>
+    <color name="colorAccent">#FF4081</color>
+    <color name="aqua">#7fffd4</color>
+    <color name="maroon">#b03060</color>
+    <color name="orange">#ffa500</color>
+    <color name="Gray">#fbf7f7</color>
+
+    <!--Login Screen -->
+    <color name="loginGradStart">#19AA8B</color>
+    <color name="loginGradStop">#23A7D8</color>
+    <color name="white">#FFFFFF</color>
+
+    <!--Setup Screen-->
+    <color name="red">#d32f2f</color>
+    <color name="darkBrown">#3e2723</color>
+    <color name="darkBlue">#303F9F</color>
+    <color name="progressBarColor">#6d4c41</color>
+    <color name="setupScreenGradientStart">#90CAF9</color>
+    <color name="setupScreenGradientStop">#E3F2FD</color>
+    <color name="darkGray">#212121</color>
+
+    <!--Validation Dialog Box-->
+    <color name="transparent">#00000000</color>
+    <color name="transparentBlack">#66000000</color>
+    <color name="black">#000000</color>
+
+
+</resources>

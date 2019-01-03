@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:id="@+id/Deployment" android:title="Deployment" android:icon="@drawable/ic_pin_drop_black_24dp"/>
+    <item android:id="@+id/Recovery" android:title="Recovery" android:icon="@drawable/ic_delete_sweep_black_24dp"/>
+    <item android:id="@+id/Redeployment" android:title="Redeployment" android:icon="@drawable/ic_autorenew_black_24dp"/>
+    <item android:id="@+id/Sync" android:title="Synchronization" android:icon="@drawable/ic_lock_outline_black_24dp"/>
+    <item android:id="@+id/Dashboard" android:title="Dashboard" android:icon="@drawable/ic_dashboard_black_24dp"/>
+
+</menu>

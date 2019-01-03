@@ -1,0 +1,60 @@
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="16dp"
+    tools:context=".grid.GridActivity">
+
+    <de.awi.floenavigation.grid.MapView
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        android:id="@+id/GridView"
+        android:padding="@dimen/chart_padding"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:labelSeparation="10dp"
+        app:labelTextSize="14sp"
+        app:labelTextColor="#d000"
+        app:axisThickness="2dp"
+        app:axisColor="#d000"
+        app:gridThickness="1dp"
+        app:gridColor="#2000"
+        app:dataColor="#a6c"
+        app:dataThickness="8dp" />
+
+    <RelativeLayout
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:fab="http://schemas.android.com/apk/res-auto"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        >
+        <com.scalified.fab.ActionButton
+            android:id="@+id/action_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:layout_alignParentRight="true"
+            android:onClick="onClickCenterButton"
+            fab:image="@drawable/ic_my_location_white_24dp"
+            fab:button_color="@color/colorBlue"
+            fab:image_size="35dp"
+            android:layout_marginRight="@dimen/fab_margin"
+            android:layout_marginBottom="@dimen/fab_margin"
+            />
+    </RelativeLayout>
+
+
+    <LinearLayout
+        android:id="@+id/myLayout"
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentTop="true" >
+
+    </LinearLayout>
+
+
+</FrameLayout>
+

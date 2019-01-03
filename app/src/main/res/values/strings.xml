@@ -1,0 +1,173 @@
+<resources>
+    <string name="app_name">FloeNavigation</string>
+
+    <!--Dashboard Buttons Names -->
+    <string name="deploymentButton">Deployment</string>
+    <string name="recoveryButton">Recovery</string>
+    <string name="redeploymentButton">Redeployment</string>
+    <string name="sampleMeasurementButton">Sample/\nMeasurement</string>
+    <string name="waypointButton">Waypoint</string>
+    <string name="gridButton">Grid</string>
+    <string name="adminButton">Administration</string>
+
+    <!--Activity Labels -->
+    <string name="label_activity_admin_user_pwd">Add Admin User</string>
+    <string name="label_activity_sample_measurement">Add Sample/Measurement</string>
+    <string name="label_activity_main_activity">Sea Ice Navigation System</string>
+    <string name="label_activity_grid">Sea Ice Navigation System</string>
+    <string name="label_activity_login_page">Administrator Login</string>
+    <string name="label_activity_admin_page">Administration</string>
+    <string name="label_activity_grid_setup">Coordinate System Setup</string>
+    <string name="label_activity_deployment">Deploy New Station</string>
+    <string name="label_activity_setup">Coordinate System Setup</string>
+    <string name="label_activity_configuration">Parameters Configuration</string>
+    <string name="label_activity_recovery">Recover Station</string>
+    <string name="label_activity_waypoint">Add New Waypoint</string>
+    <string name="label_activity_parameter_view">System Parameters</string>
+    <string name="label_activity_synchronization">Synchronization</string>
+
+    <!--Login Screen -->
+    <string name="login">Login</string>
+    <string name="login_btn">Login</string>
+    <string name="password">Password</string>
+    <string name="username">Username</string>
+
+    <!--Admin Screen-->
+    <string name="grid_initial_configuration">Grid Initial Configuration</string>
+    <string name="synchronization">Synchronization</string>
+    <string name="administrator_privileges">Administrator Privileges</string>
+    <string name="viewParamsBtn">View Parameter List</string>
+    <string name="viewWapointsBtn">View Waypoints List</string>
+    <!--Setup Screens -->
+    <string name="setup">Device Setup</string>
+    <string name="AISstationName">AIS Station Name</string>
+    <string name="confirmBtn">Confirm</string>
+    <string name="mmsi">MMSI</string>
+    <string name="add_point">Add Point</string>
+    <string name="discard_point">Discard Point</string>
+    <string name="waitingMsg" formatted="true">Please wait while the AIS Station with MMSI %1$d is configured. Do not close the App</string>
+    <string name="stationLat">AIS Station Latitude</string>
+    <string name="stationLon">AIS Station Longitude</string>
+    <string name="tabLat">Current Latitude</string>
+    <string name="tabLon">Current Longitude</string>
+    <string name="startSetup">Start Setup</string>
+    <string name="firstStationRcvLat">AIS 1 Received Latitude</string>
+    <string name="firstStationRcvLong">AIS 1 Received Longitude</string>
+    <string name="firstStationPrdLat">AIS 1 Predicted Latitude</string>
+    <string name="firstStationPrdLong">AIS 1 Predicted Longitude</string>
+    <string name="secondStationRcvLat">AIS 2 Received Latitude</string>
+    <string name="secondStationRcvLong">AIS 2 Received Longitude</string>
+    <string name="secondStationPrdLat">AIS 2 Predicted Latitude</string>
+    <string name="secondStationPrdLong">AIS 2 Predicted Longitude</string>
+    <string name="distanceDiff">Difference</string>
+    <string name="predictedBeta">Predicted Beta</string>
+    <string name="calculatedBeta">Beta from Received Lat-Lon</string>
+    <string name="betaDifference">Beta Difference</string>
+    <string name="updateTime">Update Time</string>
+    <string name="setupFinishBtn">Finish Setup</string>
+    <!--  -->
+
+
+    <!--Deployment Screens -->
+    <string name="aisStation">AIS Station</string>
+    <string name="stationType">Station Type</string>
+    <string name="stationName">Station Name</string>
+    <string name="stationMMSI">MMSI</string>
+    <string name="stationConfirmBtn">Confirm</string>
+    <string name="stationFinishBtn">Finish</string>
+    <string name="stationPrompt">Choose Station Type</string>
+    <string name="stationWaitingMsg" formatted="true">Waiting for an AIS Packet with MMSI %1$d. Do not close the App</string>
+    <string name="staticStationWaitingMsg">Inserting new Station. Do not close the App</string>
+    <string name="yesChoice">Yes</string>
+    <string name="noChoice">No</string>
+    <string name="staticStationCurrentLatitude">Current Latitude</string>
+    <string name="staticStationCurrentLongitude">Current Longitude</string>
+
+    <!--Waypoint Screens -->
+    <string name="waypointTabletLat">Current Latitude</string>
+    <string name="waypointTabletLon">Current Longitude</string>
+    <string name="waypointConfirmBtn">Confirm</string>
+    <string name="waypointFinishBtn">Finish</string>
+    <string name="waypointWaitingMsg">Inserting new Waypoint. Do not close the App</string>
+
+    <!--Waypoint Screens -->
+    <string name="validationFailedMsg">Validation Failed for %1$d minutes for %2$s Station</string>
+    <string name="stationRemovedMsg">The Station has been removed</string>
+    <string name="dialogOK">OK</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+
+    <!--Configuration Screens -->
+    <string name="configuration">Configuration</string>
+    <string name="paramName">Parameter</string>
+    <string name="paramNamePrompt">Choose Parameter</string>
+    <string name="paramValue">Value</string>
+    <string name="parametervalue">Parameter Value</string>
+    <string name="parameter_name">Parameter Name</string>
+    <string name="latLonFraction">Degree.xxxx</string>
+    <string name="latLonDegMinSec">Degree° Minute\' Second\'\'</string>
+
+    <!--Synchronization Screens -->
+    <string name="syncActivityStartSync">Start Sync</string>
+    <string name="syncFinish">Finish</string>
+    <string name="syncPull">Start Pull from Server</string>
+    <string name="syncWelcomeMsg">Welcome to FloeNavigation Synchronization Tool.\nPlease make sure that you are connected to the Sync Server network and the Sync Server Parameters are set correctly.\nPlease press Start Sync Button to begin Synchronization.\nPlease remember to Sync all Data from all Tablets before Pulling new Data from the Server </string>
+
+
+
+    <string name="device_name">Device Name</string>
+    <string name="device_id">Device ID</string>
+    <string name="device_full_name">Device Full Name</string>
+    <string name="device_type">Device Type</string>
+
+    <string name="new_username">New UserName</string>
+    <string name="new_password">New Password</string>
+    <string name="operation">Operation</string>
+    <string name="staticstn">STATIC STATION NAME</string>
+
+    <!--Menu Titles -->
+    <string name="latLonChangeFormat"> Change Lat/Lon Format</string>
+    <string name="cancel">Cancel</string>
+    <string name="first_station_message_count">First Station Message Count</string>
+    <string name="second_station_message_count">Second Station Message Count</string>
+    <string name="ok">Ok</string>
+    <string name="next">Next</string>
+    <string name="location_available">Location Available</string>
+
+
+    <string name="label_parameter_view_activity">System Parameters</string>
+    <string name="ais_data_available">AIS Data Available</string>
+    <string name="aisStationCancel">Cancel</string>
+    <string name="waypointLabel">Label</string>
+    <string name="sampleMeasurementLabelId">LabelID</string>
+    <string name="view_deployed_stations">View Deployed Stations</string>
+    <string name="recover">Recover</string>
+    <string name="ais_station_deployment">AIS Station Deployment</string>
+    <string name="menu_item_call">Call</string>
+    <string name="menu_item_text">Chat</string>
+    <string name="menu_item_email">Email</string>
+    <string name="fixed_stations">Fixed Stations</string>
+    <string name="mobile_stations">Mobile Stations</string>
+    <string name="waypoints">Waypoints</string>
+    <string name="static_stations">Static Stations</string>
+    <string name="tablet">Own Position</string>
+    <string name="admin_view_users_btn">View Users</string>
+    <string name="mothership">Mother Ship</string>
+    <string name="grid_setup_complete">Grid Setup Complete</string>
+    <string name="about_us">About Us</string>
+    <string name="about_us_app_name">Sea Ice Navigation System</string>
+    <string name="about_us_version">Sea Ice Navigation System Version 1.0.0</string>
+    <string name="about_us_developed_by">Developed By:</string>
+    <string name="about_us_developer_1">Rintu Daniel</string>
+    <string name="about_us_developer_1_email">danielrintu@gmail.com</string>
+    <string name="about_us_developer_2">Nadeem Gul</string>
+    <string name="about_us_developer_2_email">gul.nadeemm@gmail.com</string>
+    <string name="about_us_developed_for">Developed for: \t\tSea Ice Physics Section, AWI</string>
+    <string name="about_us_built_on">Built on: \t\t\t\tDecember 03, 2018</string>
+    <string name="about_us_android_version">Android: \t\t\t\t6.0.1</string>
+    <string name="about_us_quote">Learning never exhausts the mind. \nLeonardo Da Vinci</string>
+    <string name="sample_measurment_comment">Comment</string>
+
+
+</resources>

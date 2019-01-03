@@ -1,0 +1,222 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_height="match_parent"
+    android:layout_width="match_parent"
+    android:orientation="vertical"
+    tools:context=".initialsetup.CoordinateFragment"
+    android:background="@drawable/background_bg"
+    android:padding="20dp">
+
+
+        <LinearLayout
+            android:id="@+id/waitingView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/waitingMsgID"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:text="@string/waitingMsg"
+                android:textColor="@color/darkBrown"
+                android:textSize="25sp"
+                android:textStyle="bold"
+                android:paddingTop="150dp"/>
+
+            <ProgressBar
+                style="@style/Base.Widget.AppCompat.ProgressBar.Horizontal"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:layout_gravity="center"
+                android:foregroundGravity="center"
+                android:indeterminate="true"
+                android:theme="@style/ProgressBarTheme" />
+
+            <Button
+                android:id="@+id/progressCancelBtn"
+                android:layout_marginTop="320dp"
+                android:layout_marginStart="770dp"
+                android:layout_width="500dp"
+                android:elevation="5dp"
+                android:textStyle="bold"
+                android:layout_height="wrap_content"
+                android:text="@string/cancel"
+                android:background="@color/white"
+                android:textSize="30sp"
+                android:textAllCaps="true"
+                android:enabled="true"
+                android:clickable="true"
+                android:layout_gravity="bottom"
+                android:focusable="true" />
+        </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/coordinateView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:visibility="gone">
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:orientation="horizontal"
+            android:layout_weight="2">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/AISstationName"
+                android:textAllCaps="true"
+                android:textSize="15sp"
+                android:layout_marginEnd="15dp"
+                android:textColor="@color/white"/>
+
+            <EditText
+                android:id="@+id/ais_station"
+                android:layout_width="0dp"
+                android:layout_weight="2"
+                android:layout_height="40sp"
+                android:textSize="15sp"
+                android:textColor="@color/white"
+                android:inputType="none"
+                android:paddingLeft="15dp"
+                android:paddingRight="15dp"
+                android:layout_marginTop="5dp"
+                android:background="@drawable/et_bg"/>
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:orientation="horizontal"
+            android:layout_weight="2">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/stationLat"
+                android:textAllCaps="true"
+                android:textSize="15sp"
+                android:layout_marginEnd="15dp"
+                android:textColor="@color/white"/>
+
+            <EditText
+                android:id="@+id/ais_station_latitude"
+                android:layout_width="0dp"
+                android:layout_weight="2"
+                android:layout_height="40sp"
+                android:textSize="15sp"
+                android:textColor="@color/white"
+                android:inputType="none"
+                android:paddingLeft="15dp"
+                android:paddingRight="15dp"
+                android:layout_marginTop="5dp"
+                android:background="@drawable/et_bg"/>
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:orientation="horizontal"
+            android:layout_weight="2">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/stationLon"
+                android:textAllCaps="true"
+                android:textSize="15sp"
+                android:layout_marginEnd="15dp"
+                android:textColor="@color/white"/>
+
+            <EditText
+                android:id="@+id/ais_station_longitude"
+                android:layout_width="0dp"
+                android:layout_weight="2"
+                android:layout_height="40sp"
+                android:textSize="15sp"
+                android:textColor="@color/white"
+                android:inputType="none"
+                android:paddingLeft="15dp"
+                android:paddingRight="15dp"
+                android:layout_marginTop="5dp"
+                android:background="@drawable/et_bg"/>
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:orientation="horizontal"
+            android:layout_weight="2">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/tabLat"
+                android:textAllCaps="true"
+                android:textSize="15sp"
+                android:layout_marginEnd="15dp"
+                android:textColor="@color/white"/>
+
+            <EditText
+                android:id="@+id/tablet_latitude"
+                android:layout_width="0dp"
+                android:layout_weight="2"
+                android:layout_height="40sp"
+                android:textSize="15sp"
+                android:textColor="@color/white"
+                android:inputType="none"
+                android:paddingLeft="15dp"
+                android:paddingRight="15dp"
+                android:layout_marginTop="5dp"
+                android:background="@drawable/et_bg"/>
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:orientation="horizontal"
+            android:layout_weight="2">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/tabLon"
+                android:textAllCaps="true"
+                android:textSize="15sp"
+                android:layout_marginEnd="15dp"
+                android:textColor="@color/white"/>
+
+            <EditText
+                android:id="@+id/tablet_longitude"
+                android:layout_width="0dp"
+                android:layout_weight="2"
+                android:layout_height="40sp"
+                android:textSize="15sp"
+                android:textColor="@color/white"
+                android:inputType="none"
+                android:paddingLeft="15dp"
+                android:paddingRight="15dp"
+                android:layout_marginTop="5dp"
+                android:background="@drawable/et_bg"/>
+        </LinearLayout>
+
+        <Button
+            android:id="@+id/confirm_Coordinates"
+            android:layout_width="150dp"
+            android:layout_height="wrap_content"
+            android:text="@string/confirmBtn"
+            android:background="@drawable/btn_bg"
+            android:textColor="@color/white"
+            android:layout_gravity="right"
+            android:textSize="15sp"
+            android:clickable="true"
+            android:focusable="true"
+            android:foreground="?android:attr/selectableItemBackground"/>
+
+    </LinearLayout>
+
+</LinearLayout>

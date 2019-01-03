@@ -1,0 +1,186 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="20dp"
+    android:background="@drawable/background_bg"
+    tools:context=".waypoint.WaypointActivity">
+
+
+    <LinearLayout
+        android:id="@+id/waypointWaitingView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="gone"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/waypointWaitingMsg"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:text="@string/waypointWaitingMsg"
+            android:textColor="@color/darkBrown"
+            android:textSize="25sp"
+            android:textStyle="bold"
+            android:paddingTop="150dp"/>
+
+        <ProgressBar
+            android:id="@+id/waypointProgress"
+            style="@style/Base.Widget.AppCompat.ProgressBar.Horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:layout_gravity="center"
+            android:foregroundGravity="center"
+            android:indeterminate="true"
+            android:theme="@style/ProgressBarTheme" />
+
+        <Button
+            android:id="@+id/waypoint_finish"
+            android:layout_width="150dp"
+            android:layout_height="wrap_content"
+            android:text="@string/waypointFinishBtn"
+            android:enabled="false"
+            android:background="@drawable/btn_bg"
+            android:textColor="@color/white"
+            android:layout_gravity="right"
+            android:textSize="15sp"
+            android:clickable="false"
+            android:focusable="true"
+            android:foreground="?android:attr/selectableItemBackground"/>
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/waypointCoordinateView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="120dp"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/waypointLabel"
+                android:textAllCaps="true"
+                android:textSize="20sp"
+                android:layout_marginEnd="15dp"
+                android:textColor="@color/white"/>
+
+            <EditText
+                android:id="@+id/waypointLabelId"
+                android:layout_width="0dp"
+                android:layout_weight="2"
+                android:layout_height="25dp"
+                android:textSize="15sp"
+                android:maxLines="1"
+                android:lines="1"
+                android:inputType="text"
+                android:textColor="@color/white"
+                android:paddingLeft="15dp"
+                android:paddingRight="15dp"
+                android:layout_marginTop="5dp"
+                android:background="@drawable/et_bg"/>
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="120dp"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/waypointTabletLat"
+                android:textAllCaps="true"
+                android:textSize="20sp"
+                android:layout_marginEnd="15dp"
+                android:textColor="@color/white"/>
+
+            <TextView
+                android:id="@+id/waypointTabletLat"
+                android:layout_width="0dp"
+                android:layout_weight="2"
+                android:layout_height="25dp"
+                android:textSize="15sp"
+                android:textColor="@color/white"
+                android:paddingLeft="15dp"
+                android:paddingRight="15dp"
+                android:layout_marginTop="5dp"
+                android:background="@drawable/et_bg"/>
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="120dp"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/waypointTabletLon"
+                android:textAllCaps="true"
+                android:textSize="20sp"
+                android:layout_marginEnd="15dp"
+                android:textColor="@color/white"/>
+
+            <TextView
+                android:id="@+id/waypointTabletLon"
+                android:layout_width="0dp"
+                android:layout_weight="2"
+                android:layout_height="25dp"
+                android:textSize="15sp"
+                android:textColor="@color/white"
+                android:paddingLeft="15dp"
+                android:paddingRight="15dp"
+                android:layout_marginTop="5dp"
+                android:background="@drawable/et_bg"/>
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/view_Params_Button_config"
+                android:layout_width="wrap_content"
+                android:layout_height="50dp"
+                android:layout_gravity="right"
+                android:layout_margin="5dp"
+                android:layout_weight="2"
+                android:onClick="onClickViewWaypoints"
+                android:text="@string/viewWapointsBtn"
+                android:textAllCaps="true"
+                android:textColor="@color/white"
+                android:textSize="15sp" />
+
+            <Button
+                android:id="@+id/waypoint_confirm"
+                android:layout_width="wrap_content"
+                android:layout_height="50dp"
+                android:text="@string/waypointConfirmBtn"
+                android:enabled="true"
+                android:layout_marginStart="10dp"
+                android:textColor="@color/white"
+                android:layout_gravity="right"
+                android:textAllCaps="true"
+                android:clickable="true"
+                android:focusable="true"
+                android:textSize="15sp"
+                android:foreground="?android:attr/selectableItemBackground"/>
+
+        </LinearLayout>
+
+
+
+    </LinearLayout>
+
+</LinearLayout>

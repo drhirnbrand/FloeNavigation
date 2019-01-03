@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <group android:checkableBehavior="all">
+        <item
+            android:id="@+id/empty"
+            android:title="menuItems"
+            android:icon="@drawable/layers_icon"
+            android:orderInCategory="101"
+            app:showAsAction="always">
+            <menu>
+                <item android:id="@+id/FixedStation"
+                    android:titleCondensed="Options"
+                    android:title="@string/fixed_stations"
+                    android:icon="@drawable/fixedstn_icon"
+                    app:showAsAction="always|withText"
+                    android:checkable="true"
+                    android:checked="true">
+                </item>
+                <item android:id="@+id/MobileStation"
+                    android:titleCondensed="Persist"
+                    android:title="@string/mobile_stations"
+                    android:icon="@drawable/mobilestn_icon"
+                    app:showAsAction="always|withText"
+                    android:checkable="true"
+                    android:checked="true">
+                </item>
+                <item android:id="@+id/Waypoint"
+                    android:titleCondensed="Persist"
+                    android:title="@string/waypoints"
+                    android:icon="@drawable/waypoint_icon"
+                    app:showAsAction="always|withText"
+                    android:checkable="true"
+                    android:checked="true">
+                </item>
+                <item android:id="@+id/StaticStation"
+                    android:titleCondensed="Persist"
+                    android:title="@string/static_stations"
+                    android:icon="@drawable/staticstn_icon"
+                    app:showAsAction="always|withText"
+                    android:checkable="true"
+                    android:checked="true">
+                </item>
+                <item android:id="@+id/Tablet"
+                    android:titleCondensed="Persist"
+                    android:title="@string/tablet"
+                    android:icon="@drawable/tablet_icon"
+                    app:showAsAction="always|withText">
+                </item>
+                <item android:id="@+id/MotherShip"
+                    android:titleCondensed="Persist"
+                    android:title="@string/mothership"
+                    android:icon="@drawable/mothership"
+                    app:showAsAction="always|withText">
+                </item>
+
+            </menu>
+        </item>
+    </group>
+</menu>
