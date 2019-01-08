@@ -1437,7 +1437,11 @@ public class MapView extends View{
 
 
     public int getFixedStationSize(){
-        return mFixedStationMMSIs.size();
+        if(mFixedStationMMSIs != null) {
+            return mFixedStationMMSIs.size();
+        } else {
+            return 0;
+        }
     }
 
     public int getFixedStationMMSI(int index){
@@ -1457,7 +1461,11 @@ public class MapView extends View{
     }
 
     public int getMobileStationSize(){
-        return  mMobileStationMMSIs.size();
+        if(mMobileStationMMSIs != null){
+            return  mMobileStationMMSIs.size();
+        } else {
+            return 0;
+        }
     }
 
     public int getMobileStationMMSI(int index){
@@ -1478,7 +1486,13 @@ public class MapView extends View{
     }
 
     public int getStaticStationSize(){
-        return  mStaticStationNames.size();
+
+        if(mStaticStationNames != null) {
+            return mStaticStationNames.size();
+        } else{
+
+            return 0;
+        }
     }
 
     public String getStaticStationName(int index){
@@ -1498,7 +1512,11 @@ public class MapView extends View{
     }
 
     public int getWaypointSize(){
-        return  mWaypointsLabels.size();
+        if(mWaypointsLabels != null) {
+            return mWaypointsLabels.size();
+        } else {
+            return 0;
+        }
     }
 
     public double getWaypointXposition(int index){
