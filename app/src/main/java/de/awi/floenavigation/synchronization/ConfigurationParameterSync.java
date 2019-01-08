@@ -28,36 +28,74 @@ import java.util.HashMap;
 import java.util.Map;
 
 import de.awi.floenavigation.helperclasses.DatabaseHelper;
-
+/**
+ * Synchronizes configuration paramters (internal parameters) in the Local Database with the Server.
+ * Reads all the parameters of {@link DatabaseHelper#configParametersTable} from the Database and stores it in {@link HashMap}s.
+ * Creates {@link StringRequest}s and inserts it into a {@link RequestQueue} to push and pull Data from the Server.
+ * Clears the {@link DatabaseHelper#configParametersTable} table before inserting Data that was pulled from the Server.
+ * <p>
+ * Uses {@link ConfigurationParameter} to create a new Object and insert it into local Database, for configurations parameters that is pulled from the Server.
+ *</p>
+ * @see DatabaseHelper#configParametersTable
+ * @see SyncActivity
+ * @see ConfigurationParameter
+ * @see de.awi.floenavigation.synchronization
+ */
 public class ConfigurationParameterSync {
     private static final String TAG = "ConfigurationParamSync";
     private Context mContext;
 
+    /**
+     * URL to use for Pushing Data to the Server
+     * @see #setBaseUrl(String, String)
+     */
     private String pushURL = "";
+    /**
+     * URL to use for Pulling Data from the Server
+     * @see #setBaseUrl(String, String)
+     */
     private String pullURL = "";
 
     private SQLiteDatabase db;
     private DatabaseHelper dbHelper;
     private StringRequest request;
 
+    /**
+     * Stores {@link ConfigurationParameter#parameterName} values in HashMaps
+     */
     private HashMap<Integer, String> configParameterName = new HashMap<>();
+    /**
+     * Stores {@link ConfigurationParameter#parameterValue} values in HashMaps
+     */
     private HashMap<Integer, String> configParameterValue = new HashMap<>();
-
+    /**
+     * Cursor used to loop through the database entries
+     */
     private Cursor configParameterCursor;
     private ConfigurationParameter configurationParameter;
     private ArrayList<ConfigurationParameter> configParamArrayList = new ArrayList<>();
     private RequestQueue requestQueue;
     private XmlPullParser parser;
-
+    /**
+     * <code>true</code> if all config parameters are pulled from the server and inserted into the local Database
+     * Default value is <code>false</code> which is initialized in the constructor
+     */
     private boolean dataPullCompleted;
-
+    /**
+     * Default Constructor.
+     * @param context Used to create a {@link DatabaseHelper} object.
+     */
     ConfigurationParameterSync(Context context, RequestQueue requestQueue, XmlPullParser xmlPullParser){
         this.mContext = context;
         this.requestQueue = requestQueue;
         this.parser = xmlPullParser;
         dataPullCompleted = false;
     }
-
+    /**
+     * Reads the {@value DatabaseHelper#configParametersTable} Table and inserts the data from all the Columns of the
+     * {@value DatabaseHelper#configParametersTable} Table in to their respective {@link HashMap}.
+     * @throws SQLiteException In case of error in reading database
+     */
     public void onClickParameterReadButton(){
         try{
             int i = 0;
@@ -84,6 +122,12 @@ public class ConfigurationParameterSync {
         }
     }
 
+    /**
+     * Creates {@link StringRequest}s as per the size of {@link #configParameterName} data extracted from the local database and inserts all the requests in the {@link RequestQueue}
+     * A Stringrequest {@link #request} for pushing the data is registered and added to the {@link #requestQueue}.
+     * callback function {@link Response.Listener#onResponse(Object)} notifies whether the request was successful or not
+     * If it is unsuccessful or the connection is not established {@link Response.Listener#error(VolleyError)} gets called
+     */
     public void onClickParameterSyncButton() {
         for (int i = 0; i < configParameterName.size(); i++) {
             final int index = i;
@@ -130,6 +174,21 @@ public class ConfigurationParameterSync {
         }
     }
 
+    /**
+     * Function is used to pull data from internal database to the server
+     * A Stringrequest {@link #request} for pulling the data is registered and added to the {@link #requestQueue}.
+     * callback function {@link Response.Listener#onResponse(Object)} notifies whether the request was successful or not
+     * If it is unsuccessful or the connection is not established {@link Response.Listener#error(VolleyError)} gets called
+     * On pulling the data from the server internal database tables {@link DatabaseHelper#configParametersTable} are cleared.
+     *
+     * <p>
+     * The server sends the data in .xml format, therefore it has to extract the data based on the tags
+     * Inside {@link Response.Listener#onResponse(Object)} it loops through the entire xml file till it reaches the end of document.
+     * Based on the {@link XmlPullParser#START_TAG}, {@link XmlPullParser#TEXT}, {@link XmlPullParser#END_TAG} it adds the values received to
+     * the corresponding {@link ConfigurationParameter#setParameterName(String)}, {@link ConfigurationParameter#setParameterValue(String)}
+     * Each {@link #configurationParameter} is added to the {@link #configParamArrayList} which is individually taken and added to the internal database.
+     * </p>
+     */
     public void onClickParameterPullButton(long baseStations){
         dbHelper = DatabaseHelper.getDbInstance(mContext);
         db = dbHelper.getReadableDatabase();
@@ -198,6 +257,11 @@ public class ConfigurationParameterSync {
 
     }
 
+    /**
+     * Used to initialize {@link #pushURL} and {@link #pullURL}
+     * @param baseUrl Url set by the administrator, which is stored in the local database
+     * @param port port number set by the administrator, which is stored in the local database (default value is 80)
+     */
     public void setBaseUrl(String baseUrl, String port){
         pushURL = "http://" + baseUrl + ":" + port + "/ConfigurationParameter/pullParameter.php";
         pullURL = "http://" + baseUrl + ":" + port + "/ConfigurationParameter/pushParameter.php";
@@ -209,17 +273,38 @@ public class ConfigurationParameterSync {
     }
 }
 
+/**
+ * Creates a ConfigurationParameter object with getters and setters for all the parameters of a {@link DatabaseHelper#configParametersTable} in Database.
+ * Used by {@link ConfigurationParameterSync} to create a new ConfigurationParameter Object to be inserted into the Database.
+ *
+ * @see SyncActivity
+ * @see ConfigurationParameterSync
+ * @see de.awi.floenavigation.synchronization
+ */
 class ConfigurationParameter{
 
     private static final String TAG = "ConfigurationParameter";
 
     private DatabaseHelper dbHelper;
     private SQLiteDatabase db;
+    /**
+     * Parameter name retrieved or to be inserted into database
+     */
     private String parameterName;
+    /**
+     * Corresponding parameter value for the parameter name retrieved or to be inserted into database
+     */
     private String parameterValue;
     private Context appContext;
+    /**
+     * Local variable. {@link ContentValues} object which will be inserted into the {@link DatabaseHelper#configParametersTable}.
+     */
     ContentValues parameter;
 
+    /**
+     * Default Constructor.
+     * @param context Used to create a {@link DatabaseHelper} object.
+     */
     public ConfigurationParameter(Context context){
         appContext = context;
         try {
@@ -231,12 +316,18 @@ class ConfigurationParameter{
         }
     }
 
+    /**
+     * Inserts the values of the config parameters into {@link #parameter}
+     */
     private void generateContentValues(){
         parameter = new ContentValues();
         parameter.put(DatabaseHelper.parameterName, this.parameterName);
         parameter.put(DatabaseHelper.parameterValue, this.parameterValue);
     }
 
+    /**
+     * Inserts the config parameters {@link #parameter} created from pulling Data from the Server into the local Database.
+     */
     public void insertParameterInDB(){
         generateContentValues();
         int result = db.update(DatabaseHelper.configParametersTable, parameter, DatabaseHelper.parameterName + " = ?", new String[] {this.parameterName});
@@ -248,17 +339,34 @@ class ConfigurationParameter{
         }
     }
 
+    /**
+     * Get the parameter name
+     * @return {@link #parameterName}
+     */
     public String getParameterName() {
         return parameterName;
     }
 
+    /**
+     * Set the parameter name
+     * @param name
+     */
     public void setParameterName(String name) {
         this.parameterName = name;
     }
+
+    /**
+     * Get the parameter value
+     * @return {@link #parameterValue}
+     */
     public String getParameterValue() {
         return parameterValue;
     }
 
+    /**
+     * Set the parameter value
+     * @param value
+     */
     public void setParameterValue(String value) {
         this.parameterValue = value;
     }
