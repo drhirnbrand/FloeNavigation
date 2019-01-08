@@ -381,6 +381,10 @@ class BaseStation{
     ContentValues baseStation;
     private String stationName;
 
+    /**
+     * Default Constructor.
+     * @param context Used to create a {@link DatabaseHelper} object.
+     */
     public BaseStation(Context context){
             appContext = context;
             try {
@@ -392,6 +396,9 @@ class BaseStation{
             }
     }
 
+    /**
+     * Inserts the values of the base station parameters into {@link #baseStation}
+     */
     private void generateContentValues(){
         baseStation = new ContentValues();
         baseStation.put(DatabaseHelper.stationName, this.stationName);
@@ -399,6 +406,9 @@ class BaseStation{
         baseStation.put(DatabaseHelper.mmsi, this.mmsi);
     }
 
+    /**
+     * Inserts the base station {@link #baseStation} created from pulling Data from the Server into the local Database.
+     */
     public void insertBaseStationInDB(){
         generateContentValues();
         int result = db.update(DatabaseHelper.baseStationTable, baseStation, DatabaseHelper.mmsi + " = ?", new String[] {String.valueOf(mmsi)});
@@ -410,25 +420,50 @@ class BaseStation{
         }
     }
 
+    /**
+     * Get the isOrigin value
+     * @return {@link #isOrigin}
+     */
     public int getIsOrigin() {
         return isOrigin;
     }
 
+    /**
+     * Set the isOrigin value
+     * @param origin
+     */
     public void setOrigin(int origin) {
         this.isOrigin = origin;
     }
+
+    /**
+     * Get the station name
+     * @return {@link #stationName}
+     */
     public String getStationName() {
         return stationName;
     }
 
+    /**
+     * Set the station name
+     * @param stationName
+     */
     public void setStationName(String stationName) {
         this.stationName = stationName;
     }
 
+    /**
+     * Get the mmsi value
+     * @return {@link #mmsi}
+     */
     public int getMmsi() {
         return mmsi;
     }
 
+    /**
+     * Set the mmsi value
+     * @param mmsi
+     */
     public void setMmsi(int mmsi) {
         this.mmsi = mmsi;
     }

@@ -32,7 +32,7 @@ import de.awi.floenavigation.helperclasses.DatabaseHelper;
 
 /**
  * Synchronizes beta value in the Local Database with the Server.
- * Reads all the parameters of {@link Beta} from the Database and stores it in {@link HashMap}s.
+ * Reads all the parameters of {@link DatabaseHelper#betaTable} from the Database and stores it in {@link HashMap}s.
  * Creates {@link StringRequest}s and inserts it in to a {@link RequestQueue} to push and pull Data from the Server.
  * Clears the Beta table before inserting Data that was pulled from the Server.
  * <p>
@@ -72,6 +72,9 @@ public class BetaSync {
      */
     private HashMap<Integer, String> updateTimeData = new HashMap<>();
 
+    /**
+     * Cursor used to loop through the database entries
+     */
     private Cursor betaCursor;
     private Beta beta;
     private ArrayList<Beta> betaList = new ArrayList<>();
@@ -79,7 +82,7 @@ public class BetaSync {
     private XmlPullParser parser;
 
     /**
-     * <code>true</code> if all Beta parameters are pulled from the server and inserted in to the local Database
+     * <code>true</code> if all Beta parameters are pulled from the server and inserted into the local Database
      * Default value is <code>false</code> which is initialized in the constructor
      */
     private boolean dataPullCompleted;
@@ -98,7 +101,9 @@ public class BetaSync {
     /**
      * Reads the {@value DatabaseHelper#betaTable} Table and inserts the data from all the Columns of the
      * {@value DatabaseHelper#betaTable} Table in to their respective {@link HashMap}.
-     *
+     * @see #betaData
+     * @see #updateTimeData
+     * @see #betaCursor
      */
     public void onClickBetaReadButton(){
         try{
@@ -273,9 +278,10 @@ public class BetaSync {
         return dataPullCompleted;
     }
 }
+
 /**
  * Creates a Beta object with getters and setters for all the parameters of a Beta Table in Database.
- * Used by {@link BetaSync} to create a new Beta Object to be inserted in to the Database.
+ * Used by {@link BetaSync} to create a new Beta Object to be inserted into the Database.
  *
  * @see SyncActivity
  * @see BetaSync
@@ -297,7 +303,7 @@ class Beta{
     private String updateTime;
     private Context appContext;
     /**
-     * Local variable. {@link ContentValues} object which will be inserted in to the Beta Table.
+     * Local variable. {@link ContentValues} object which will be inserted into the Beta Table.
      */
     ContentValues betaValue;
 
@@ -317,7 +323,7 @@ class Beta{
     }
 
     /**
-     * Inserts the values of the Static Station in to {@link #betaValue}
+     * Inserts the values of the Beta parameters into {@link #betaValue}
      */
     private void generateContentValues(){
         betaValue = new ContentValues();
@@ -326,7 +332,7 @@ class Beta{
     }
 
     /**
-     * Inserts the Beta created from pulling Data from the Server in to the local Database.
+     * Inserts the Beta created from pulling Data from the Server into the local Database.
      */
     public void insertBetaInDB(){
         generateContentValues();
@@ -351,7 +357,6 @@ class Beta{
      * Set the Beta value
      * @param beta
      */
-
     public void setBeta(double beta) {
         this.beta = beta;
     }

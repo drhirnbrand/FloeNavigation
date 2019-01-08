@@ -8,6 +8,14 @@ import android.util.Log;
 
 import de.awi.floenavigation.helperclasses.DatabaseHelper;
 
+/**
+ * Creates a Fixed station object with getters and setters for all the parameters of a {@link DatabaseHelper#fixedStationTable} Table in Database.
+ * Used by {@link FixedStationSync} to create a new Fixed Station Object to be inserted into the Database.
+ *
+ * @see SyncActivity
+ * @see FixedStationSync
+ * @see de.awi.floenavigation.synchronization
+ */
 public class FixedStation {
 
     private static final String TAG = "FIXED_STATION";
@@ -37,6 +45,10 @@ public class FixedStation {
 
     private ContentValues fixedStnContent;
 
+    /**
+     * Default Constructor.
+     * @param context Used to create a {@link DatabaseHelper} object.
+     */
     public FixedStation(Context context){
         appContext = context;
         try {
@@ -48,6 +60,9 @@ public class FixedStation {
         }
     }
 
+    /**
+     * Inserts the values of the fixed station parameters into {@link #fixedStnContent}
+     */
     private void generateContentValues(){
         fixedStnContent = new ContentValues();
         fixedStnContent.put(DatabaseHelper.stationName, this.stationName);
@@ -70,6 +85,9 @@ public class FixedStation {
         fixedStnContent.put(DatabaseHelper.mmsi, this.mmsi);
     }
 
+    /**
+     * Inserts the fixed station created from pulling Data from the Server into the local Database.
+     */
     public void insertFixedStationInDB(){
         generateContentValues();
         int result = db.update(DatabaseHelper.fixedStationTable, fixedStnContent, DatabaseHelper.mmsi + " = ?", new String[] {String.valueOf(mmsi)});
