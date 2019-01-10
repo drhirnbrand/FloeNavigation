@@ -248,7 +248,8 @@ public class FixedStationSync {
      * A Stringrequest {@link #request} for pulling the data is registered and added to the {@link #requestQueue}.
      * callback function {@link Response.Listener#onResponse(Object)} notifies whether the request was successful or not
      * If it is unsuccessful or the connection is not established {@link Response.Listener#error(VolleyError)} gets called
-     * On pulling the data from the server internal database tables {@link DatabaseHelper#configParametersTable} are cleared.
+     * On pulling the data from the server internal database tables {@link DatabaseHelper#fixedStationTable} and
+     * {@link DatabaseHelper#fixedStationDeletedTable} are cleared.
      *
      * <p>
      * The server sends the data in .xml format, therefore it has to extract the data based on the tags
