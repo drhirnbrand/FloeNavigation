@@ -28,11 +28,34 @@ import java.util.Map;
 
 import de.awi.floenavigation.helperclasses.DatabaseHelper;
 
+/**
+ * Pushes sample and measurement table parameters in the Local Database to the Server.
+ * Reads all the parameters of {@link DatabaseHelper#sampleMeasurementTable} from the Database and stores it in {@link HashMap}s.
+ * Creates {@link StringRequest}s and inserts it in to a {@link RequestQueue} to push and pull Data from the Server.
+ *
+ * <p>
+ * During the pull operation the implementation is such that it clears the sample and measurement table and pulls only the device list which is
+ * required for taking sample and measurement readings.
+ * Uses {@link DeviceList} to create a new Object and insert into local Database, the parameters that is pulled from the Server.
+ *</p>
+ * @see DatabaseHelper#sampleMeasurementTable
+ * @see SyncActivity
+ * @see DeviceList
+ * @see de.awi.floenavigation.synchronization
+ */
 public class SampleMeasurementSync {
     private static final String TAG = "ConfigurationParamSync";
     private Context mContext;
 
+    /**
+     * URL to use for Pushing Data to the Server
+     * @see #setBaseUrl(String, String)
+     */
     private String pushURL = "";
+    /**
+     * URL to use for Pulling Data from the Server
+     * @see #setBaseUrl(String, String)
+     */
     private String pullDeviceListURL = "";
 
 
@@ -40,6 +63,9 @@ public class SampleMeasurementSync {
     private DatabaseHelper dbHelper;
     private StringRequest request;
 
+    /**
+     * Hashtables for storing different parameters of {@link DatabaseHelper#sampleMeasurementTable}
+     */
     private HashMap<Integer, String> deviceIDData = new HashMap<>();
     private HashMap<Integer, String> deviceNameData = new HashMap<>();
     private HashMap<Integer, String> deviceShortNameData = new HashMap<>();
@@ -62,6 +88,10 @@ public class SampleMeasurementSync {
     private RequestQueue requestQueue;
     private XmlPullParser parser;
 
+    /**
+     * <code>true</code> if all fixed station parameters are pulled from the server and inserted into the local Database
+     * Default value is <code>false</code> which is initialized in the constructor
+     */
     private boolean dataPullCompleted;
 
     SampleMeasurementSync(Context context, RequestQueue requestQueue, XmlPullParser xmlPullParser){
@@ -71,6 +101,12 @@ public class SampleMeasurementSync {
         dataPullCompleted = false;
     }
 
+    /**
+     * Reads the {@value DatabaseHelper#sampleMeasurementTable} Table and inserts the data from all the Columns of the
+     * {@value DatabaseHelper#sampleMeasurementTable} Table in to their respective {@link HashMap}.
+     * @throws SQLiteException In case of error in reading database
+     * @see #sampleCursor
+     */
     public void onClickSampleReadButton(){
         try{
             int i = 0;
@@ -109,6 +145,12 @@ public class SampleMeasurementSync {
         }
     }
 
+    /**
+     * Creates {@link StringRequest}s as per the size of {@link #labelIDData} data extracted from the local database and inserts all the requests in the {@link RequestQueue}
+     * A Stringrequest {@link #request} for pushing the data is registered and added to the {@link #requestQueue}.
+     * callback function {@link Response.Listener#onResponse(Object)} notifies whether the request was successful or not
+     * If it is unsuccessful or the connection is not established {@link Response.Listener#error(VolleyError)} gets called
+     */
     public void onClickSampleSyncButton() {
         for (int i = 0; i < labelIDData.size(); i++) {
             final int index = i;
@@ -171,6 +213,21 @@ public class SampleMeasurementSync {
         return stationTime.toString();
     }
 
+    /**
+     * Function is used to pull data from internal database to the server
+     * A Stringrequest {@link #request} for pulling the data is registered and added to the {@link #requestQueue}.
+     * callback function {@link Response.Listener#onResponse(Object)} notifies whether the request was successful or not
+     * If it is unsuccessful or the connection is not established {@link Response.Listener#error(VolleyError)} gets called
+     * On pulling the data from the server internal database tables {@link DatabaseHelper#deviceListTable} are cleared.
+     *
+     * <p>
+     * The server sends the data in .xml format, therefore it has to extract the data based on the tags
+     * Inside {@link Response.Listener#onResponse(Object)} it loops through the entire xml file till it reaches the end of document.
+     * Based on the {@link XmlPullParser#START_TAG}, {@link XmlPullParser#TEXT}, {@link XmlPullParser#END_TAG} it adds the values received to
+     * the corresponding columns of the {@link DatabaseHelper#deviceListTable}
+     * Each {@link #deviceList} is added to the {@link #devicesArrayList} which is individually taken and added to the internal database.
+     * </p>
+     */
     public void onClickDeviceListPullButton(){
         dbHelper = DatabaseHelper.getDbInstance(mContext);
         db = dbHelper.getReadableDatabase();
@@ -250,6 +307,11 @@ public class SampleMeasurementSync {
         return dataPullCompleted;
     }
 
+    /**
+     * Used to initialize {@link #pushURL} and {@link #pullDeviceListURL}
+     * @param baseUrl Url set by the administrator, which is stored in the local database
+     * @param port port number set by the administrator, which is stored in the local database (default value is 80)
+     */
     public void setBaseUrl(String baseUrl, String port){
         pushURL = "http://" + baseUrl + ":" + port + "/SampleMeasurement/pullSamples.php";
         pullDeviceListURL = "http://" + baseUrl + ":" + port + "/SampleMeasurement/pushDevices.php";
