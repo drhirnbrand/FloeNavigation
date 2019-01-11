@@ -34,7 +34,7 @@ public class ValidationService extends IntentService {
     private static final int MAX_NUM_OF_VALID_PACKETS = 3;
     private final Handler mValidationHandler;
     private static final String TAG = "Validation Service: ";
-    private static final int VALIDATION_TIME = 3 * 60 * 1000;
+    private static final int VALIDATION_TIME = 1 * 60 * 1000;
     private int[] baseStnMMSI = new int[DatabaseHelper.INITIALIZATION_SIZE];
     public static int ERROR_THRESHOLD_VALUE;
     public static int PREDICTION_ACCURACY_THRESHOLD_VALUE;
@@ -124,6 +124,7 @@ public class ValidationService extends IntentService {
                                     //stationName = mFixedStnCursor.getString(mFixedStnCursor.getColumnIndex(DatabaseHelper.stationName));
                                     updateTime = mFixedStnCursor.getDouble(mFixedStnCursor.getColumnIndex(DatabaseHelper.updateTime));
                                     if (predictionAccuracy > PREDICTION_ACCURACY_THRESHOLD_VALUE / VALIDATION_TIME){
+                                        Log.d(TAG, "Packets = " + stationMessageCount);
 
                                         if (stationMessageCount > MAX_NUM_OF_VALID_PACKETS) {
                                             stationMessageCount = 0;
@@ -147,6 +148,8 @@ public class ValidationService extends IntentService {
 
                                     }else {
                                         evaluationDifference = NavigationFunctions.calculateDifference(fixedStnLatitude, fixedStnLongitude, fixedStnrecvdLatitude, fixedStnrecvdLongitude);
+                                        Log.d(TAG, "Coordinates: " + fixedStnLatitude + ", " + fixedStnLongitude);
+                                        Log.d(TAG, "Received Coordinate: " + fixedStnrecvdLatitude + ", " + fixedStnrecvdLongitude);
                                         Log.d(TAG, "EvalDiff: " + String.valueOf(evaluationDifference) + " predictionAccInDb: " + predictionAccuracy);
                                         if (evaluationDifference > ERROR_THRESHOLD_VALUE) {
                                             getMessageCount(db, updateTime);
@@ -214,6 +217,7 @@ public class ValidationService extends IntentService {
         Intent dialogIntent = new Intent(this, DialogActivity.class);
         dialogIntent.putExtra(DialogActivity.DIALOG_TITLE, title);
         dialogIntent.putExtra(DialogActivity.DIALOG_MSG, popupMsg);
+        dialogIntent.putExtra(DialogActivity.DIALOG_VALIDATION, true);
         dialogIntent.putExtra(DialogActivity.DIALOG_OPTIONS, false);
         dialogIntent.putExtra(DialogActivity.DIALOG_ABOUTUS, false);
         dialogIntent.putExtra(DialogActivity.DIALOG_TABLETID, false);

@@ -148,8 +148,8 @@ public class AISDecodingService extends IntentService {
                 decodedValues.put(DatabaseHelper.isLocationReceived, 1);
                 decodedValues.put(DatabaseHelper.packetType, packetType);
                 if ((msgType != STATIC_VOYAGE_DATA_CLASSB) && (msgType != STATIC_DATA_CLASSA)) {
-                    decodedValues.put(DatabaseHelper.latitude, recvdLat);
-                    decodedValues.put(DatabaseHelper.longitude, recvdLon);
+                    //decodedValues.put(DatabaseHelper.latitude, recvdLat);
+                    //decodedValues.put(DatabaseHelper.longitude, recvdLon);
                     decodedValues.put(DatabaseHelper.recvdLatitude, recvdLat);
                     decodedValues.put(DatabaseHelper.recvdLongitude, recvdLon);
                     decodedValues.put(DatabaseHelper.sog, recvdSpeed);

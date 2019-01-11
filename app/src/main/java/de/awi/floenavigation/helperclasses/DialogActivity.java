@@ -42,6 +42,7 @@ public class DialogActivity extends Activity {
     private boolean showDialogOptions = false;
     private boolean tabletIdDialog = false;
     private boolean aboutUsDialog = false;
+    private boolean validationDialog = false;
     //public static boolean servicesStarted = true;
     public static final String DIALOG_BUNDLE = "dialogBundle";
     public static final String DIALOG_TITLE = "title";
@@ -52,6 +53,7 @@ public class DialogActivity extends Activity {
     private static final String TAG = "DialogActivity";
     public static final String DIALOG_TABLETID = "tabletIdDialog";
     public static final String DIALOG_ABOUTUS = "aboutUsDialog";
+    public static final String DIALOG_VALIDATION = "validationDialog";
     private String tabletId;
     private AlertDialog alertDialog;
     private double receivedBeta = 0.0;
@@ -97,6 +99,9 @@ public class DialogActivity extends Activity {
         if(callingIntent.getExtras().containsKey(DIALOG_TABLETID)){
             tabletIdDialog = callingIntent.getExtras().getBoolean(DIALOG_TABLETID);
         }
+        if(callingIntent.getExtras().containsKey(DIALOG_VALIDATION)){
+            validationDialog = callingIntent.getExtras().getBoolean(DIALOG_VALIDATION);
+        }
 
         final AlertDialog.Builder alertBuilder = new AlertDialog.Builder(this);
 
@@ -123,6 +128,23 @@ public class DialogActivity extends Activity {
             aboutUs.setCanceledOnTouchOutside(true);
 
             aboutUs.show();
+
+        } else if(validationDialog) {
+            alertBuilder.setIcon(dialogIcon);
+            alertBuilder.setIcon(dialogIcon);
+            alertBuilder.setTitle(dialogTitle);
+            alertBuilder.setMessage(dialogMsg);
+            alertDialog = alertBuilder.create();
+            alertDialog.setCancelable(true);
+            alertDialog.setOnCancelListener(new DialogInterface.OnCancelListener() {
+                @Override
+                public void onCancel(DialogInterface dialog) {
+                    Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+                    startActivity(intent);
+                }
+            });
+            alertDialog.setCanceledOnTouchOutside(true);
+            alertDialog.show();
 
         } else {
 
