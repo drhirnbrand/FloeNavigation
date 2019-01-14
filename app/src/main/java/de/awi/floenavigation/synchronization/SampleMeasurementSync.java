@@ -232,6 +232,7 @@ public class SampleMeasurementSync {
         dbHelper = DatabaseHelper.getDbInstance(mContext);
         db = dbHelper.getReadableDatabase();
         db.execSQL("Delete from " + DatabaseHelper.deviceListTable);
+        db.execSQL("Delete from " + DatabaseHelper.sampleMeasurementTable);
         StringRequest pullRequest = new StringRequest(pullDeviceListURL, new Response.Listener<String>() {
             @Override
             public void onResponse(String response) {

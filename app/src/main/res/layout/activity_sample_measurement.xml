@@ -275,10 +275,23 @@
         android:orientation="horizontal">
 
         <Button
+            android:id="@+id/viewSampleButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="right"
+            android:text="@string/view_samples_btn"
+            android:textAllCaps="true"
+            android:layout_margin="5dp"
+            android:onClick="OnClickViewSamples"
+            android:textColor="@color/white"
+            android:textSize="30sp" />
+
+        <Button
             android:id="@+id/confirmButton"
             android:layout_width="200dp"
             android:layout_height="wrap_content"
             android:layout_gravity="right"
+            android:layout_marginStart="10dp"
             android:text="@string/confirmBtn"
             android:textAllCaps="true"
             android:textColor="@color/white"

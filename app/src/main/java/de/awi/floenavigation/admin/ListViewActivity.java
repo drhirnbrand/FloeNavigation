@@ -28,11 +28,16 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.TimeZone;
 
 import de.awi.floenavigation.helperclasses.ActionBarActivity;
 import de.awi.floenavigation.helperclasses.DatabaseHelper;
 import de.awi.floenavigation.R;
+import de.awi.floenavigation.sample_measurement.SampleMeasurementActivity;
 import de.awi.floenavigation.waypoint.WaypointActivity;
 
 public class ListViewActivity extends ActionBarActivity {
@@ -119,6 +124,11 @@ public class ListViewActivity extends ActionBarActivity {
             case "UsersPwdActivity":
                 isRemoved = deleteEntryfromUsersTableinDB(parameterObjects.get(position).getUserName());
                 break;
+
+            case "SampleMeasurementActivity":
+                isRemoved = false;
+                Toast.makeText(getApplicationContext(), "Cannot Delete Samples", Toast.LENGTH_SHORT).show();
+                break;
         }
 
         if (isRemoved) {
@@ -153,6 +163,11 @@ public class ListViewActivity extends ActionBarActivity {
                 case "UsersPwdActivity":
                     mAdapter = new ListViewAdapter(this, generateDataUsersTable());
                     intentOnExit = new Intent(getApplicationContext(), AdminUserPwdActivity.class);
+                    break;
+
+                case "SampleMeasurementActivity":
+                    mAdapter = new ListViewAdapter(this, generateDataFromSamplesTable());
+                    intentOnExit = new Intent(getApplicationContext(), SampleMeasurementActivity.class);
                     break;
             }
         }
@@ -419,6 +434,46 @@ public class ListViewActivity extends ActionBarActivity {
                 Log.d(TAG, "Error reading from waypointstable stn table");
             }
             waypointsCursor.close();
+        } catch (SQLException e){
+            Log.d(TAG, "Error Reading from Database");
+        }
+        return parameterObjects;
+        //arrayAdapter.notifyDataSetChanged();
+
+    }
+
+    private ArrayList<ParameterListObject> generateDataFromSamplesTable(){
+        String displayTime = "";
+        try{
+            SQLiteOpenHelper dbHelper = DatabaseHelper.getDbInstance(this);
+            SQLiteDatabase db = dbHelper.getReadableDatabase();
+            Cursor samplesCursor = db.query(DatabaseHelper.sampleMeasurementTable,
+                    new String[] {DatabaseHelper.labelID, DatabaseHelper.updateTime, DatabaseHelper.xPosition, DatabaseHelper.yPosition},
+                    null,
+                    null,
+                    null, null, null);
+            if (samplesCursor.moveToFirst()) {
+                do {
+                    String labelID = samplesCursor.getString(samplesCursor.getColumnIndex(DatabaseHelper.labelID));
+                    String time = samplesCursor.getString(samplesCursor.getColumnIndexOrThrow(DatabaseHelper.updateTime));
+                    double xPosition = samplesCursor.getDouble(samplesCursor.getColumnIndex(DatabaseHelper.xPosition));
+                    double yPosition = samplesCursor.getDouble(samplesCursor.getColumnIndex(DatabaseHelper.yPosition));
+                    SimpleDateFormat displayFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+                    SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd'D'HHmmss");
+                    displayFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+                    try {
+                        displayTime = displayFormat.format(sdf.parse(time));
+                    } catch (ParseException e){
+                        displayTime = time;
+                        Log.d(TAG, "Could not Parse the Date");
+                    }
+                    parameterObjects.add(new ParameterListObject(labelID + " \t" + displayTime, xPosition, yPosition));
+
+                } while (samplesCursor.moveToNext());
+            }else {
+                Log.d(TAG, "Error reading from waypointstable stn table");
+            }
+            samplesCursor.close();
         } catch (SQLException e){
             Log.d(TAG, "Error Reading from Database");
         }

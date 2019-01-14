@@ -168,6 +168,7 @@
     <string name="about_us_android_version">Android: \t\t\t\t6.0.1</string>
     <string name="about_us_quote">Learning never exhausts the mind. \nLeonardo Da Vinci</string>
     <string name="sample_measurment_comment">Comment</string>
+    <string name="view_samples_btn">View Samples</string>
 
 
 </resources>

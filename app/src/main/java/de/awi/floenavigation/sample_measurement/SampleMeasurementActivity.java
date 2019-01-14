@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.database.Cursor;
+import android.database.DatabaseUtils;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteOpenHelper;
@@ -36,6 +37,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.TimeZone;
 
+import de.awi.floenavigation.admin.ListViewActivity;
 import de.awi.floenavigation.helperclasses.ActionBarActivity;
 import de.awi.floenavigation.helperclasses.DatabaseHelper;
 import de.awi.floenavigation.services.GPS_Service;
@@ -265,6 +267,24 @@ public class SampleMeasurementActivity extends Activity {
         }
     }
 
+    public void OnClickViewSamples(View view) {
+        try{
+            DatabaseHelper dbHelper = DatabaseHelper.getDbInstance(this);
+            SQLiteDatabase db = dbHelper.getReadableDatabase();
+            long numOfSamples = DatabaseUtils.queryNumEntries(db, DatabaseHelper.sampleMeasurementTable);
+
+            if(numOfSamples > 0){
+                Intent listViewIntent = new Intent(this, ListViewActivity.class);
+                listViewIntent.putExtra("GenerateDataOption", "SampleMeasurementActivity");
+                startActivity(listViewIntent);
+            } else{
+                Toast.makeText(this, "No samples have been recorded since the last Sync", Toast.LENGTH_SHORT).show();
+            }
+        } catch (SQLiteException e){
+            Log.d(TAG, "Error Reading from Database");
+            e.printStackTrace();
+        }
+    }
 
     private void populateTabLocation(){
 
@@ -434,5 +454,6 @@ public class SampleMeasurementActivity extends Activity {
             return false;
         }
     }
+
 
 }

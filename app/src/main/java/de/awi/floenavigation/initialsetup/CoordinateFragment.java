@@ -205,16 +205,16 @@ public class CoordinateFragment extends Fragment implements View.OnClickListener
             countAIS = DatabaseUtils.queryNumEntries(db, DatabaseHelper.stationListTable);
             Log.d(TAG, "countAIS:" + String.valueOf(countAIS));
             Cursor cursor = db.query(DatabaseHelper.fixedStationTable,
-                    new String[]{DatabaseHelper.stationName, DatabaseHelper.latitude, DatabaseHelper.longitude, DatabaseHelper.isLocationReceived},
+                    new String[]{DatabaseHelper.stationName, DatabaseHelper.recvdLatitude, DatabaseHelper.recvdLongitude, DatabaseHelper.isLocationReceived},
                     DatabaseHelper.mmsi + " = ? AND (" + DatabaseHelper.packetType + " = ? OR " + DatabaseHelper.packetType + " = ? )",
                     new String[] {Integer.toString(MMSINumber), Integer.toString(AISDecodingService.POSITION_REPORT_CLASSA_TYPE_1), Integer.toString(AISDecodingService.POSITION_REPORT_CLASSB)},
                     null, null, null);
             if(cursor.moveToFirst()){
                 //stationName = cursor.getString(cursor.getColumnIndexOrThrow(DatabaseHelper.stationName));
                 //index = cursor.getColumnIndexOrThrow(DatabaseHelper.latitude);
-                latitude = cursor.getDouble(cursor.getColumnIndexOrThrow(DatabaseHelper.latitude));
+                latitude = cursor.getDouble(cursor.getColumnIndexOrThrow(DatabaseHelper.recvdLatitude));
 
-                longitude = cursor.getDouble(cursor.getColumnIndexOrThrow(DatabaseHelper.longitude));
+                longitude = cursor.getDouble(cursor.getColumnIndexOrThrow(DatabaseHelper.recvdLongitude));
                 int locationReceived = cursor.getInt(cursor.getColumnIndexOrThrow(DatabaseHelper.isLocationReceived));
                 //Toast.makeText(getActivity(), "LocationReceived: " + String.valueOf(locationReceived), Toast.LENGTH_LONG).show();
                 if(locationReceived == DatabaseHelper.IS_LOCATION_RECEIVED) {
