@@ -85,6 +85,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public static final String updateTime = "UPDATE_TIME";
     public static final String isCalculated = "IS_COORDINATE_CALCULATED";
     public static final String isPredicted = "IS_POSITION_PREDICTED";
+    public static final String incorrectMessageCount = "INCORRECT_MESSAGE_COUNT";
+    public static final String validationCheckTime = "VALIDATION_CHECK_TIME";
     public static final String isLocationReceived = "IS_LOCATION_RECEIVED";
     public static final String userName = "USERNAME";
     public static final String password = "PASSWORD";
@@ -196,6 +198,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                         cog + " REAL, " +
                         packetType + " INTEGER, " +
                         isPredicted + " NUMERIC, " +
+                        incorrectMessageCount + " INTEGER, " +
+                        validationCheckTime + " TEXT, " +
                         predictionAccuracy + " NUMERIC, " +
                         isLocationReceived + " NUMERIC, " +
                         mmsi + " INTEGER UNIQUE NOT NULL);");

@@ -38,8 +38,9 @@ public class ValidationService extends IntentService {
     private int[] baseStnMMSI = new int[DatabaseHelper.INITIALIZATION_SIZE];
     public static int ERROR_THRESHOLD_VALUE;
     public static int PREDICTION_ACCURACY_THRESHOLD_VALUE;
-    private static int stationMessageCount = 0;
+    //private static int stationMessageCount = 0;
     private static double stationpreviousUpdateTime = 0;
+
 
 
     private Handler uiHandler;
@@ -107,12 +108,17 @@ public class ValidationService extends IntentService {
                             double fixedStnLongitude;
                             double evaluationDifference;
                             double updateTime;
+                            double validationCheckTime;
                             int predictionAccuracy;
                             int mmsi;
+                            int stationMessageCount;
                             String stationName;
 
                             mFixedStnCursor = db.query(DatabaseHelper.fixedStationTable, new String[]{DatabaseHelper.mmsi, DatabaseHelper.stationName, DatabaseHelper.recvdLatitude, DatabaseHelper.recvdLongitude,
-                                    DatabaseHelper.latitude, DatabaseHelper.longitude, DatabaseHelper.predictionAccuracy, DatabaseHelper.updateTime},null, null, null, null, null);
+                                    DatabaseHelper.latitude, DatabaseHelper.longitude, DatabaseHelper.predictionAccuracy, DatabaseHelper.incorrectMessageCount, DatabaseHelper.validationCheckTime, DatabaseHelper.updateTime},
+                                    null,
+                                    null,
+                                    null, null, null);
                             if (mFixedStnCursor.moveToFirst()){
                                 do{
                                     mmsi = mFixedStnCursor.getInt(mFixedStnCursor.getColumnIndex(DatabaseHelper.mmsi));
@@ -121,8 +127,10 @@ public class ValidationService extends IntentService {
                                     fixedStnLatitude = mFixedStnCursor.getDouble(mFixedStnCursor.getColumnIndex(DatabaseHelper.latitude));
                                     fixedStnLongitude = mFixedStnCursor.getDouble(mFixedStnCursor.getColumnIndex(DatabaseHelper.longitude));
                                     predictionAccuracy = mFixedStnCursor.getInt(mFixedStnCursor.getColumnIndex(DatabaseHelper.predictionAccuracy));
+                                    stationMessageCount = mFixedStnCursor.getInt(mFixedStnCursor.getColumnIndexOrThrow(DatabaseHelper.incorrectMessageCount));
                                     //stationName = mFixedStnCursor.getString(mFixedStnCursor.getColumnIndex(DatabaseHelper.stationName));
                                     updateTime = mFixedStnCursor.getDouble(mFixedStnCursor.getColumnIndex(DatabaseHelper.updateTime));
+                                    validationCheckTime = mFixedStnCursor.getDouble(mFixedStnCursor.getColumnIndexOrThrow(DatabaseHelper.validationCheckTime));
                                     if (predictionAccuracy > PREDICTION_ACCURACY_THRESHOLD_VALUE / VALIDATION_TIME){
                                         Log.d(TAG, "Packets = " + stationMessageCount);
 
@@ -152,15 +160,24 @@ public class ValidationService extends IntentService {
                                         Log.d(TAG, "Received Coordinate: " + fixedStnrecvdLatitude + ", " + fixedStnrecvdLongitude);
                                         Log.d(TAG, "EvalDiff: " + String.valueOf(evaluationDifference) + " predictionAccInDb: " + predictionAccuracy);
                                         if (evaluationDifference > ERROR_THRESHOLD_VALUE) {
-                                            getMessageCount(db, updateTime);
+                                            //getMessageCount(db, updateTime);
+                                            if(updateTime > validationCheckTime) {
+                                                stationMessageCount++;
+                                                validationCheckTime = System.currentTimeMillis() - timeDiff;
+                                            }
                                             ContentValues mContentValues = new ContentValues();
                                             mContentValues.put(DatabaseHelper.predictionAccuracy, ++predictionAccuracy);
+                                            mContentValues.put(DatabaseHelper.incorrectMessageCount, stationMessageCount);
+                                            mContentValues.put(DatabaseHelper.validationCheckTime, validationCheckTime);
                                             Log.d(TAG, "EvaluationDifference > Threshold: predictionAccuracy: " + String.valueOf(predictionAccuracy));
                                             db.update(DatabaseHelper.fixedStationTable, mContentValues, DatabaseHelper.mmsi + " = ?", new String[]{String.valueOf(mmsi)});
                                         } else {
                                             stationMessageCount = 0;
+                                            validationCheckTime = System.currentTimeMillis() - timeDiff;
                                             ContentValues mContentValues = new ContentValues();
+                                            mContentValues.put(DatabaseHelper.incorrectMessageCount, stationMessageCount);
                                             mContentValues.put(DatabaseHelper.predictionAccuracy, 0);
+                                            mContentValues.put(DatabaseHelper.validationCheckTime, validationCheckTime);
                                             //Log.d(TAG, "EvaluationDifference > Threshold: predictionAccuracy: " + String.valueOf(predictionAccuracy));
                                             db.update(DatabaseHelper.fixedStationTable, mContentValues, DatabaseHelper.mmsi + " = ?", new String[]{String.valueOf(mmsi)});
                                         }
@@ -202,13 +219,13 @@ public class ValidationService extends IntentService {
         db.update(DatabaseHelper.baseStationTable, mContentValues, DatabaseHelper.mmsi + " = ?", new String[]{String.valueOf(mmsi)});
     }
 
-    private void getMessageCount(SQLiteDatabase db, double updateTime) {
+    /*private void getMessageCount(SQLiteDatabase db, double updateTime) {
         //long numOfStaticStations = DatabaseUtils.queryNumEntries(db, DatabaseHelper.fixedStationTable);
         if (updateTime > stationpreviousUpdateTime){
             stationpreviousUpdateTime = updateTime;
             stationMessageCount++;
         }
-    }
+    }*/
 
     private void dialogBoxDisplay(int failedAttempts, String mmsi) {
         String validationMsg = getResources().getString(R.string.validationFailedMsg, failedAttempts, mmsi);
