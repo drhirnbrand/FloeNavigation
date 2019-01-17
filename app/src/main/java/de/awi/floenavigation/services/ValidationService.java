@@ -34,7 +34,7 @@ public class ValidationService extends IntentService {
     private static final int MAX_NUM_OF_VALID_PACKETS = 3;
     private final Handler mValidationHandler;
     private static final String TAG = "Validation Service: ";
-    private static final int VALIDATION_TIME = 1 * 60 * 1000;
+    private static final int VALIDATION_TIME = 3 * 60 * 1000;
     private int[] baseStnMMSI = new int[DatabaseHelper.INITIALIZATION_SIZE];
     public static int ERROR_THRESHOLD_VALUE;
     public static int PREDICTION_ACCURACY_THRESHOLD_VALUE;
