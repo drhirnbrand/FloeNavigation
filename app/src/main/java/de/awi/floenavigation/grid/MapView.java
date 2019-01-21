@@ -1445,19 +1445,35 @@ public class MapView extends View{
     }
 
     public int getFixedStationMMSI(int index){
-        return mFixedStationMMSIs.get(index);
+        if(mFixedStationMMSIs != null) {
+            return mFixedStationMMSIs.get(index);
+        } else{
+            return -1;
+        }
     }
 
     public double getFixedStationX(int index){
-        return mFixedStationXs.get(index);
+        if(mFixedStationXs != null) {
+            return mFixedStationXs.get(index);
+        } else{
+            return -1;
+        }
     }
 
     public double getFixedStationY(int index){
-        return mFixedStationYs.get(index);
+        if(mFixedStationYs != null) {
+            return mFixedStationYs.get(index);
+        } else{
+            return -1;
+        }
     }
 
     public String getFixedStationName(int index){
-        return mFixedStationNames.get(index);
+        if(mFixedStationNames != null) {
+            return mFixedStationNames.get(index);
+        } else{
+            return "";
+        }
     }
 
     public int getMobileStationSize(){
@@ -1469,20 +1485,36 @@ public class MapView extends View{
     }
 
     public int getMobileStationMMSI(int index){
-        return  mMobileStationMMSIs.get(index);
+        if(mMobileStationMMSIs != null) {
+            return mMobileStationMMSIs.get(index);
+        } else{
+            return -1;
+        }
     }
 
     public double getMobileXposition(int index){
-        return  mMobileStationXs.get(index);
+        if(mMobileStationXs != null) {
+            return mMobileStationXs.get(index);
+        } else{
+            return -1;
+        }
     }
 
 
     public double getMobileYposition(int index){
-        return  mMobileStationYs.get(index);
+        if (mMobileStationYs != null) {
+            return mMobileStationYs.get(index);
+        } else{
+            return -1;
+        }
     }
 
     public String getMobileStationName(int index){
-        return mMobileStationNames.get(index);
+        if (mMobileStationNames != null) {
+            return mMobileStationNames.get(index);
+        } else{
+            return "";
+        }
     }
 
     public int getStaticStationSize(){
@@ -1496,19 +1528,35 @@ public class MapView extends View{
     }
 
     public String getStaticStationName(int index){
-        return mStaticStationNames.get(index);
+        if(mStaticStationNames != null) {
+            return mStaticStationNames.get(index);
+        } else{
+            return "";
+        }
     }
 
     public double getStaticXposition(int index){
-        return  mStaticStationXs.get(index);
+        if(mStaticStationXs != null) {
+            return mStaticStationXs.get(index);
+        } else{
+            return -1;
+        }
     }
 
     public double getStaticYposition(int index){
-        return  mStaticStationYs.get(index);
+        if(mStaticStationYs != null) {
+            return mStaticStationYs.get(index);
+        } else{
+            return -1;
+        }
     }
 
     public String getWaypointLabel(int index){
-        return mWaypointsLabels.get(index);
+        if(mWaypointsLabels != null) {
+            return mWaypointsLabels.get(index);
+        } else{
+            return "";
+        }
     }
 
     public int getWaypointSize(){
@@ -1520,11 +1568,19 @@ public class MapView extends View{
     }
 
     public double getWaypointXposition(int index){
-        return  mWaypointsXs.get(index);
+        if(mWaypointsXs != null) {
+            return mWaypointsXs.get(index);
+        } else{
+            return -1;
+        }
     }
 
     public double getWaypointYposition(int index){
-        return  mWaypointsYs.get(index);
+        if (mWaypointsYs != null){
+            return  mWaypointsYs.get(index);
+        } else{
+            return -1;
+        }
     }
 
     public static void clearFixedStationHashTables(){
