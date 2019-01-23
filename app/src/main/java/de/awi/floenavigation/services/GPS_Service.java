@@ -4,11 +4,14 @@ import android.annotation.SuppressLint;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
+import android.location.GnssStatus;
+import android.location.GpsStatus;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.os.SystemClock;
 import android.provider.Settings;
 import android.util.Log;
 
@@ -26,8 +29,15 @@ public class GPS_Service extends Service {
     public static final String longitude = "LONGITUDE";
     public static final String GPSTime = "TIME";
     public static final String locationStatus = "CURRENT_LOCATION_AVAILABLE";
-    private static final int updateInterval = 1000;
+    private static final int updateInterval = 5 * 1000;
+    private static final int LOCATION_UPDATE_TIME = 10 * 1000;
+    private static final int LOCATION_UPDATE_DISTANCE = 10;
     LocationUpdates locationUpdates = new LocationUpdates();
+    Location lastLocation;
+    private long mLastLocationTimeMillis;
+    private boolean isGPSFix = false;
+    private GPSListener gpsListener;
+
 
     private static GPS_Service instance = null;
 
@@ -54,10 +64,12 @@ public class GPS_Service extends Service {
         Log.d(TAG, "GPS Service Started");
         instance = this;
         listener =  new Listener(LocationManager.GPS_PROVIDER);
+        gpsListener = new GPSListener();
         locationManager = (LocationManager)getApplicationContext().getSystemService(Context.LOCATION_SERVICE);
         //locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, listener);
         try {
-            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, listener);
+            locationManager.addGpsStatusListener(gpsListener);
+            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, LOCATION_UPDATE_TIME, LOCATION_UPDATE_DISTANCE, listener);
         } catch (SecurityException ex){
             Log.d(TAG, "Fail to Request Location updates");
         } catch (IllegalArgumentException ex){
@@ -83,7 +95,7 @@ public class GPS_Service extends Service {
 
     private class Listener implements LocationListener{
 
-        Location lastLocation;
+
 
         public Listener(String provider){
             Log.d(TAG, "LocationListener " + provider);
@@ -92,11 +104,13 @@ public class GPS_Service extends Service {
 
         @Override
         public void onLocationChanged(Location location){
-
-                locationUpdates.setLatitude(location.getLatitude());
-                locationUpdates.setLongitude(location.getLongitude());
-                locationUpdates.setTime(location.getTime());
-                locationUpdates.setLocationStatus(true);
+            if (location == null) return;
+            Log.d(TAG, "GPS Status on location Change: " + isGPSFix);
+            mLastLocationTimeMillis = SystemClock.elapsedRealtime();
+            locationUpdates.setLatitude(location.getLatitude());
+            locationUpdates.setLongitude(location.getLongitude());
+            locationUpdates.setTime(location.getTime());
+            //locationUpdates.setLocationStatus(true);
                /* Log.d(TAG, "Location: " + String.valueOf(location.getLatitude()) + " " +  String.valueOf(location.getLongitude()));
                 Log.d(TAG, "Location Time: " + String.valueOf(new Date(location.getTime())));*/
                 /*Date dateTime = new Date(location.getTime());*/
@@ -109,6 +123,7 @@ public class GPS_Service extends Service {
             Log.d(TAG, "Tablet Location: " + String.valueOf(location.getLatitude()) + " " +  String.valueOf(location.getLongitude()));
             //Toast.makeText(getApplicationContext(),"Broadcast Sent", Toast.LENGTH_LONG).show();
             sendBroadcast(broadcastIntent);*/
+            lastLocation = location;
         }
 
         @Override
@@ -128,6 +143,26 @@ public class GPS_Service extends Service {
             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             startActivity(intent);
 
+        }
+    }
+
+    private class GPSListener implements GpsStatus.Listener {
+        @Override
+        public void onGpsStatusChanged(int event){
+            switch (event){
+                case GpsStatus.GPS_EVENT_SATELLITE_STATUS:
+                    if(lastLocation != null){
+                        isGPSFix = (SystemClock.elapsedRealtime() - mLastLocationTimeMillis) < 2 * LOCATION_UPDATE_TIME;
+                    }
+                    //Log.d(TAG, "GPS Status: " + isGPSFix);
+                    locationUpdates.setLocationStatus(isGPSFix);
+                    break;
+                case GpsStatus.GPS_EVENT_FIRST_FIX:
+                    //Log.d(TAG, "GPS Status: " + isGPSFix);
+                    isGPSFix = true;
+                    locationUpdates.setLocationStatus(isGPSFix);
+                    break;
+            }
         }
     }
 
@@ -182,7 +217,7 @@ public class GPS_Service extends Service {
                 Log.d(TAG, "LocStatus: " + String.valueOf(locStatus));
                 //Toast.makeText(getApplicationContext(),"Broadcast Sent", Toast.LENGTH_LONG).show();
                 sendBroadcast(broadcastIntent);
-                locStatus = false;
+                //locStatus = false;
             }
         }
     }
