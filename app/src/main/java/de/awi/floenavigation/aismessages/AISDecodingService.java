@@ -16,6 +16,7 @@ import android.util.Log;
 import android.widget.Toast;
 
 import de.awi.floenavigation.helperclasses.DatabaseHelper;
+import de.awi.floenavigation.initialsetup.CoordinateFragment;
 import de.awi.floenavigation.services.GPS_Service;
 
 import static de.awi.floenavigation.aismessages.AIVDM.strbuildtodec;
@@ -24,6 +25,9 @@ import static de.awi.floenavigation.aismessages.AIVDM.strbuildtodec;
 /**
  * An {@link IntentService} subclass for handling asynchronous task requests in
  * a service on a separate handler thread.
+ * This class is used to handle decoding of AIS messages received from the {@link AISMessageReceiver}
+ * and on the basis of AIS Message types the packet data is segregated and stored in the internal local database
+ *
  * <p>
  * TODO: Customize class - update intent actions and extra parameters.
  */
@@ -32,37 +36,137 @@ public class AISDecodingService extends IntentService {
     // IntentService can perform, e.g. ACTION_FETCH_NEW_ITEMS
     private static final String TAG = "AISDecodingService";
     private Handler handler;
+    /**
+     * packet in the form of String received from the {@link AISMessageReceiver}
+     * Initially it is initialized to null value
+     */
     private String packet = null;
-    //private Callbacks sCallbacks;
+
+    /**
+     * The received packet is splitted on the basis of comma and stored it in corresponding aivdm/aivdo parameters
+     * by the use of AIVDM class object
+     */
     private AIVDM aivdmObj;
+    /**
+     * The payload present in the packet after separated from the packet is decoded and segregated
+     * by the class {@link PostnReportClassA} for message types {@link #POSITION_REPORT_CLASSA_TYPE_1}, {@link #POSITION_REPORT_CLASSA_TYPE_2}
+     * and {@link #POSITION_REPORT_CLASSA_TYPE_3}
+     */
     private PostnReportClassA posObjA;
+    /**
+     * The payload present in the packet after separated from the packet is decoded and segregated
+     * by the class {@link PostnReportClassB} for message type {@link #POSITION_REPORT_CLASSB}
+     */
     private PostnReportClassB posObjB;
+    /**
+     * The payload present in the packet after separated from the packet is decoded and segregated
+     * by the class {@link StaticVoyageData} for message type {@link #STATIC_VOYAGE_DATA_CLASSB}
+     */
     private StaticVoyageData voyageDataObj;
+    /**
+     * The payload present in the packet after separated from the packet is decoded and segregated
+     * by the class {@link StaticDataReport} for message type {@link #STATIC_DATA_CLASSA}
+     */
     private StaticDataReport dataReportObj;
 
+    /**
+     * Message type of AIS packet, this corresponds to class A AIS transponders
+     * The payload containing this message type contains position related information like lat, lon, sog, cog
+     * related to the station fitted with the class A transponder
+     * The first 6 bits of the payload are the message type
+     */
     public static final int POSITION_REPORT_CLASSA_TYPE_1 = 1;
+    /**
+     * Message type of AIS packet, this corresponds to class A AIS transponders
+     * The payload containing this message type contains position related information like lat, lon, sog, cog
+     * related to the station fitted with the class A transponder
+     * The first 6 bits of the payload are the message type
+     */
     public static final int POSITION_REPORT_CLASSA_TYPE_2 = 2;
+    /**
+     * Message type of AIS packet, this corresponds to class A AIS transponders
+     * The payload containing this message type contains position related information like lat, lon, sog, cog
+     * related to the station fitted with the class A transponder
+     * The first 6 bits of the payload are the message type
+     */
     public static final int POSITION_REPORT_CLASSA_TYPE_3 = 3;
-    public static final int STATIC_VOYAGE_DATA_CLASSB = 5;
-    public static final int POSITION_REPORT_CLASSB = 18;
+    /**
+     * Message type of AIS packet, this corresponds to class A AIS transponders
+     * The payload containing this message type contains static information such as vessel name, call sign, part number
+     * related to the station fitted with the class A transponder
+     */
     public static final int STATIC_DATA_CLASSA = 24;
+    /**
+     * Message type of AIS packet, this corresponds to class B AIS transponders
+     * The payload containing this message type contains position related information like lat, lon, sog, cog
+     * related to the station fitted with the class B transponder
+     * The first 6 bits of the payload are the message type
+     */
+    public static final int POSITION_REPORT_CLASSB = 18;
+    /**
+     * Message type of AIS packet, this corresponds to class B AIS transponders
+     * The payload containing this message type contains static information such as vessel name, call sign
+     * related to the station fitted with the class B transponder
+     */
+    public static final int STATIC_VOYAGE_DATA_CLASSB = 5;
 
-    //Data to be decoded
+    /**
+     * This is the decoded MMSI number decoded from the payload received
+     */
     private long recvdMMSI;
+    /**
+     * This is the decoded latitudinal value of the station from the payload received
+     */
     private double recvdLat;
+    /**
+     * This is the decoded longitudinal value of the station from the payload received
+     */
     private double recvdLon;
+    /**
+     * This is the decoded speed over ground of the station from the payload received
+     */
     private double recvdSpeed;
+    /**
+     * This is the decoded course over ground of the station from the payload received
+     */
     private double recvdCourse;
+    /**
+     * This is the decoded timestamp from the payload received
+     */
     private String recvdTimeStamp;
+    /**
+     * This is the decoded station name from the payload received
+     */
     private String recvdStationName;
+    /**
+     * Message type is stored in the internal database, so that it can be used during initial setup of the grid.
+     * During the initial setup after the MMSI number of the station to be installed is entered, the screen transitions
+     * to the coordinate fragment only when the positional data report of the AIS station with the entered MMSI is received.
+     * The coordinate fragment realizes that a valid positional packet is decoded by the AISDecodingService when it checks and evaluates the
+     * packetType which is here stored.
+     * @see de.awi.floenavigation.initialsetup.MMSIFragment
+     * @see de.awi.floenavigation.initialsetup.CoordinateFragment
+     * @see CoordinateFragment#checkForCoordinates()
+     */
     private int packetType;
-    private BroadcastReceiver wifiReceiver;
+
+    /**
+     * It is used to receive the broadcasted gps time
+     */
     private BroadcastReceiver broadcastReceiver;
+    /**
+     * Stores the received gps time from the {@link GPS_Service}
+     */
     private long gpsTime;
+    /**
+     * Stores the difference between the system time in milliseconds and the received gps time
+     */
     private long timeDiff;
 
-
-
+    /**
+     * Default Constructor.
+     * Used to initialize {@link #aivdmObj}, {@link #posObjA}, {@link #posObjB}, {@link #voyageDataObj}, {@link #dataReportObj}
+     */
     public AISDecodingService() {
         super("AISDecodingService");
         aivdmObj = new AIVDM();
@@ -70,11 +174,14 @@ public class AISDecodingService extends IntentService {
         posObjB = new PostnReportClassB(); //18
         voyageDataObj = new StaticVoyageData(); //5
         dataReportObj = new StaticDataReport(); //24
-
-        //System.out.println(sdf.format(date));
-
     }
 
+    /**
+     * Initializes and registers broadcast receiver and implements on onReceive
+     * onReceive calculates the time difference between the system time and the gps time
+     * This is required since the gps time is received after certain interval periodically, this helps in synchronizing the
+     * time stamp of the received packets with the gps time
+     */
     @Override
     public void onCreate() {
         super.onCreate();
@@ -91,6 +198,9 @@ public class AISDecodingService extends IntentService {
         registerReceiver(broadcastReceiver, new IntentFilter(GPS_Service.GPSBroadcast));
     }
 
+    /**
+     * Broadcast receiver is unregistered in this callback function
+     */
     @Override
     public void onDestroy() {
         super.onDestroy();
@@ -100,16 +210,18 @@ public class AISDecodingService extends IntentService {
         }
     }
 
+    /**
+     * This function splits the received packet on the basis of comma and sends the data to be decoded to the {@link AIVDM} class
+     * After the payload is decoded the required parameters are stored into the corrsponding tables of the internal local database
+     * If the received mmsi is present in the {@link DatabaseHelper#stationListTable} the decoded payload along with the mmsi is stored in {@link DatabaseHelper#fixedStationTable}
+     * else it is stored in {@link DatabaseHelper#mobileStationTable}
+     * If there is error in any SQLite Database instructions, the exceptions are handled using try catch exception handlers and appropriate
+     * log messages are added.
+     * @param intent It is used to extract the packet send as an intent extras
+     */
     @Override
     protected void onHandleIntent(Intent intent) {
 
-        /*synchronized (this){
-            try{
-                wait(1000);
-            }catch (InterruptedException e){
-                e.printStackTrace();
-            }
-        }*/
         try
         {
             packet = intent.getExtras().getString("AISPacket");
@@ -204,6 +316,19 @@ public class AISDecodingService extends IntentService {
         }
     }
 
+    /**
+     * This function is called from {@link #onHandleIntent(Intent)}
+     * Based on the message type corresponding classes are called to decode the payload
+     * Once decoded, local variables are initialized with those values
+     * @param msgType message type of the AIS message
+     * @param binary payload from the packet received in binary format from {@link AIVDM#decodePayload()}
+     * @see #recvdLat
+     * @see #recvdLon
+     * @see #recvdSpeed
+     * @see #recvdCourse
+     * @see #recvdMMSI
+     *
+     */
     private void msgDecoding(int msgType, StringBuilder binary){
 
 
@@ -256,14 +381,5 @@ public class AISDecodingService extends IntentService {
 
     }
 
-    private void showText(final String text) {
 
-        handler.post(new Runnable(){
-            public void run()
-            {
-                Toast.makeText(getApplicationContext(), text, Toast.LENGTH_LONG).show();
-            }
-        });
-
-    }
 }
