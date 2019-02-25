@@ -31,7 +31,7 @@ public class GPS_Service extends Service {
     public static final String locationStatus = "CURRENT_LOCATION_AVAILABLE";
     private static final int updateInterval = 5 * 1000;
     private static final int LOCATION_UPDATE_TIME = 30 * 1000;
-    private static final int LOCATION_UPDATE_DISTANCE = 10;
+    private static final int LOCATION_UPDATE_DISTANCE = 5;
     LocationUpdates locationUpdates = new LocationUpdates();
     Location lastLocation;
     private long mLastLocationTimeMillis;
