@@ -107,7 +107,8 @@ public class AlphaCalculationService extends IntentService {
                                     stationLongitude = mobileStationCursor.getDouble(mobileStationCursor.getColumnIndex(DatabaseHelper.longitude));
                                     stationMMSI = mobileStationCursor.getInt(mobileStationCursor.getColumnIndex(DatabaseHelper.mmsi));
                                     theta = NavigationFunctions.calculateAngleBeta(originLatitude, originLongitude, stationLatitude, stationLongitude);
-                                    alpha = Math.abs(theta - beta);
+                                    //alpha = Math.abs(theta - beta);
+                                    alpha = theta - beta;
                                     distance = NavigationFunctions.calculateDifference(originLatitude, originLongitude, stationLatitude, stationLongitude);
                                     stationX = distance * Math.cos(Math.toRadians(alpha));
                                     stationY = distance * Math.sin(Math.toRadians(alpha));

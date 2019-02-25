@@ -174,7 +174,8 @@ public class AngleCalculationService extends IntentService {
                     stationLongitude[index] = mFixedStnCursor.getDouble(mFixedStnCursor.getColumnIndex(DatabaseHelper.longitude));
                     alpha = mFixedStnCursor.getDouble(mFixedStnCursor.getColumnIndex(DatabaseHelper.alpha));
                     double theta = NavigationFunctions.calculateAngleBeta(stationLatitude[0], stationLongitude[0], stationLatitude[index], stationLongitude[index]);
-                    beta[betaIndex] = Math.abs(theta - alpha);
+                    //beta[betaIndex] = Math.abs(theta - alpha);
+                    beta[betaIndex] = theta - alpha;
                     Log.d(TAG, "Lat1: " + stationLatitude[0] + " Lon1: " + stationLongitude[0] + " alpha: " + alpha);
                     Log.d(TAG, "Lat2: " + stationLatitude[index] + " Lon2: " + stationLongitude[index] + " alpha: " + alpha);
                     Log.d(TAG, "Beta[" + String.valueOf(betaIndex) + "]" + String.valueOf(beta[betaIndex]));
@@ -242,7 +243,8 @@ public class AngleCalculationService extends IntentService {
                             fixedStationLongitude = mFixedStnCursor.getDouble(mFixedStnCursor.getColumnIndex(DatabaseHelper.longitude));
                             fixedStationMMSI = mFixedStnCursor.getInt(mFixedStnCursor.getColumnIndex(DatabaseHelper.mmsi));
                             double theta = NavigationFunctions.calculateAngleBeta(stationLatitude[0], stationLongitude[0], fixedStationLatitude, fixedStationLongitude);
-                            double alpha = Math.abs(theta - fixedStationBeta);
+                            //double alpha = Math.abs(theta - fixedStationBeta);
+                            double alpha = theta - fixedStationBeta;
                             double distance = NavigationFunctions.calculateDifference(stationLatitude[0], stationLongitude[0], fixedStationLatitude, fixedStationLongitude);
                             double stationX = distance * Math.cos(Math.toRadians(alpha));
                             double stationY = distance * Math.sin(Math.toRadians(alpha));

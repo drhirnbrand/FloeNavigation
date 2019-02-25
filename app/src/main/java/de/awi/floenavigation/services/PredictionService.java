@@ -186,7 +186,8 @@ public class PredictionService extends IntentService {
         } else {
             distance = NavigationFunctions.calculateDifference(originLatitude, originLongitude, latitude, longitude);
             theta = NavigationFunctions.calculateAngleBeta(originLatitude, originLongitude, latitude, longitude);
-            alpha = Math.abs(theta - beta);
+            //alpha = Math.abs(theta - beta);
+            alpha = theta - beta;
             xPosition = distance * Math.cos(Math.toRadians(alpha));
             yPosition = distance * Math.sin(Math.toRadians(alpha));
         }

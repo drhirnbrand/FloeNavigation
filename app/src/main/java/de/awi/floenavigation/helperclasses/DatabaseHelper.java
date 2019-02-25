@@ -140,7 +140,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     //public static final int MOTHER_SHIP_MMSI = 211202460;
     //For Testing purposes
-    public static final int MOTHER_SHIP_MMSI = 211590050;
+    public static final int MOTHER_SHIP_MMSI = 230070870;
 
 
     public DatabaseHelper(Context context){
@@ -156,7 +156,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         insertDefaultConfigParams(db, prediction_accuracy_threshold, String.valueOf(3 * 60 * 1000));
         insertDefaultConfigParams(db, lat_long_view_format, "1");
         insertDefaultConfigParams(db, decimal_number_significant_figures, "5");
-        insertDefaultConfigParams(db, initial_setup_time, String.valueOf(60 * 1000));
+        insertDefaultConfigParams(db, initial_setup_time, String.valueOf(5 * 60 * 1000));
         insertDefaultConfigParams(db, sync_server_hostname, "192.168.137.1");
         insertDefaultConfigParams(db, sync_server_port, String.valueOf(80));
 

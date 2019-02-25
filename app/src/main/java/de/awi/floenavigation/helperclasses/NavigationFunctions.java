@@ -24,7 +24,7 @@ public class NavigationFunctions {
 
     public static double calculateDifference(double lat1, double lon1, double lat2, double lon2){
 
-        final int R = 6371; // Radius of the earth change this
+        final int R = 6360; // Radius of the earth change this
 
         double latDistance = Math.toRadians(lat2 - lat1);
         double lonDistance = Math.toRadians(lon2 - lon1);
@@ -97,12 +97,14 @@ public class NavigationFunctions {
         double bearing = calculateBearing(lat1, lon1, lat2, lon2);
         //Log.d(TAG, "Bearing: " + String.valueOf(bearing));
 
-        if(bearing >= 0 && bearing <= 180){
+        /*if(bearing >= 0 && bearing <= 180){
             bearing -= 90;
         }
         else if(bearing > 180 && bearing <= 360){
             bearing -= 270;
-        }
+        }*/
+        bearing = (bearing + 360) % 360;
+        bearing = 360 - bearing;
 
 
         //double hypDistance = calculateDifference(lat1, lon1, lat2, lon2);
@@ -115,7 +117,8 @@ public class NavigationFunctions {
         //double firstangle = Math.atan2(lon1 - fixedLon, lat1 - fixedLat);
         //double secondangle = Math.atan2(lon2 - fixedLon, lat2 - fixedLat);
 
-        return Math.abs(bearing);
+        //return Math.abs(bearing);
+        return bearing;
     }
 
     public static String[] locationInDegrees(double latitude, double longitude){

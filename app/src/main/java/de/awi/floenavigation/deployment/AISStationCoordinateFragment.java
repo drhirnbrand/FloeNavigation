@@ -102,7 +102,8 @@ public class AISStationCoordinateFragment extends Fragment implements View.OnCli
                         if (readParamsFromDatabase(db)) {
                             distance = NavigationFunctions.calculateDifference(originLatitude, originLongitude, stationLatitude, stationLongitude);
                             theta = NavigationFunctions.calculateAngleBeta(originLatitude, originLongitude, stationLatitude, stationLongitude);
-                            alpha = Math.abs(theta - beta);
+                            //alpha = Math.abs(theta - beta);
+                            alpha = theta - beta;
                             stationX = distance * Math.cos(Math.toRadians(alpha));
                             stationY = distance * Math.sin(Math.toRadians(alpha));
                             ContentValues stationUpdate = new ContentValues();
