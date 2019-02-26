@@ -99,14 +99,18 @@ public class RecoveryActivity extends ActionBarActivity {
 
     private boolean checkEntryInStaticStnTable(SQLiteDatabase db, String stationToBeRemoved){
         boolean isPresent = false;
+        Cursor staticStnCursor = null;
         try{
-            Cursor staticStnCursor = db.query(DatabaseHelper.staticStationListTable, new String[]{DatabaseHelper.staticStationName},
+            staticStnCursor = db.query(DatabaseHelper.staticStationListTable, new String[]{DatabaseHelper.staticStationName},
                     DatabaseHelper.staticStationName + " = ?", new String[]{stationToBeRemoved}, null, null, null);
             isPresent = staticStnCursor.moveToFirst();
-            staticStnCursor.close();
         }catch (SQLiteException e){
             Log.d(TAG, "Station List Cursor error");
             e.printStackTrace();
+        } finally {
+            if (staticStnCursor != null){
+                staticStnCursor.close();
+            }
         }
         return isPresent;
     }
@@ -198,24 +202,28 @@ public class RecoveryActivity extends ActionBarActivity {
 
     private boolean checkEntryInStationListTable(SQLiteDatabase db, String mmsi){
         boolean isPresent = false;
+        Cursor stationListCursor = null;
         try{
-            Cursor stationListCursor = db.query(DatabaseHelper.stationListTable, new String[]{DatabaseHelper.mmsi},
+            stationListCursor = db.query(DatabaseHelper.stationListTable, new String[]{DatabaseHelper.mmsi},
                     DatabaseHelper.mmsi + " = ?", new String[]{mmsi}, null, null, null);
             isPresent = stationListCursor.moveToFirst();
-            stationListCursor.close();
         }catch (SQLiteException e){
             Log.d(TAG, "Station List Cursor error");
             e.printStackTrace();
+        } finally {
+            if (stationListCursor != null){
+                stationListCursor.close();
+            }
         }
         return isPresent;
     }
 
     private void baseStationsRetrievalfromDB(SQLiteDatabase db){
-
+        Cursor mBaseStnCursor = null;
         try {
             //SQLiteOpenHelper dbHelper = DatabaseHelper.getDbInstance(getApplicationContext());
             //SQLiteDatabase db = dbHelper.getReadableDatabase();
-            Cursor mBaseStnCursor = db.query(DatabaseHelper.baseStationTable, new String[]{DatabaseHelper.mmsi},
+            mBaseStnCursor = db.query(DatabaseHelper.baseStationTable, new String[]{DatabaseHelper.mmsi},
                     null, null, null, null, null);
 
             if (mBaseStnCursor.getCount() == DatabaseHelper.NUM_OF_BASE_STATIONS) {
@@ -233,11 +241,14 @@ public class RecoveryActivity extends ActionBarActivity {
             } else {
                 Log.d(TAG, "Error reading from base stn table");
             }
-            mBaseStnCursor.close();
         }catch (SQLException e){
 
             Log.d(TAG, "SQLiteException");
             e.printStackTrace();
+        } finally {
+            if (mBaseStnCursor != null){
+                mBaseStnCursor.close();
+            }
         }
 
     }

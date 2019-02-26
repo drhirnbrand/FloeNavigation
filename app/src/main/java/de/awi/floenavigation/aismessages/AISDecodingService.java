@@ -221,7 +221,8 @@ public class AISDecodingService extends IntentService {
      */
     @Override
     protected void onHandleIntent(Intent intent) {
-
+        Cursor mobileCheckCursor = null;
+        Cursor cursor_stnlist = null;
         try
         {
             packet = intent.getExtras().getString("AISPacket");
@@ -229,7 +230,7 @@ public class AISDecodingService extends IntentService {
             SQLiteDatabase db = dbHelper.getReadableDatabase();
 
 
-            Cursor mobileCheckCursor = db.rawQuery("Select DISTINCT tbl_name from sqlite_master where tbl_name = '" + DatabaseHelper.mobileStationTable + "'", null);
+            mobileCheckCursor = db.rawQuery("Select DISTINCT tbl_name from sqlite_master where tbl_name = '" + DatabaseHelper.mobileStationTable + "'", null);
             //Log.d(TAG, "MobileStationTable: " + mobileCheckCursor.getCount());
 
 
@@ -245,7 +246,7 @@ public class AISDecodingService extends IntentService {
                 Log.d(TAG, String.valueOf(recvdMMSI));
             }
 
-            Cursor cursor_stnlist = db.query(DatabaseHelper.stationListTable,
+            cursor_stnlist = db.query(DatabaseHelper.stationListTable,
                     new String[] {DatabaseHelper.mmsi, DatabaseHelper.stationName},
                     DatabaseHelper.mmsi + " = ?",
                     new String[] {String.valueOf(recvdMMSI)},
@@ -302,10 +303,6 @@ public class AISDecodingService extends IntentService {
 
 
             }
-            cursor_stnlist.close();
-            //cursor_fixedstnlist.close();
-            //Uncomment later
-            mobileCheckCursor.close();
             //db.close();
         }catch (SQLException e)
         {
@@ -313,6 +310,16 @@ public class AISDecodingService extends IntentService {
             e.printStackTrace();
             Log.d(TAG, text);
             //showText(text);
+        } finally {
+            if (mobileCheckCursor != null){
+                //Uncomment later
+                mobileCheckCursor.close();
+            }
+            if(cursor_stnlist != null){
+
+                cursor_stnlist.close();
+                //cursor_fixedstnlist.close();
+            }
         }
     }
 

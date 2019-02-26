@@ -236,9 +236,10 @@ public class AISStationCoordinateFragment extends Fragment implements View.OnCli
     private boolean checkForAISPacket(SQLiteDatabase db){
         boolean success = false;
         int locationReceived;
+        Cursor cursor = null;
         try{
 
-            Cursor cursor = db.query(DatabaseHelper.fixedStationTable,
+            cursor = db.query(DatabaseHelper.fixedStationTable,
                     new String[]{DatabaseHelper.mmsi, DatabaseHelper.latitude, DatabaseHelper.longitude, DatabaseHelper.isLocationReceived},
                     DatabaseHelper.mmsi + " = ? AND (" + DatabaseHelper.packetType + " = ? OR " + DatabaseHelper.packetType + " = ? )",
                     new String[] {Integer.toString(MMSINumber), Integer.toString(AISDecodingService.POSITION_REPORT_CLASSA_TYPE_1), Integer.toString(AISDecodingService.POSITION_REPORT_CLASSB)},
@@ -253,11 +254,14 @@ public class AISStationCoordinateFragment extends Fragment implements View.OnCli
                     Log.d(TAG, "Packet Recieved from AIS Station");
                 }
             }
-            cursor.close();
             //db.close();
         } catch (SQLiteException e){
             Log.d(TAG, "Database Unavailable");
             Toast.makeText(getActivity(), "Database Unavailable", Toast.LENGTH_LONG).show();
+        } finally {
+            if (cursor != null){
+                cursor.close();
+            }
         }
         return success;
     }
@@ -283,8 +287,11 @@ public class AISStationCoordinateFragment extends Fragment implements View.OnCli
     }
 
     private boolean readParamsFromDatabase(SQLiteDatabase db){
+        Cursor baseStationCursor = null;
+        Cursor fixedStationCursor = null;
+        Cursor betaCursor = null;
         try {
-            Cursor baseStationCursor = db.query(DatabaseHelper.baseStationTable,
+            baseStationCursor = db.query(DatabaseHelper.baseStationTable,
                     new String[] {DatabaseHelper.mmsi},
                     DatabaseHelper.isOrigin +" = ?",
                     new String[]{String.valueOf(DatabaseHelper.ORIGIN)},
@@ -297,7 +304,7 @@ public class AISStationCoordinateFragment extends Fragment implements View.OnCli
                     originMMSI = baseStationCursor.getInt(baseStationCursor.getColumnIndex(DatabaseHelper.mmsi));
                 }
             }
-            Cursor fixedStationCursor = db.query(DatabaseHelper.fixedStationTable,
+            fixedStationCursor = db.query(DatabaseHelper.fixedStationTable,
                     new String[] {DatabaseHelper.latitude, DatabaseHelper.longitude},
                     DatabaseHelper.mmsi +" = ?",
                     new String[] {String.valueOf(originMMSI)},
@@ -311,7 +318,7 @@ public class AISStationCoordinateFragment extends Fragment implements View.OnCli
                     originLongitude = fixedStationCursor.getDouble(fixedStationCursor.getColumnIndex(DatabaseHelper.longitude));
                 }
             }
-            Cursor betaCursor = db.query(DatabaseHelper.betaTable,
+            betaCursor = db.query(DatabaseHelper.betaTable,
                     new String[]{DatabaseHelper.beta, DatabaseHelper.updateTime},
                     null, null,
                     null, null, null);
@@ -331,14 +338,21 @@ public class AISStationCoordinateFragment extends Fragment implements View.OnCli
                 Log.d(TAG, "Error in Beta Table");
                 return false;
             }
-            betaCursor.close();
-            baseStationCursor.close();
-            fixedStationCursor.close();
             return true;
         } catch (SQLiteException e){
             e.printStackTrace();
             Log.d(TAG, "Error reading Database");
             return false;
+        } finally {
+            if (betaCursor != null) {
+                betaCursor.close();
+            }
+            if (baseStationCursor != null) {
+                baseStationCursor.close();
+            }
+            if (fixedStationCursor != null) {
+                fixedStationCursor.close();
+            }
         }
     }
 

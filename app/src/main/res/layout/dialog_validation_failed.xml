@@ -46,7 +46,7 @@
                     android:layout_marginRight="20dp"
                     android:layout_marginBottom="20dp"
                     android:textAlignment="center"
-                    android:textSize="18sp"
+                    android:textSize="30sp"
                     android:textColor="@color/white"
                     android:text="@string/validationFailedMsg"/>
 
@@ -58,7 +58,7 @@
                     android:layout_marginRight="20dp"
                     android:layout_marginBottom="20dp"
                     android:textAlignment="center"
-                    android:textSize="18sp"
+                    android:textSize="30sp"
                     android:textColor="@color/white"
                     android:text="@string/stationRemovedMsg"/>
 

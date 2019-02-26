@@ -123,10 +123,11 @@ public class AdminPageActivity extends ActionBarActivity {
 
     private boolean isTabletNameSetup(){
         boolean success = false;
+        Cursor paramCursor = null;
         try{
             DatabaseHelper dbHelper = DatabaseHelper.getDbInstance(getApplicationContext());
             SQLiteDatabase db = dbHelper.getReadableDatabase();
-            Cursor paramCursor = db.query(DatabaseHelper.configParametersTable,
+            paramCursor = db.query(DatabaseHelper.configParametersTable,
                     new String[] {DatabaseHelper.parameterName, DatabaseHelper.parameterValue},
                     DatabaseHelper.parameterName +" = ?",
                     new String[] {DatabaseHelper.tabletId},
@@ -142,10 +143,13 @@ public class AdminPageActivity extends ActionBarActivity {
             } else{
                 Log.d(TAG, "TabletID not set");
             }
-            paramCursor.close();
 
         } catch(SQLiteException e){
             Log.d(TAG, "Error Reading from Database");
+        } finally {
+            if(paramCursor != null) {
+                paramCursor.close();
+            }
         }
         return success;
     }

@@ -157,8 +157,9 @@ public class StaticStationFragment extends Fragment implements View.OnClickListe
 
     private void calculateStaticStationParameters(){
         distance = NavigationFunctions.calculateDifference(tabletLat, tabletLon, originLatitude, originLongitude);
-        theta = NavigationFunctions.calculateAngleBeta(tabletLat, tabletLon, originLatitude, originLongitude);
+        //theta = NavigationFunctions.calculateAngleBeta(tabletLat, tabletLon, originLatitude, originLongitude);
         //alpha = Math.abs(theta - beta);
+        theta = NavigationFunctions.calculateAngleBeta(originLatitude, originLongitude, tabletLat, tabletLon);
         alpha = theta - beta;
         Log.d(TAG, "StationDistance: " + String.valueOf(distance));
         Log.d(TAG, "OriginLat: " + String.valueOf(originLatitude) + " OriginLon: " + String.valueOf(originLongitude));
@@ -184,11 +185,14 @@ public class StaticStationFragment extends Fragment implements View.OnClickListe
     }
 
     private boolean getOriginCoordinates(){
+        Cursor baseStationCursor = null;
+        Cursor fixedStationCursor = null;
+        Cursor betaCursor = null;
 
         try {
             DatabaseHelper databaseHelper = DatabaseHelper.getDbInstance(getActivity());
             SQLiteDatabase db = databaseHelper.getReadableDatabase();
-            Cursor baseStationCursor = db.query(DatabaseHelper.baseStationTable,
+            baseStationCursor = db.query(DatabaseHelper.baseStationTable,
                     new String[] {DatabaseHelper.mmsi},
                     DatabaseHelper.isOrigin +" = ?",
                     new String[]{String.valueOf(DatabaseHelper.ORIGIN)},
@@ -201,7 +205,7 @@ public class StaticStationFragment extends Fragment implements View.OnClickListe
                     originMMSI = baseStationCursor.getInt(baseStationCursor.getColumnIndex(DatabaseHelper.mmsi));
                 }
             }
-            Cursor fixedStationCursor = db.query(DatabaseHelper.fixedStationTable,
+            fixedStationCursor = db.query(DatabaseHelper.fixedStationTable,
                     new String[] {DatabaseHelper.latitude, DatabaseHelper.longitude},
                     DatabaseHelper.mmsi +" = ?",
                     new String[] {String.valueOf(originMMSI)},
@@ -216,7 +220,7 @@ public class StaticStationFragment extends Fragment implements View.OnClickListe
                 }
             }
 
-            Cursor betaCursor = db.query(DatabaseHelper.betaTable,
+            betaCursor = db.query(DatabaseHelper.betaTable,
                     new String[]{DatabaseHelper.beta, DatabaseHelper.updateTime},
                     null, null,
                     null, null, null);
@@ -229,14 +233,21 @@ public class StaticStationFragment extends Fragment implements View.OnClickListe
                 Log.d(TAG, "Error in Beta Table");
                 return false;
             }
-            betaCursor.close();
-            baseStationCursor.close();
-            fixedStationCursor.close();
             return true;
         } catch(SQLiteException e){
             Log.d(TAG, "Database Error");
             e.printStackTrace();
             return false;
+        } finally {
+            if (betaCursor != null) {
+                betaCursor.close();
+            }
+            if (baseStationCursor != null) {
+                baseStationCursor.close();
+            }
+            if (fixedStationCursor != null) {
+                fixedStationCursor.close();
+            }
         }
     }
 

@@ -381,52 +381,61 @@ public class StationInstallFragment extends Fragment implements View.OnClickList
 
     private boolean checkStationInDBTables(SQLiteDatabase db, int MMSI){
         boolean isPresent = false;
+        Cursor mStationListCursor = null;
+        Cursor mFixedStnCursor = null;
         try{
-
-            Cursor mStationListCursor, mFixedStnCursor;
             mStationListCursor = db.query(DatabaseHelper.stationListTable, new String[]{DatabaseHelper.mmsi}, DatabaseHelper.mmsi + " = ?",
                     new String[]{String.valueOf(MMSI)}, null, null, null);
             mFixedStnCursor = db.query(DatabaseHelper.fixedStationTable, new String[]{DatabaseHelper.mmsi}, DatabaseHelper.mmsi + " = ?",
                     new String[]{String.valueOf(MMSI)}, null, null, null);
             isPresent = mStationListCursor.moveToFirst() && mFixedStnCursor.moveToFirst();
-            mStationListCursor.close();
-            mFixedStnCursor.close();
             return isPresent;
         }catch (SQLException e){
             Log.d(TAG, "SQLiteException");
             e.printStackTrace();
             return isPresent;
+        } finally {
+            if (mStationListCursor != null){
+                mStationListCursor.close();
+            }
+            if (mFixedStnCursor != null){
+                mFixedStnCursor.close();
+            }
         }
     }
 
     private boolean checkStationInMobileTable(SQLiteDatabase db, int MMSI){
         boolean isPresent = false;
+        Cursor mMobileStationCursor = null;
         try{
-
-            Cursor mMobileStationCursor;
             mMobileStationCursor = db.query(DatabaseHelper.mobileStationTable, new String[]{DatabaseHelper.mmsi}, DatabaseHelper.mmsi + " = ?",
                     new String[]{String.valueOf(MMSI)}, null, null, null);
             isPresent = mMobileStationCursor.moveToFirst();
-            mMobileStationCursor.close();
         }catch (SQLException e){
             Log.d(TAG, "SQLiteException");
             e.printStackTrace();
+        } finally {
+            if (mMobileStationCursor != null){
+                mMobileStationCursor.close();
+            }
         }
         return isPresent;
     }
 
     private boolean checkStationInFixedDeleteTable(SQLiteDatabase db, int MMSI){
         boolean isPresent = false;
+        Cursor mFixedStationDeleteCursor = null;
         try{
-
-            Cursor mFixedStationDeleteCursor;
             mFixedStationDeleteCursor = db.query(DatabaseHelper.fixedStationDeletedTable, new String[]{DatabaseHelper.mmsi}, DatabaseHelper.mmsi + " = ?",
                     new String[]{String.valueOf(MMSI)}, null, null, null);
             isPresent = mFixedStationDeleteCursor.moveToFirst();
-            mFixedStationDeleteCursor.close();
         }catch (SQLException e){
             Log.d(TAG, "SQLiteException");
             e.printStackTrace();
+        } finally {
+            if (mFixedStationDeleteCursor != null){
+                mFixedStationDeleteCursor.close();
+            }
         }
 
         return isPresent;
@@ -434,17 +443,19 @@ public class StationInstallFragment extends Fragment implements View.OnClickList
 
     private boolean checkStationInStationListDeleteTable(SQLiteDatabase db, int MMSI){
         boolean isPresent = false;
+        Cursor mStationListDeleteCursor = null;
         try{
-
-            Cursor mStationListDeleteCursor;
             mStationListDeleteCursor = db.query(DatabaseHelper.stationListDeletedTable, new String[]{DatabaseHelper.mmsi}, DatabaseHelper.mmsi + " = ?",
                     new String[]{String.valueOf(MMSI)}, null, null, null);
 
             isPresent =  mStationListDeleteCursor.moveToFirst();
-            mStationListDeleteCursor.close();
         }catch (SQLException e){
             Log.d(TAG, "SQLiteException");
             e.printStackTrace();
+        } finally {
+            if (mStationListDeleteCursor != null){
+                mStationListDeleteCursor.close();
+            }
         }
         return isPresent;
     }
@@ -452,16 +463,19 @@ public class StationInstallFragment extends Fragment implements View.OnClickList
 
     private boolean checkStaticStationInDBTables(SQLiteDatabase db, String stationName){
         boolean isPresent = false;
+        Cursor mStaticStationListCursor = null;
         try{
-            Cursor mStaticStationListCursor;
             mStaticStationListCursor = db.query(DatabaseHelper.staticStationListTable, new String[]{DatabaseHelper.staticStationName}, DatabaseHelper.staticStationName + " = ?",
                     new String[]{stationName}, null, null, null);
 
             isPresent =  mStaticStationListCursor.moveToFirst();
-            mStaticStationListCursor.close();
         }catch (SQLException e){
             Log.d(TAG, "SQLiteException");
             e.printStackTrace();
+        } finally {
+            if(mStaticStationListCursor != null){
+                mStaticStationListCursor.close();
+            }
         }
         return isPresent;
     }

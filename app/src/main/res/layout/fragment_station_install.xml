@@ -67,7 +67,7 @@
             android:layout_width="0dp"
             android:layout_weight="2"
             android:layout_height="40sp"
-            android:textSize="15sp"
+            android:textSize="30sp"
             android:textColor="@color/white"
             android:inputType="textAutoComplete"
             android:paddingLeft="15dp"
@@ -122,6 +122,7 @@
             android:id="@+id/staticStationCurrentLat"
             android:textAllCaps="true"
             android:textColor="@color/white"
+            android:textSize="30sp"
             android:layout_width="500dp"
             android:layout_height="40sp"
             android:background="@drawable/et_bg"/>
@@ -150,6 +151,7 @@
             android:textColor="@color/white"
             android:layout_width="500dp"
             android:layout_height="40sp"
+            android:textSize="30sp"
             android:background="@drawable/et_bg"/>
     </LinearLayout>
 
@@ -175,7 +177,7 @@
             android:layout_width="0dp"
             android:layout_weight="2"
             android:layout_height="40sp"
-            android:textSize="15sp"
+            android:textSize="30sp"
             android:textColor="@color/white"
             android:digits="0123456789"
             android:inputType="numberPassword|textVisiblePassword"
@@ -195,7 +197,7 @@
         android:background="@drawable/btn_bg"
         android:textColor="@color/white"
         android:layout_gravity="right"
-        android:textSize="15sp"
+        android:textSize="30sp"
         android:clickable="true"
         android:focusable="true"
         android:foreground="?android:attr/selectableItemBackground"/>

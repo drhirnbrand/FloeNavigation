@@ -56,7 +56,7 @@
         <EditText
             android:id="@+id/sampleMeasurementLabelId"
             android:layout_width="wrap_content"
-            android:layout_height="30sp"
+            android:layout_height="35sp"
             android:layout_gravity="center"
             android:layout_marginStart="5dp"
             android:layout_weight="2"
@@ -66,7 +66,7 @@
             android:paddingLeft="15dp"
             android:paddingRight="15dp"
             android:textColor="@color/white"
-            android:textSize="15sp" />
+            android:textSize="30sp" />
 
     </LinearLayout>
 
@@ -95,9 +95,10 @@
             android:layout_weight="2"
             android:paddingLeft="15dp"
             android:maxLines="1"
+            android:textSize="30sp"
             android:layout_marginStart="5dp"
             android:layout_gravity="center"
-            android:layout_height="30sp"/>
+            android:layout_height="35sp"/>
     </LinearLayout>
 
     <LinearLayout
@@ -124,7 +125,9 @@
             android:layout_width="wrap_content"
             android:layout_weight="2"
             android:layout_gravity="center"
-            android:layout_height="30sp"
+            android:paddingStart="15dp"
+            android:textSize="30sp"
+            android:layout_height="35sp"
             android:background="@drawable/et_bg"/>
     </LinearLayout>
 
@@ -151,7 +154,9 @@
             android:layout_width="wrap_content"
             android:layout_weight="2"
             android:layout_gravity="center"
-            android:layout_height="30sp"
+            android:layout_height="35sp"
+            android:textSize="30sp"
+            android:paddingStart="15dp"
             android:background="@drawable/et_bg"/>
     </LinearLayout>
 
@@ -178,7 +183,9 @@
             android:layout_width="wrap_content"
             android:layout_weight="2"
             android:layout_gravity="center"
-            android:layout_height="30sp"
+            android:layout_height="35sp"
+            android:textSize="30sp"
+            android:paddingStart="15dp"
             android:background="@drawable/et_bg"/>
     </LinearLayout>
 
@@ -205,7 +212,9 @@
             android:layout_width="wrap_content"
             android:layout_weight="2"
             android:layout_gravity="center"
-            android:layout_height="30sp"
+            android:layout_height="35sp"
+            android:textSize="30sp"
+            android:paddingStart="15dp"
             android:background="@drawable/et_bg"/>
     </LinearLayout>
 
@@ -232,7 +241,9 @@
             android:layout_width="wrap_content"
             android:layout_weight="2"
             android:layout_gravity="center"
-            android:layout_height="30sp"
+            android:layout_height="35sp"
+            android:textSize="30sp"
+            android:paddingStart="15dp"
             android:background="@drawable/et_bg"/>
     </LinearLayout>
 
@@ -260,8 +271,10 @@
             android:layout_height="68dp"
             android:layout_gravity="center"
             android:inputType="text"
+            android:textSize="30sp"
             android:hint="Please describe your Sample/Measurement"
             android:layout_weight="2"
+            android:paddingStart="15dp"
             android:background="@drawable/et_bg"
             android:textColor="@color/white" />
     </LinearLayout>

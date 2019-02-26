@@ -465,11 +465,14 @@ public class GridActivity extends Activity implements View.OnClickListener{
 
         @Override
         protected Boolean doInBackground(Void... voids) {
+            Cursor baseStationCursor = null;
+            Cursor fixedStationCursor = null;
+            Cursor betaCursor = null;
             try {
                 int i = 0;
                 DatabaseHelper databaseHelper = DatabaseHelper.getDbInstance(getApplicationContext());
                 SQLiteDatabase db = databaseHelper.getReadableDatabase();
-                Cursor baseStationCursor = db.query(DatabaseHelper.baseStationTable,
+                baseStationCursor = db.query(DatabaseHelper.baseStationTable,
                         new String[] {DatabaseHelper.mmsi},
                         DatabaseHelper.isOrigin + " = ?",
                         new String[]{String.valueOf(DatabaseHelper.ORIGIN)},
@@ -493,7 +496,7 @@ public class GridActivity extends Activity implements View.OnClickListener{
                     } while (baseStationCursor.moveToNext());
                 }*/
 
-                Cursor fixedStationCursor = db.query(DatabaseHelper.fixedStationTable,
+                fixedStationCursor = db.query(DatabaseHelper.fixedStationTable,
                         new String[] {DatabaseHelper.latitude, DatabaseHelper.longitude, DatabaseHelper.xPosition, DatabaseHelper.yPosition},
                         DatabaseHelper.mmsi +" = ?",
                         new String[] {String.valueOf(originMMSI)},
@@ -512,7 +515,7 @@ public class GridActivity extends Activity implements View.OnClickListener{
                     }
                 }
 
-                Cursor betaCursor = db.query(DatabaseHelper.betaTable,
+                betaCursor = db.query(DatabaseHelper.betaTable,
                         new String[]{DatabaseHelper.beta, DatabaseHelper.updateTime},
                         null, null,
                         null, null, null);
@@ -525,14 +528,21 @@ public class GridActivity extends Activity implements View.OnClickListener{
                     Log.d(TAG, "Error in Beta Table");
                     return false;
                 }
-                betaCursor.close();
-                baseStationCursor.close();
-                fixedStationCursor.close();
                 return true;
             } catch(SQLiteException e){
                 Log.d(TAG, "Database Error");
                 e.printStackTrace();
                 return false;
+            }finally {
+                if (betaCursor != null) {
+                    betaCursor.close();
+                }
+                if (baseStationCursor != null) {
+                    baseStationCursor.close();
+                }
+                if (fixedStationCursor != null) {
+                    fixedStationCursor.close();
+                }
             }
         }
 
@@ -549,10 +559,11 @@ public class GridActivity extends Activity implements View.OnClickListener{
 
         @Override
         protected Boolean doInBackground(Void... voids) {
+            Cursor mFixedStnCursor = null;
             try {
                 SQLiteOpenHelper dbHelper = DatabaseHelper.getDbInstance(getApplicationContext());
                 SQLiteDatabase db = dbHelper.getReadableDatabase();
-                Cursor mFixedStnCursor;
+
                 //double xPosition, yPosition;
                 //int mmsi;
 
@@ -577,10 +588,9 @@ public class GridActivity extends Activity implements View.OnClickListener{
                         mFixedStationNames.put(i, mFixedStnCursor.getString(mFixedStnCursor.getColumnIndex(DatabaseHelper.stationName)));
                         mFixedStnCursor.moveToNext();
                     }
-                    mFixedStnCursor.close();
                     return true;
                 } else {
-                    mFixedStnCursor.close();
+
                     Log.d(TAG, "FixedStationTable Cursor Error");
                     return false;
                 }
@@ -588,6 +598,10 @@ public class GridActivity extends Activity implements View.OnClickListener{
                 Log.d(TAG, "Error reading database");
                 e.printStackTrace();
                 return false;
+            } finally {
+                if (mFixedStnCursor != null){
+                    mFixedStnCursor.close();
+                }
             }
         }
 
@@ -609,10 +623,11 @@ public class GridActivity extends Activity implements View.OnClickListener{
 
         @Override
         protected Boolean doInBackground(Void... voids) {
+            Cursor mMobileStnCursor = null;
             try {
                 SQLiteOpenHelper dbHelper = DatabaseHelper.getDbInstance(getApplicationContext());
                 SQLiteDatabase db = dbHelper.getReadableDatabase();
-                Cursor mMobileStnCursor;
+
                 //double xPosition, yPosition;
                 //int mmsi;
 
@@ -638,10 +653,9 @@ public class GridActivity extends Activity implements View.OnClickListener{
                         //Log.d(TAG, "Mobile Station MMSI: " + mMobileStationMMSIs.get(i) + " X: " + mMobileStationXs.get(i) + " Y: " + mMobileStationYs.get(i));
                         mMobileStnCursor.moveToNext();
                     }
-                    mMobileStnCursor.close();
                     return true;
                 } else {
-                    mMobileStnCursor.close();
+
                     Log.d(TAG, "MobileStation Cursor Error");
                     return false;
                 }
@@ -649,6 +663,10 @@ public class GridActivity extends Activity implements View.OnClickListener{
                 Log.d(TAG, "Error reading database");
                 e.printStackTrace();
                 return false;
+            } finally {
+                if (mMobileStnCursor != null){
+                    mMobileStnCursor.close();
+                }
             }
         }
 
@@ -669,10 +687,11 @@ public class GridActivity extends Activity implements View.OnClickListener{
 
         @Override
         protected Boolean doInBackground(Void... voids) {
+            Cursor mStaticStationCursor = null;
             try {
                 SQLiteOpenHelper dbHelper = DatabaseHelper.getDbInstance(getApplicationContext());
                 SQLiteDatabase db = dbHelper.getReadableDatabase();
-                Cursor mStaticStationCursor;
+
                 //double xPosition, yPosition;
                 //int mmsi;
 
@@ -694,11 +713,9 @@ public class GridActivity extends Activity implements View.OnClickListener{
                         mStaticStationYs.put(i, mStaticStationCursor.getDouble(mStaticStationCursor.getColumnIndex(DatabaseHelper.yPosition)));
                         mStaticStationCursor.moveToNext();
                     }
-                    mStaticStationCursor.close();
                     return true;
                 }
                 else {
-                    mStaticStationCursor.close();
                     Log.d(TAG, "StaticStation Cursor Error");
                     return false;
                 }
@@ -707,6 +724,10 @@ public class GridActivity extends Activity implements View.OnClickListener{
                 Log.d(TAG, "Error reading database");
                 e.printStackTrace();
                 return false;
+            } finally {
+                if (mStaticStationCursor != null) {
+                    mStaticStationCursor.close();
+                }
             }
         }
 
@@ -726,10 +747,11 @@ public class GridActivity extends Activity implements View.OnClickListener{
 
         @Override
         protected Boolean doInBackground(Void... voids) {
+            Cursor mWaypointsCursor = null;
             try {
                 SQLiteOpenHelper dbHelper = DatabaseHelper.getDbInstance(getApplicationContext());
                 SQLiteDatabase db = dbHelper.getReadableDatabase();
-                Cursor mWaypointsCursor;
+
                 //double xPosition, yPosition;
                 //int mmsi;
 
@@ -751,11 +773,9 @@ public class GridActivity extends Activity implements View.OnClickListener{
                         mWaypointsYs.put(i, mWaypointsCursor.getDouble(mWaypointsCursor.getColumnIndex(DatabaseHelper.yPosition)));
                         mWaypointsCursor.moveToNext();
                     }
-                    mWaypointsCursor.close();
                     return true;
                 }
                 else {
-                    mWaypointsCursor.close();
                     Log.d(TAG, "Waypoints Cursor Error");
                     return false;
                 }
@@ -763,6 +783,10 @@ public class GridActivity extends Activity implements View.OnClickListener{
                 Log.d(TAG, "Error reading database");
                 e.printStackTrace();
                 return false;
+            } finally {
+                if (mWaypointsCursor != null){
+                    mWaypointsCursor.close();
+                }
             }
         }
 

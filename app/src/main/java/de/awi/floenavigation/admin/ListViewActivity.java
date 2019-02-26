@@ -339,52 +339,65 @@ public class ListViewActivity extends ActionBarActivity {
 
     private boolean checkEntryInStationListTable(SQLiteDatabase db, String mmsi){
         boolean isPresent = false;
+        Cursor stationListCursor = null;
         try{
-            Cursor stationListCursor = db.query(DatabaseHelper.stationListTable, new String[]{DatabaseHelper.mmsi},
+            stationListCursor = db.query(DatabaseHelper.stationListTable, new String[]{DatabaseHelper.mmsi},
                     DatabaseHelper.mmsi + " = ?", new String[]{mmsi}, null, null, null);
             isPresent = stationListCursor.moveToFirst();
-            stationListCursor.close();
         }catch (SQLiteException e){
             Log.d(TAG, "Station List Cursor error");
             e.printStackTrace();
+        } finally {
+            if(stationListCursor != null){
+                stationListCursor.close();
+            }
         }
         return isPresent;
     }
 
     private boolean checkEntryInWaypointsTable(SQLiteDatabase db, String waypointToBeRemoved){
         boolean isPresent = false;
+        Cursor waypointCursor = null;
         try{
-            Cursor waypointCursor = db.query(DatabaseHelper.waypointsTable, new String[]{DatabaseHelper.labelID},
+            waypointCursor = db.query(DatabaseHelper.waypointsTable, new String[]{DatabaseHelper.labelID},
                     DatabaseHelper.labelID + " = ?", new String[]{waypointToBeRemoved}, null, null, null);
             isPresent = waypointCursor.moveToFirst();
-            waypointCursor.close();
         }catch (SQLiteException e){
             Log.d(TAG, "Station List Cursor error");
             e.printStackTrace();
+        }finally {
+            if (waypointCursor != null){
+                waypointCursor.close();
+            }
         }
         return isPresent;
     }
 
     private boolean checkEntryInStaticStnTable(SQLiteDatabase db, String stationToBeRemoved){
         boolean isPresent = false;
+        Cursor staticStnCursor = null;
         try{
-            Cursor staticStnCursor = db.query(DatabaseHelper.staticStationListTable, new String[]{DatabaseHelper.staticStationName},
+            staticStnCursor = db.query(DatabaseHelper.staticStationListTable, new String[]{DatabaseHelper.staticStationName},
                     DatabaseHelper.staticStationName + " = ?", new String[]{stationToBeRemoved}, null, null, null);
             isPresent = staticStnCursor.moveToFirst();
-            staticStnCursor.close();
         }catch (SQLiteException e){
             Log.d(TAG, "Station List Cursor error");
             e.printStackTrace();
+        } finally {
+            if (staticStnCursor != null){
+                staticStnCursor.close();
+            }
         }
         return isPresent;
     }
 
     private void baseStationsRetrievalfromDB(SQLiteDatabase db){
 
+        Cursor mBaseStnCursor = null;
         try {
             //SQLiteOpenHelper dbHelper = DatabaseHelper.getDbInstance(getApplicationContext());
             //SQLiteDatabase db = dbHelper.getReadableDatabase();
-            Cursor mBaseStnCursor = db.query(DatabaseHelper.baseStationTable, new String[]{DatabaseHelper.mmsi, DatabaseHelper.isOrigin},
+            mBaseStnCursor = db.query(DatabaseHelper.baseStationTable, new String[]{DatabaseHelper.mmsi, DatabaseHelper.isOrigin},
                     null, null, null, null, DatabaseHelper.isOrigin + " DESC");
 
             if (mBaseStnCursor.getCount() == DatabaseHelper.NUM_OF_BASE_STATIONS) {
@@ -402,21 +415,25 @@ public class ListViewActivity extends ActionBarActivity {
             } else {
                 Log.d(TAG, "Error reading from base stn table");
             }
-            mBaseStnCursor.close();
         }catch (SQLException e){
 
             Log.d(TAG, "SQLiteException");
             e.printStackTrace();
+        } finally {
+            if (mBaseStnCursor != null){
+                mBaseStnCursor.close();
+            }
         }
 
     }
 
 
     private ArrayList<ParameterListObject> generateDataFromWaypointsTable(){
+        Cursor waypointsCursor = null;
         try{
             SQLiteOpenHelper dbHelper = DatabaseHelper.getDbInstance(this);
             SQLiteDatabase db = dbHelper.getReadableDatabase();
-            Cursor waypointsCursor = db.query(DatabaseHelper.waypointsTable,
+            waypointsCursor = db.query(DatabaseHelper.waypointsTable,
                     new String[] {DatabaseHelper.labelID, DatabaseHelper.xPosition, DatabaseHelper.yPosition},
                     null,
                     null,
@@ -433,9 +450,12 @@ public class ListViewActivity extends ActionBarActivity {
             }else {
                 Log.d(TAG, "Error reading from waypointstable stn table");
             }
-            waypointsCursor.close();
         } catch (SQLException e){
             Log.d(TAG, "Error Reading from Database");
+        }finally {
+            if (waypointsCursor != null){
+                waypointsCursor.close();
+            }
         }
         return parameterObjects;
         //arrayAdapter.notifyDataSetChanged();
@@ -444,10 +464,11 @@ public class ListViewActivity extends ActionBarActivity {
 
     private ArrayList<ParameterListObject> generateDataFromSamplesTable(){
         String displayTime = "";
+        Cursor samplesCursor = null;
         try{
             SQLiteOpenHelper dbHelper = DatabaseHelper.getDbInstance(this);
             SQLiteDatabase db = dbHelper.getReadableDatabase();
-            Cursor samplesCursor = db.query(DatabaseHelper.sampleMeasurementTable,
+            samplesCursor = db.query(DatabaseHelper.sampleMeasurementTable,
                     new String[] {DatabaseHelper.labelID, DatabaseHelper.updateTime, DatabaseHelper.xPosition, DatabaseHelper.yPosition},
                     null,
                     null,
@@ -473,9 +494,12 @@ public class ListViewActivity extends ActionBarActivity {
             }else {
                 Log.d(TAG, "Error reading from waypointstable stn table");
             }
-            samplesCursor.close();
         } catch (SQLException e){
             Log.d(TAG, "Error Reading from Database");
+        } finally {
+          if (samplesCursor != null){
+              samplesCursor.close();
+          }
         }
         return parameterObjects;
         //arrayAdapter.notifyDataSetChanged();
@@ -483,6 +507,7 @@ public class ListViewActivity extends ActionBarActivity {
     }
 
     private ArrayList<ParameterListObject> generateDataFromFixedStnTable(){
+        Cursor fixedStnCursor = null;
         try{
             SQLiteOpenHelper dbHelper = DatabaseHelper.getDbInstance(this);
             SQLiteDatabase db = dbHelper.getReadableDatabase();
@@ -491,7 +516,7 @@ public class ListViewActivity extends ActionBarActivity {
             //        null,
             //        null,
             //        null, null, null);
-            Cursor fixedStnCursor = db.rawQuery("Select " + DatabaseHelper.stationName + ", " + DatabaseHelper.mmsi + ", " + DatabaseHelper.xPosition +
+            fixedStnCursor = db.rawQuery("Select " + DatabaseHelper.stationName + ", " + DatabaseHelper.mmsi + ", " + DatabaseHelper.xPosition +
                     ", " + DatabaseHelper.yPosition + " from " + DatabaseHelper.fixedStationTable
                     + " where " + DatabaseHelper.mmsi + " in (Select " + DatabaseHelper.mmsi + " from " + DatabaseHelper.stationListTable + ")", null);
 
@@ -510,10 +535,13 @@ public class ListViewActivity extends ActionBarActivity {
             }else {
                 Log.d(TAG, "Error reading from fixed stn table");
             }
-            fixedStnCursor.close();
         } catch (SQLException e){
             Log.d(TAG, "Error Reading from Database");
             e.printStackTrace();
+        } finally {
+            if (fixedStnCursor != null){
+                fixedStnCursor.close();
+            }
         }
         return parameterObjects;
         //arrayAdapter.notifyDataSetChanged();
@@ -521,10 +549,11 @@ public class ListViewActivity extends ActionBarActivity {
     }
 
     private ArrayList<ParameterListObject> generateDataFromStaticStnTable(){
+        Cursor staticStnCursor = null;
         try{
             SQLiteOpenHelper dbHelper = DatabaseHelper.getDbInstance(this);
             SQLiteDatabase db = dbHelper.getReadableDatabase();
-            Cursor staticStnCursor = db.query(DatabaseHelper.staticStationListTable,
+            staticStnCursor = db.query(DatabaseHelper.staticStationListTable,
                     new String[] {DatabaseHelper.staticStationName, DatabaseHelper.xPosition, DatabaseHelper.yPosition},
                     null,
                     null,
@@ -541,9 +570,12 @@ public class ListViewActivity extends ActionBarActivity {
             }else {
                 Log.d(TAG, "Error reading from static stn table");
             }
-            staticStnCursor.close();
         } catch (SQLException e){
             Log.d(TAG, "Error Reading from Database");
+        } finally {
+            if (staticStnCursor != null){
+                staticStnCursor.close();
+            }
         }
         return parameterObjects;
         //arrayAdapter.notifyDataSetChanged();
@@ -551,6 +583,7 @@ public class ListViewActivity extends ActionBarActivity {
     }
 
     private ArrayList<ParameterListObject> generateDataUsersTable(){
+        Cursor usersCursor = null;
         try{
             SQLiteOpenHelper dbHelper = DatabaseHelper.getDbInstance(this);
             SQLiteDatabase db = dbHelper.getReadableDatabase();
@@ -559,7 +592,7 @@ public class ListViewActivity extends ActionBarActivity {
             //        null,
             //        null,
             //        null, null, null);
-            Cursor usersCursor = db.query(DatabaseHelper.usersTable,
+            usersCursor = db.query(DatabaseHelper.usersTable,
                     new String[] {DatabaseHelper.userName},
                     null,
                     null,
@@ -574,10 +607,13 @@ public class ListViewActivity extends ActionBarActivity {
             }else {
                 Log.d(TAG, "Error reading from fixed stn table");
             }
-            usersCursor.close();
         } catch (SQLException e){
             Log.d(TAG, "Error Reading from Database");
             e.printStackTrace();
+        } finally {
+            if (usersCursor != null){
+                usersCursor.close();
+            }
         }
         return parameterObjects;
         //arrayAdapter.notifyDataSetChanged();

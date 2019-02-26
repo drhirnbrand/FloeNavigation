@@ -44,10 +44,11 @@ public class ParameterViewActivity extends ListActivity {
     }
 
     private ArrayList<ParameterObject> generateData(){
+        Cursor paramsCursor = null;
         try{
             dbHelper = DatabaseHelper.getDbInstance(this);
             db = dbHelper.getReadableDatabase();
-            Cursor paramsCursor = db.query(DatabaseHelper.configParametersTable,
+            paramsCursor = db.query(DatabaseHelper.configParametersTable,
                     new String[] {DatabaseHelper.parameterName, DatabaseHelper.parameterValue},
                     null,
                     null,
@@ -77,6 +78,10 @@ public class ParameterViewActivity extends ListActivity {
             }
         } catch (SQLException e){
             Log.d(TAG, "Error Reading from Database");
+        } finally {
+            if (paramsCursor != null){
+                paramsCursor.close();
+            }
         }
         return parameterObjects;
         //arrayAdapter.notifyDataSetChanged();
