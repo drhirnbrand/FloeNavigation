@@ -68,11 +68,11 @@ public class PredictionService extends IntentService {
                     @Override
                     public void run() {
                         if(!stopRunnable) {
+                            Cursor mFixedStnCursor = null;
                             try{
                                 DatabaseHelper dbHelper = DatabaseHelper.getDbInstance(getApplicationContext());
                                 SQLiteDatabase db = dbHelper.getReadableDatabase();
                                 if(getOriginCoordinates(db)) {
-                                    Cursor mFixedStnCursor;
                                     double stationLatitude, stationLongitude, stationSOG, stationCOG;
                                     double[] predictedCoordinate;
                                     int mmsi;
@@ -121,6 +121,10 @@ public class PredictionService extends IntentService {
                             }catch (SQLException e){
                                 String text = "Database unavailable";
                                 Log.d(TAG, text);
+                            }finally {
+                                if (mFixedStnCursor != null){
+                                    mFixedStnCursor.close();
+                                }
                             }
                         } else{
                             mPredictionHandler.removeCallbacks(this);
@@ -141,8 +145,9 @@ public class PredictionService extends IntentService {
     }
 
     private void retrieveConfigurationParametersDatafromDB(SQLiteDatabase db){
+        Cursor configParamCursor = null;
         try{
-            Cursor configParamCursor = db.query(DatabaseHelper.configParametersTable, null, null,
+            configParamCursor = db.query(DatabaseHelper.configParametersTable, null, null,
                     null, null, null, null);
             String parameterName = null;
             int parameterValue = 0;
@@ -169,6 +174,10 @@ public class PredictionService extends IntentService {
 
             Log.d(TAG, "SQLiteException");
             e.printStackTrace();
+        }finally {
+            if (configParamCursor != null){
+                configParamCursor.close();
+            }
         }
     }
 
@@ -194,10 +203,12 @@ public class PredictionService extends IntentService {
     }
 
     private boolean getOriginCoordinates(SQLiteDatabase db){
-
+        Cursor baseStationCursor = null;
+        Cursor betaCursor = null;
+        Cursor fixedStationCursor = null;
         try {
 
-            Cursor baseStationCursor = db.query(DatabaseHelper.baseStationTable,
+            baseStationCursor = db.query(DatabaseHelper.baseStationTable,
                     new String[] {DatabaseHelper.mmsi, DatabaseHelper.isOrigin},
                      null,
                     null,
@@ -221,7 +232,7 @@ public class PredictionService extends IntentService {
                     } while (baseStationCursor.moveToNext());
                 }
             }
-            Cursor fixedStationCursor = db.query(DatabaseHelper.fixedStationTable,
+            fixedStationCursor = db.query(DatabaseHelper.fixedStationTable,
                     new String[] {DatabaseHelper.latitude, DatabaseHelper.longitude},
                     DatabaseHelper.mmsi +" = ?",
                     new String[] {String.valueOf(originMMSI)},
@@ -236,7 +247,7 @@ public class PredictionService extends IntentService {
                 }
             }
 
-            Cursor betaCursor = db.query(DatabaseHelper.betaTable,
+            betaCursor = db.query(DatabaseHelper.betaTable,
                     new String[]{DatabaseHelper.beta, DatabaseHelper.updateTime},
                     null, null,
                     null, null, null);
@@ -257,6 +268,16 @@ public class PredictionService extends IntentService {
             Log.d(TAG, "Database Error");
             e.printStackTrace();
             return false;
+        }finally {
+            if (baseStationCursor != null){
+                baseStationCursor.close();
+            }
+            if (betaCursor != null){
+                betaCursor.close();
+            }
+            if (fixedStationCursor != null){
+                fixedStationCursor.close();
+            }
         }
     }
 

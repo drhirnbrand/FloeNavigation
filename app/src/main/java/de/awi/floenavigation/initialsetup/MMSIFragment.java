@@ -181,9 +181,9 @@ public class MMSIFragment extends Fragment implements View.OnClickListener{
 
     private boolean checkStationInMobileTable(SQLiteDatabase db, int MMSI){
         boolean isPresent = false;
+        Cursor mMobileStationCursor = null;
         try{
 
-            Cursor mMobileStationCursor;
             mMobileStationCursor = db.query(DatabaseHelper.mobileStationTable, new String[]{DatabaseHelper.mmsi}, DatabaseHelper.mmsi + " = ?",
                     new String[]{String.valueOf(MMSI)}, null, null, null);
             isPresent = mMobileStationCursor.moveToFirst();
@@ -191,6 +191,10 @@ public class MMSIFragment extends Fragment implements View.OnClickListener{
         }catch (SQLException e){
             Log.d(TAG, "SQLiteException");
             e.printStackTrace();
+        }finally {
+            if(mMobileStationCursor != null){
+                mMobileStationCursor.close();
+            }
         }
         return isPresent;
     }
@@ -202,11 +206,12 @@ public class MMSIFragment extends Fragment implements View.OnClickListener{
 
     private int baseStationRetrievalfromDB(SQLiteDatabase db, int MMSI){
 
+        Cursor mBaseStnCursor = null;
         try {
             int existingBaseStnMMSI;
             //SQLiteOpenHelper dbHelper = DatabaseHelper.getDbInstance(getApplicationContext());
             //SQLiteDatabase db = dbHelper.getReadableDatabase();
-            Cursor mBaseStnCursor = db.query(DatabaseHelper.baseStationTable, new String[]{DatabaseHelper.mmsi},
+            mBaseStnCursor = db.query(DatabaseHelper.baseStationTable, new String[]{DatabaseHelper.mmsi},
                     DatabaseHelper.mmsi + " = ?", new String[]{String.valueOf(MMSI)}, null, null, null);
 
 
@@ -226,6 +231,10 @@ public class MMSIFragment extends Fragment implements View.OnClickListener{
             Log.d(TAG, "SQLiteException");
             e.printStackTrace();
             return 0;
+        }finally {
+            if(mBaseStnCursor != null){
+                mBaseStnCursor.close();
+            }
         }
     }
 

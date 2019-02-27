@@ -316,10 +316,11 @@ public class SetupActivity extends ActionBarActivity {
     }
 
     private void retrievePredictionTimefromDB(){
+        Cursor configParamCursor = null;
         try{
             SQLiteOpenHelper dbHelper = DatabaseHelper.getDbInstance(getApplicationContext());
             SQLiteDatabase db = dbHelper.getReadableDatabase();
-            Cursor configParamCursor = db.query(DatabaseHelper.configParametersTable, null, null,
+            configParamCursor = db.query(DatabaseHelper.configParametersTable, null, null,
                     null, null, null, null);
             String parameterName;
             int parameterValue = 0;
@@ -343,6 +344,10 @@ public class SetupActivity extends ActionBarActivity {
 
             Log.d(TAG, "SQLiteException");
             e.printStackTrace();
+        }finally {
+            if(configParamCursor != null){
+                configParamCursor.close();
+            }
         }
     }
 
@@ -583,13 +588,14 @@ public class SetupActivity extends ActionBarActivity {
 
         @Override
         protected Boolean doInBackground(Void... voids) {
+            Cursor cursor = null;
             mmsi = new int[DatabaseHelper.INITIALIZATION_SIZE];
             updateTime = new double[DatabaseHelper.INITIALIZATION_SIZE];
             SQLiteOpenHelper dbHelper = DatabaseHelper.getDbInstance(getApplicationContext());
 
             try{
                 SQLiteDatabase db = dbHelper.getReadableDatabase();
-                Cursor cursor = db.query(DatabaseHelper.fixedStationTable,
+                cursor = db.query(DatabaseHelper.fixedStationTable,
                         new String[] {DatabaseHelper.mmsi, DatabaseHelper.recvdLatitude, DatabaseHelper.recvdLongitude, DatabaseHelper.latitude, DatabaseHelper.longitude, DatabaseHelper.sog, DatabaseHelper.cog, DatabaseHelper.updateTime},
                         null, null, null, null, null);
                 long stationCount = DatabaseUtils.queryNumEntries(db, DatabaseHelper.stationListTable);
@@ -636,6 +642,10 @@ public class SetupActivity extends ActionBarActivity {
                 }
             } catch (SQLiteException e){
                 return false;
+            }finally {
+                if (cursor != null){
+                    cursor.close();
+                }
             }
         }
 

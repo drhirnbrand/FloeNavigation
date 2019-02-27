@@ -52,7 +52,7 @@ public class WaypointsSync {
 
 
     private HashMap<Integer, String> deletedWaypointsData = new HashMap<Integer, String>();
-    private Cursor waypointsCursor;
+    private Cursor waypointsCursor = null;
     private Waypoints waypoints;
     private ArrayList<Waypoints> waypointsList = new ArrayList<>();
     private RequestQueue requestQueue;
@@ -99,6 +99,10 @@ public class WaypointsSync {
         } catch (SQLiteException e){
             Log.d(TAG, "Database Error");
             e.printStackTrace();
+        }finally {
+            if (waypointsCursor != null){
+                waypointsCursor.close();
+            }
         }
 
     }
@@ -267,10 +271,11 @@ public class WaypointsSync {
     }
 
     private void sendWaypointDeleteRequest(){
+        Cursor deletedWaypointsCursor = null;
         try{
             dbHelper = DatabaseHelper.getDbInstance(mContext);
             db = dbHelper.getReadableDatabase();
-            Cursor deletedWaypointsCursor = db.query(DatabaseHelper.waypointDeletedTable,
+            deletedWaypointsCursor = db.query(DatabaseHelper.waypointDeletedTable,
                     null,
                     null,
                     null,
@@ -294,6 +299,10 @@ public class WaypointsSync {
         } catch (SQLException e){
             Log.d(TAG, "Database Error");
             e.printStackTrace();
+        }finally {
+            if (deletedWaypointsCursor != null){
+                deletedWaypointsCursor.close();
+            }
         }
 
         for(int j = 0; j < deletedWaypointsData.size(); j++){

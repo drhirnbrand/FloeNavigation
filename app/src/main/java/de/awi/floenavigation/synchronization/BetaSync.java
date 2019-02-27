@@ -75,7 +75,7 @@ public class BetaSync {
     /**
      * Cursor used to loop through the database entries
      */
-    private Cursor betaCursor;
+    private Cursor betaCursor = null;
     private Beta beta;
     private ArrayList<Beta> betaList = new ArrayList<>();
     private RequestQueue requestQueue;
@@ -128,6 +128,10 @@ public class BetaSync {
         } catch (SQLiteException e){
             Log.d(TAG, "Database Error");
             e.printStackTrace();
+        }finally {
+            if (betaCursor != null){
+                betaCursor.close();
+            }
         }
     }
 

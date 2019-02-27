@@ -58,7 +58,7 @@ public class BaseStationSync {
      * Cursor is used to loop through the rows of {@link DatabaseHelper#baseStationTable}
      * based on the selection in the Cursor query
      */
-    private Cursor baseStationCursor;
+    private Cursor baseStationCursor = null;
     private BaseStation baseStationList;
     private ArrayList<BaseStation> baseStationArrayList = new ArrayList<>();
     /**
@@ -110,6 +110,10 @@ public class BaseStationSync {
         } catch (SQLiteException e){
             Log.d(TAG, "Database Error");
             e.printStackTrace();
+        }finally {
+            if (baseStationCursor != null){
+                baseStationCursor.close();
+            }
         }
     }
 
@@ -294,11 +298,11 @@ public class BaseStationSync {
      */
 
     private void sendBSDeleteRequest(){
-
+        Cursor deletedStationListCursor = null;
         try{
             dbHelper = DatabaseHelper.getDbInstance(mContext);
             db = dbHelper.getReadableDatabase();
-            Cursor deletedStationListCursor = db.query(DatabaseHelper.baseStationDeletedTable,
+            deletedStationListCursor = db.query(DatabaseHelper.baseStationDeletedTable,
                     null,
                     null,
                     null,
@@ -317,6 +321,10 @@ public class BaseStationSync {
         } catch (SQLException e){
             Log.d(TAG, "Database Error");
             e.printStackTrace();
+        }finally {
+            if (deletedStationListCursor != null){
+                deletedStationListCursor.close();
+            }
         }
 
         for(int j = 0; j < deletedBaseStationData.size(); j++){

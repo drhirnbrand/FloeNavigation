@@ -97,7 +97,7 @@ public class FixedStationSync {
      * Hashtables for storing different parameters of {@link DatabaseHelper#fixedStationDeletedTable}
      */
     private HashMap<Integer, Integer> deletedFixedStationData = new HashMap<>();
-    private Cursor fixedStationCursor;
+    private Cursor fixedStationCursor = null;
     private FixedStation fixedStation;
     private ArrayList<FixedStation> fixedStationList = new ArrayList<>();
     private RequestQueue requestQueue;
@@ -165,6 +165,10 @@ public class FixedStationSync {
         } catch (SQLiteException e){
             Log.d(TAG, "Database Error");
             e.printStackTrace();
+        }finally {
+            if (fixedStationCursor != null){
+                fixedStationCursor.close();
+            }
         }
 
     }
@@ -421,10 +425,11 @@ public class FixedStationSync {
      * This facilitates the server to know which mmsi's should be marked for deletion since these stations are no longer used in caluculation of the grid.
      */
     private void sendFSDeleteRequest(){
+        Cursor deletedFixedStationCursor = null;
         try{
             dbHelper = DatabaseHelper.getDbInstance(mContext);
             db = dbHelper.getReadableDatabase();
-            Cursor deletedFixedStationCursor = db.query(DatabaseHelper.fixedStationDeletedTable,
+            deletedFixedStationCursor = db.query(DatabaseHelper.fixedStationDeletedTable,
                     null,
                     null,
                     null,
@@ -448,6 +453,10 @@ public class FixedStationSync {
         } catch (SQLException e){
             Log.d(TAG, "Database Error");
             e.printStackTrace();
+        }finally {
+            if (deletedFixedStationCursor != null){
+                deletedFixedStationCursor.close();
+            }
         }
 
         for(int j = 0; j < deletedFixedStationData.size(); j++) {

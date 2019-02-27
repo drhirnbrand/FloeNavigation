@@ -14,10 +14,18 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 
+/**
+ * It runs on a separate thread. It is called from the {@link de.awi.floenavigation.network.NetworkMonitor}
+ * when the ping request between the tablet and the AIS Server is successful.
+ * It takes care of establishing socket connection with the Wifi Network of the AIS transponder
+ */
 public class AISMessageReceiver implements Runnable {
 
     private static final String TAG = "AISMessageReceiver";
 
+    /**
+     *
+     */
     private String dstAddress;
     private int dstPort;
     private TelnetClient client;

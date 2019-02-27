@@ -37,7 +37,7 @@ public class AngleCalculationService extends IntentService {
     private int[] mmsi;
     private int mmsiInDBTable;
     private static final int CALCULATION_TIME = 10 * 1000;
-    private Cursor mBaseStnCursor, mFixedStnCursor, mBetaCursor;
+    private Cursor mBaseStnCursor = null, mFixedStnCursor = null, mBetaCursor = null;
     private BroadcastReceiver broadcastReceiver;
     private long gpsTime;
     private long timeDiff;
@@ -94,40 +94,48 @@ public class AngleCalculationService extends IntentService {
             Runnable betaRunnable = new Runnable() {
                 @Override
                 public void run() {
-                    if(!stopRunnable) {
-                        try {
-                            SQLiteOpenHelper databaseHelper = DatabaseHelper.getDbInstance(getApplicationContext());
-                            //SQLiteOpenHelper databaseHelper = new DatabaseHelper(getApplicationContext());
-                            SQLiteDatabase db = databaseHelper.getReadableDatabase();
+                    try {
+                        if (!stopRunnable) {
+                            try {
+                                SQLiteOpenHelper databaseHelper = DatabaseHelper.getDbInstance(getApplicationContext());
+                                //SQLiteOpenHelper databaseHelper = new DatabaseHelper(getApplicationContext());
+                                SQLiteDatabase db = databaseHelper.getReadableDatabase();
 
 
-                            mBaseStnCursor = db.query(DatabaseHelper.baseStationTable, new String[] {DatabaseHelper.mmsi}, null,
-                                    null, null, null, null);
-                            if (mBaseStnCursor.getCount() != DatabaseHelper.NUM_OF_BASE_STATIONS){
-                                Log.d(TAG, "Error Reading from Base Station Table ");
-                            } else {
-                                if (mBaseStnCursor.moveToFirst()) {
-                                    int index = 0;
-                                    do {
-                                        mmsi[index] = mBaseStnCursor.getInt(mBaseStnCursor.getColumnIndex(DatabaseHelper.mmsi));
-                                        index++;
-                                    } while (mBaseStnCursor.moveToNext());
-                                    mBaseStnCursor.close();
+                                mBaseStnCursor = db.query(DatabaseHelper.baseStationTable, new String[]{DatabaseHelper.mmsi}, null,
+                                        null, null, null, null);
+                                if (mBaseStnCursor.getCount() != DatabaseHelper.NUM_OF_BASE_STATIONS) {
+                                    Log.d(TAG, "Error Reading from Base Station Table ");
+                                } else {
+                                    if (mBaseStnCursor.moveToFirst()) {
+                                        int index = 0;
+                                        do {
+                                            mmsi[index] = mBaseStnCursor.getInt(mBaseStnCursor.getColumnIndex(DatabaseHelper.mmsi));
+                                            index++;
+                                        } while (mBaseStnCursor.moveToNext());
+                                        mBaseStnCursor.close();
 
-                                    betaAngleCalculation(db);
-                                    //alphaAngleCalculation(db);
+                                        betaAngleCalculation(db);
+                                        //alphaAngleCalculation(db);
 
+                                    }
                                 }
+                                //db.close();
+                                mHandler.postDelayed(this, CALCULATION_TIME);
+                            } catch (SQLException e) {
+                                String text = "Database unavailable";
+                                Log.d(TAG, text);
                             }
-                            //db.close();
-                            mHandler.postDelayed(this, CALCULATION_TIME);
-                        }catch (SQLException e){
-                            String text = "Database unavailable";
-                            Log.d(TAG, text);
+                        } else {
+                            mHandler.removeCallbacks(this);
                         }
-                    }
-                    else{
-                        mHandler.removeCallbacks(this);
+                    }catch (SQLException e){
+                        Log.d(TAG, "Database Error");
+                        e.printStackTrace();
+                    }finally {
+                        if (mBaseStnCursor != null){
+                            mBaseStnCursor.close();
+                        }
                     }
                 }
             };
@@ -147,47 +155,57 @@ public class AngleCalculationService extends IntentService {
 
     private void betaAngleCalculation(SQLiteDatabase db){
         //Beta Angle Calculation
-        mFixedStnCursor = db.query(DatabaseHelper.fixedStationTable,
-                new String[]{DatabaseHelper.mmsi, DatabaseHelper.latitude, DatabaseHelper.longitude, DatabaseHelper.alpha}, null,
-                null, null, null, null);
-        long numOfStations = DatabaseUtils.queryNumEntries(db, DatabaseHelper.fixedStationTable);
-        stationLatitude = new double[(int) numOfStations];
-        stationLongitude = new double[(int) numOfStations];
-        beta = new double[(int) numOfStations - 1];
-        if (mFixedStnCursor.moveToFirst()) {
-            int index = 0, betaIndex = 0;
-            do {
-                mmsiInDBTable = mFixedStnCursor.getInt(mFixedStnCursor.getColumnIndex(DatabaseHelper.mmsi));
-                if (mmsiInDBTable == mmsi[DatabaseHelper.firstStationIndex]){
-                    stationLatitude[DatabaseHelper.firstStationIndex] = mFixedStnCursor.getDouble(mFixedStnCursor.getColumnIndex(DatabaseHelper.latitude));
-                    stationLongitude[DatabaseHelper.firstStationIndex] = mFixedStnCursor.getDouble(mFixedStnCursor.getColumnIndex(DatabaseHelper.longitude));
-                }else if (mmsiInDBTable == mmsi[DatabaseHelper.secondStationIndex]){
-                    stationLatitude[DatabaseHelper.secondStationIndex] = mFixedStnCursor.getDouble(mFixedStnCursor.getColumnIndex(DatabaseHelper.latitude));
-                    stationLongitude[DatabaseHelper.secondStationIndex] = mFixedStnCursor.getDouble(mFixedStnCursor.getColumnIndex(DatabaseHelper.longitude));
-                    beta[betaIndex] = NavigationFunctions.calculateAngleBeta(stationLatitude[0], stationLongitude[0], stationLatitude[1], stationLongitude[1]);
-                    //Log.d(TAG, "Lat1: " + stationLatitude[0] + " Lon1: " + stationLongitude[0]);
-                    //Log.d(TAG, "Lat2: " + stationLatitude[1] + " Lon2: " + stationLongitude[1]);
-                    Log.d(TAG, "Beta[" + String.valueOf(betaIndex) + "]" + String.valueOf(beta[betaIndex]));
-                    betaIndex++;
-                }else {
-                    stationLatitude[index] = mFixedStnCursor.getDouble(mFixedStnCursor.getColumnIndex(DatabaseHelper.latitude));
-                    stationLongitude[index] = mFixedStnCursor.getDouble(mFixedStnCursor.getColumnIndex(DatabaseHelper.longitude));
-                    alpha = mFixedStnCursor.getDouble(mFixedStnCursor.getColumnIndex(DatabaseHelper.alpha));
-                    double theta = NavigationFunctions.calculateAngleBeta(stationLatitude[0], stationLongitude[0], stationLatitude[index], stationLongitude[index]);
-                    //beta[betaIndex] = Math.abs(theta - alpha);
-                    beta[betaIndex] = theta - alpha;
-                    Log.d(TAG, "Lat1: " + stationLatitude[0] + " Lon1: " + stationLongitude[0] + " alpha: " + alpha);
-                    Log.d(TAG, "Lat2: " + stationLatitude[index] + " Lon2: " + stationLongitude[index] + " alpha: " + alpha);
-                    Log.d(TAG, "Beta[" + String.valueOf(betaIndex) + "]" + String.valueOf(beta[betaIndex]));
-                    betaIndex++;
-                }
-                index++;
-            } while (mFixedStnCursor.moveToNext());
+        try {
 
-            double avgBetaValue = averageBetaCalculation(beta);
-            updateDataintoDatabase(db, avgBetaValue);
+            mFixedStnCursor = db.query(DatabaseHelper.fixedStationTable,
+                    new String[]{DatabaseHelper.mmsi, DatabaseHelper.latitude, DatabaseHelper.longitude, DatabaseHelper.alpha}, null,
+                    null, null, null, null);
+            long numOfStations = DatabaseUtils.queryNumEntries(db, DatabaseHelper.fixedStationTable);
+            stationLatitude = new double[(int) numOfStations];
+            stationLongitude = new double[(int) numOfStations];
+            beta = new double[(int) numOfStations - 1];
+            if (mFixedStnCursor.moveToFirst()) {
+                int index = 0, betaIndex = 0;
+                do {
+                    mmsiInDBTable = mFixedStnCursor.getInt(mFixedStnCursor.getColumnIndex(DatabaseHelper.mmsi));
+                    if (mmsiInDBTable == mmsi[DatabaseHelper.firstStationIndex]) {
+                        stationLatitude[DatabaseHelper.firstStationIndex] = mFixedStnCursor.getDouble(mFixedStnCursor.getColumnIndex(DatabaseHelper.latitude));
+                        stationLongitude[DatabaseHelper.firstStationIndex] = mFixedStnCursor.getDouble(mFixedStnCursor.getColumnIndex(DatabaseHelper.longitude));
+                    } else if (mmsiInDBTable == mmsi[DatabaseHelper.secondStationIndex]) {
+                        stationLatitude[DatabaseHelper.secondStationIndex] = mFixedStnCursor.getDouble(mFixedStnCursor.getColumnIndex(DatabaseHelper.latitude));
+                        stationLongitude[DatabaseHelper.secondStationIndex] = mFixedStnCursor.getDouble(mFixedStnCursor.getColumnIndex(DatabaseHelper.longitude));
+                        beta[betaIndex] = NavigationFunctions.calculateAngleBeta(stationLatitude[0], stationLongitude[0], stationLatitude[1], stationLongitude[1]);
+                        //Log.d(TAG, "Lat1: " + stationLatitude[0] + " Lon1: " + stationLongitude[0]);
+                        //Log.d(TAG, "Lat2: " + stationLatitude[1] + " Lon2: " + stationLongitude[1]);
+                        Log.d(TAG, "Beta[" + String.valueOf(betaIndex) + "]" + String.valueOf(beta[betaIndex]));
+                        betaIndex++;
+                    } else {
+                        stationLatitude[index] = mFixedStnCursor.getDouble(mFixedStnCursor.getColumnIndex(DatabaseHelper.latitude));
+                        stationLongitude[index] = mFixedStnCursor.getDouble(mFixedStnCursor.getColumnIndex(DatabaseHelper.longitude));
+                        alpha = mFixedStnCursor.getDouble(mFixedStnCursor.getColumnIndex(DatabaseHelper.alpha));
+                        double theta = NavigationFunctions.calculateAngleBeta(stationLatitude[0], stationLongitude[0], stationLatitude[index], stationLongitude[index]);
+                        //beta[betaIndex] = Math.abs(theta - alpha);
+                        beta[betaIndex] = theta - alpha;
+                        Log.d(TAG, "Lat1: " + stationLatitude[0] + " Lon1: " + stationLongitude[0] + " alpha: " + alpha);
+                        Log.d(TAG, "Lat2: " + stationLatitude[index] + " Lon2: " + stationLongitude[index] + " alpha: " + alpha);
+                        Log.d(TAG, "Beta[" + String.valueOf(betaIndex) + "]" + String.valueOf(beta[betaIndex]));
+                        betaIndex++;
+                    }
+                    index++;
+                } while (mFixedStnCursor.moveToNext());
 
-            mFixedStnCursor.close();
+                double avgBetaValue = averageBetaCalculation(beta);
+                updateDataintoDatabase(db, avgBetaValue);
+
+                mFixedStnCursor.close();
+            }
+        }catch (SQLException e){
+            Log.d(TAG, "Database Error");
+            e.printStackTrace();
+        }finally {
+            if (mFixedStnCursor != null){
+                mFixedStnCursor.close();
+            }
         }
     }
 
@@ -214,60 +232,72 @@ public class AngleCalculationService extends IntentService {
 
     private void alphaAngleCalculation(SQLiteDatabase db){
         //Alpha Angle Calculation
-        long numOfEntries = DatabaseUtils.queryNumEntries(db, DatabaseHelper.fixedStationTable);
-        if (numOfEntries > DatabaseHelper.NUM_OF_BASE_STATIONS) {
-            //Alpha angle calculation
-            double fixedStationLatitude;
-            double fixedStationLongitude;
-            double fixedStationBeta;
-            int fixedStationMMSI;
-            ContentValues mContentValues = new ContentValues(); //for updating alpha value
+        try {
+            long numOfEntries = DatabaseUtils.queryNumEntries(db, DatabaseHelper.fixedStationTable);
+            if (numOfEntries > DatabaseHelper.NUM_OF_BASE_STATIONS) {
+                //Alpha angle calculation
+                double fixedStationLatitude;
+                double fixedStationLongitude;
+                double fixedStationBeta;
+                int fixedStationMMSI;
+                ContentValues mContentValues = new ContentValues(); //for updating alpha value
 
-            mBetaCursor = db.query(DatabaseHelper.betaTable, new String[]{DatabaseHelper.beta, DatabaseHelper.updateTime},
-                    null, null, null, null, null);
+                mBetaCursor = db.query(DatabaseHelper.betaTable, new String[]{DatabaseHelper.beta, DatabaseHelper.updateTime},
+                        null, null, null, null, null);
 
 
-            //Log.d(TAG, String.valueOf(mBetaCursor.getDouble(mBetaCursor.getColumnIndex(DatabaseHelper.beta))));
-            if (mBetaCursor.getCount() == 1){
-                if (mBetaCursor.moveToFirst()) {
-                    fixedStationBeta = mBetaCursor.getDouble(mBetaCursor.getColumnIndex(DatabaseHelper.beta));
+                //Log.d(TAG, String.valueOf(mBetaCursor.getDouble(mBetaCursor.getColumnIndex(DatabaseHelper.beta))));
+                if (mBetaCursor.getCount() == 1) {
+                    if (mBetaCursor.moveToFirst()) {
+                        fixedStationBeta = mBetaCursor.getDouble(mBetaCursor.getColumnIndex(DatabaseHelper.beta));
 
-                    mFixedStnCursor = db.query(DatabaseHelper.fixedStationTable,
-                            new String[]{DatabaseHelper.latitude, DatabaseHelper.longitude, DatabaseHelper.mmsi}, DatabaseHelper.mmsi + " != ? AND " + DatabaseHelper.mmsi + " != ?",
-                            new String[]{Integer.toString(mmsi[0]), Integer.toString(mmsi[1])},
-                            null, null, null);
-                    Log.d(TAG, String.valueOf(mFixedStnCursor.getCount()));
-                    if (mFixedStnCursor.moveToFirst()) {
-                        do {
-                            fixedStationLatitude = mFixedStnCursor.getDouble(mFixedStnCursor.getColumnIndex(DatabaseHelper.latitude));
-                            fixedStationLongitude = mFixedStnCursor.getDouble(mFixedStnCursor.getColumnIndex(DatabaseHelper.longitude));
-                            fixedStationMMSI = mFixedStnCursor.getInt(mFixedStnCursor.getColumnIndex(DatabaseHelper.mmsi));
-                            double theta = NavigationFunctions.calculateAngleBeta(stationLatitude[0], stationLongitude[0], fixedStationLatitude, fixedStationLongitude);
-                            //double alpha = Math.abs(theta - fixedStationBeta);
-                            double alpha = theta - fixedStationBeta;
-                            double distance = NavigationFunctions.calculateDifference(stationLatitude[0], stationLongitude[0], fixedStationLatitude, fixedStationLongitude);
-                            double stationX = distance * Math.cos(Math.toRadians(alpha));
-                            double stationY = distance * Math.sin(Math.toRadians(alpha));
-                            Log.d(TAG, "mmsi: " + String.valueOf(fixedStationMMSI) + " Alpha: " + String.valueOf(alpha));
-                            //Log.d(TAG, "stationX: " + stationX + "stationY: " + stationY);
-                            mContentValues.put(DatabaseHelper.alpha, alpha);
-                            mContentValues.put(DatabaseHelper.xPosition, stationX);
-                            mContentValues.put(DatabaseHelper.yPosition, stationY);
-                            db.update(DatabaseHelper.fixedStationTable, mContentValues, DatabaseHelper.mmsi + " = ?", new String[]{String.valueOf(fixedStationMMSI)});
-                        } while (mFixedStnCursor.moveToNext());
-                        mFixedStnCursor.close();
-                    }else {
-                        Log.d(TAG, "Error mFixedStnCursor");
+                        mFixedStnCursor = db.query(DatabaseHelper.fixedStationTable,
+                                new String[]{DatabaseHelper.latitude, DatabaseHelper.longitude, DatabaseHelper.mmsi}, DatabaseHelper.mmsi + " != ? AND " + DatabaseHelper.mmsi + " != ?",
+                                new String[]{Integer.toString(mmsi[0]), Integer.toString(mmsi[1])},
+                                null, null, null);
+                        Log.d(TAG, String.valueOf(mFixedStnCursor.getCount()));
+                        if (mFixedStnCursor.moveToFirst()) {
+                            do {
+                                fixedStationLatitude = mFixedStnCursor.getDouble(mFixedStnCursor.getColumnIndex(DatabaseHelper.latitude));
+                                fixedStationLongitude = mFixedStnCursor.getDouble(mFixedStnCursor.getColumnIndex(DatabaseHelper.longitude));
+                                fixedStationMMSI = mFixedStnCursor.getInt(mFixedStnCursor.getColumnIndex(DatabaseHelper.mmsi));
+                                double theta = NavigationFunctions.calculateAngleBeta(stationLatitude[0], stationLongitude[0], fixedStationLatitude, fixedStationLongitude);
+                                //double alpha = Math.abs(theta - fixedStationBeta);
+                                double alpha = theta - fixedStationBeta;
+                                double distance = NavigationFunctions.calculateDifference(stationLatitude[0], stationLongitude[0], fixedStationLatitude, fixedStationLongitude);
+                                double stationX = distance * Math.cos(Math.toRadians(alpha));
+                                double stationY = distance * Math.sin(Math.toRadians(alpha));
+                                Log.d(TAG, "mmsi: " + String.valueOf(fixedStationMMSI) + " Alpha: " + String.valueOf(alpha));
+                                //Log.d(TAG, "stationX: " + stationX + "stationY: " + stationY);
+                                mContentValues.put(DatabaseHelper.alpha, alpha);
+                                mContentValues.put(DatabaseHelper.xPosition, stationX);
+                                mContentValues.put(DatabaseHelper.yPosition, stationY);
+                                db.update(DatabaseHelper.fixedStationTable, mContentValues, DatabaseHelper.mmsi + " = ?", new String[]{String.valueOf(fixedStationMMSI)});
+                            } while (mFixedStnCursor.moveToNext());
+                            mFixedStnCursor.close();
+                        } else {
+                            Log.d(TAG, "Error mFixedStnCursor");
+                        }
+                        mBetaCursor.close();
+                    } else {
+                        Log.d(TAG, "Error mBetaCursor");
                     }
-                    mBetaCursor.close();
-                }else {
-                    Log.d(TAG, "Error mBetaCursor");
+                } else {
+                    Log.d(TAG, "Error reading from Beta Table");
                 }
-            }else{
-                Log.d(TAG, "Error reading from Beta Table");
+            } else {
+                Log.d(TAG, "No New Stations Deployed");
             }
-        } else {
-            Log.d(TAG, "No New Stations Deployed");
+        }catch (SQLException e){
+            Log.d(TAG, "Database Error");
+            e.printStackTrace();
+        }finally {
+            if (mBetaCursor != null){
+                mBetaCursor.close();
+            }
+            if (mFixedStnCursor != null){
+                mFixedStnCursor.close();
+            }
         }
     }
 

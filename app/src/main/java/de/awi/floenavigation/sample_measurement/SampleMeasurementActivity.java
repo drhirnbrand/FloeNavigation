@@ -401,11 +401,13 @@ public class SampleMeasurementActivity extends Activity {
     }
 
     private boolean getOriginCoordinates(){
-
+        Cursor baseStationCursor = null;
+        Cursor fixedStationCursor = null;
+        Cursor betaCursor = null;
         try {
             DatabaseHelper databaseHelper = DatabaseHelper.getDbInstance(getApplicationContext());
             SQLiteDatabase db = databaseHelper.getReadableDatabase();
-            Cursor baseStationCursor = db.query(DatabaseHelper.baseStationTable,
+            baseStationCursor = db.query(DatabaseHelper.baseStationTable,
                     new String[] {DatabaseHelper.mmsi},
                     DatabaseHelper.isOrigin +" = ?",
                     new String[]{String.valueOf(DatabaseHelper.ORIGIN)},
@@ -418,7 +420,7 @@ public class SampleMeasurementActivity extends Activity {
                     originMMSI = baseStationCursor.getInt(baseStationCursor.getColumnIndex(DatabaseHelper.mmsi));
                 }
             }
-            Cursor fixedStationCursor = db.query(DatabaseHelper.fixedStationTable,
+            fixedStationCursor = db.query(DatabaseHelper.fixedStationTable,
                     new String[] {DatabaseHelper.latitude, DatabaseHelper.longitude},
                     DatabaseHelper.mmsi +" = ?",
                     new String[] {String.valueOf(originMMSI)},
@@ -433,7 +435,7 @@ public class SampleMeasurementActivity extends Activity {
                 }
             }
 
-            Cursor betaCursor = db.query(DatabaseHelper.betaTable,
+            betaCursor = db.query(DatabaseHelper.betaTable,
                     new String[]{DatabaseHelper.beta, DatabaseHelper.updateTime},
                     null, null,
                     null, null, null);
@@ -454,6 +456,16 @@ public class SampleMeasurementActivity extends Activity {
             Log.d(TAG, "Database Error");
             e.printStackTrace();
             return false;
+        }finally {
+            if (baseStationCursor != null){
+                baseStationCursor.close();
+            }
+            if (fixedStationCursor != null){
+                fixedStationCursor.close();
+            }
+            if (betaCursor != null){
+                betaCursor.close();
+            }
         }
     }
 

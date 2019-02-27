@@ -46,7 +46,7 @@ public class StationListSync {
 
 
     private HashMap<Integer, Integer> deletedStationListData = new HashMap<>();
-    private Cursor stationListCursor;
+    private Cursor stationListCursor = null;
     private StationList stationList;
     private ArrayList<StationList> stationArrayList = new ArrayList<>();
     private RequestQueue requestQueue;
@@ -88,6 +88,10 @@ public class StationListSync {
         } catch (SQLiteException e){
             Log.d(TAG, "Database Error");
             e.printStackTrace();
+        }finally {
+            if (stationListCursor != null){
+                stationListCursor.close();
+            }
         }
 
     }
@@ -224,11 +228,11 @@ public class StationListSync {
     }
 
     private void sendSLDeleteRequest(){
-
+        Cursor deletedStationListCursor = null;
         try{
             dbHelper = DatabaseHelper.getDbInstance(mContext);
             db = dbHelper.getReadableDatabase();
-            Cursor deletedStationListCursor = db.query(DatabaseHelper.stationListDeletedTable,
+            deletedStationListCursor = db.query(DatabaseHelper.stationListDeletedTable,
                     null,
                     null,
                     null,
@@ -252,6 +256,10 @@ public class StationListSync {
         } catch (SQLException e){
             Log.d(TAG, "Database Error");
             e.printStackTrace();
+        }finally {
+            if (deletedStationListCursor != null){
+                deletedStationListCursor.close();
+            }
         }
 
         for(int j = 0; j < deletedStationListData.size(); j++){

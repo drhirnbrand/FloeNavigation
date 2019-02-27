@@ -80,7 +80,7 @@ public class SampleMeasurementSync {
     private HashMap<Integer, String> commentData = new HashMap<>();
     private HashMap<Integer, String> labelData = new HashMap<>();
 
-    private Cursor sampleCursor;
+    private Cursor sampleCursor = null;
     private SampleMeasurement sampleMeasurement;
     private DeviceList deviceList;
     private ArrayList<SampleMeasurement> sampleArrayList = new ArrayList<>();
@@ -142,6 +142,10 @@ public class SampleMeasurementSync {
         } catch (SQLiteException e){
             Log.d(TAG, "Database Error");
             e.printStackTrace();
+        }finally {
+            if (sampleCursor != null){
+                sampleCursor.close();
+            }
         }
     }
 

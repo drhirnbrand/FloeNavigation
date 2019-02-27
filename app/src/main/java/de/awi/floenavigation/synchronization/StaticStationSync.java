@@ -105,7 +105,7 @@ public class StaticStationSync {
      * Reads {@link StaticStation#stationName} from {@value DatabaseHelper#staticStationDeletedTable}
      */
     private HashMap<Integer, String> deletedStaticStationData = new HashMap<Integer, String>();
-    private Cursor staticStationCursor;
+    private Cursor staticStationCursor = null;
     private StaticStation staticStation;
     private ArrayList<StaticStation> staticStationList = new ArrayList<>();
 
@@ -162,6 +162,10 @@ public class StaticStationSync {
         } catch (SQLiteException e){
             Log.d(TAG, "Database Error");
             e.printStackTrace();
+        }finally {
+            if (staticStationCursor != null){
+                staticStationCursor.close();
+            }
         }
 
     }
@@ -323,10 +327,11 @@ public class StaticStationSync {
     }
 
     private void sendSSDeleteRequest(){
+        Cursor deletedStaticStationCursor = null;
         try {
             dbHelper = DatabaseHelper.getDbInstance(mContext);
             db = dbHelper.getReadableDatabase();
-            Cursor deletedStaticStationCursor = db.query(DatabaseHelper.staticStationDeletedTable,
+            deletedStaticStationCursor = db.query(DatabaseHelper.staticStationDeletedTable,
                     null,
                     null,
                     null,
@@ -350,6 +355,10 @@ public class StaticStationSync {
         } catch (SQLException e){
             Log.d(TAG, "Database Error");
             e.printStackTrace();
+        }finally {
+            if (deletedStaticStationCursor != null){
+                deletedStaticStationCursor.close();
+            }
         }
 
         for(int j = 0; j < deletedStaticStationData.size(); j++){

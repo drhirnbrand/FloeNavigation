@@ -71,7 +71,7 @@ public class ConfigurationParameterSync {
     /**
      * Cursor used to loop through the database entries
      */
-    private Cursor configParameterCursor;
+    private Cursor configParameterCursor = null;
     private ConfigurationParameter configurationParameter;
     private ArrayList<ConfigurationParameter> configParamArrayList = new ArrayList<>();
     private RequestQueue requestQueue;
@@ -119,6 +119,10 @@ public class ConfigurationParameterSync {
         } catch (SQLiteException e){
             Log.d(TAG, "Database Error");
             e.printStackTrace();
+        }finally {
+            if (configParameterCursor != null){
+                configParameterCursor.close();
+            }
         }
     }
 

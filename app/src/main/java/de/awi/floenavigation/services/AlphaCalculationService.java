@@ -7,6 +7,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.database.Cursor;
+import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
 import android.os.AsyncTask;
@@ -40,7 +41,7 @@ public class AlphaCalculationService extends IntentService {
     private double stationY;
     private double theta;
     private double alpha;
-    private Cursor mobileStationCursor;
+    private Cursor mobileStationCursor = null;
     Timer timer = new Timer();
     private static final int TIMER_PERIOD = 10 * 1000;
     private static final int TIMER_DELAY = 0;
@@ -97,42 +98,51 @@ public class AlphaCalculationService extends IntentService {
             timer.schedule(new TimerTask() {
                 @Override
                 public void run() {
-                    if(!stopTimer) {
-                        DatabaseHelper dbHelper = DatabaseHelper.getDbInstance(getApplicationContext());
-                        SQLiteDatabase db = dbHelper.getReadableDatabase();
-                        if (readFromDatabase(db)) {
-                            if (mobileStationCursor.moveToFirst()) {
-                                do {
-                                    stationLatitude = mobileStationCursor.getDouble(mobileStationCursor.getColumnIndex(DatabaseHelper.latitude));
-                                    stationLongitude = mobileStationCursor.getDouble(mobileStationCursor.getColumnIndex(DatabaseHelper.longitude));
-                                    stationMMSI = mobileStationCursor.getInt(mobileStationCursor.getColumnIndex(DatabaseHelper.mmsi));
-                                    theta = NavigationFunctions.calculateAngleBeta(originLatitude, originLongitude, stationLatitude, stationLongitude);
-                                    //alpha = Math.abs(theta - beta);
-                                    alpha = theta - beta;
-                                    distance = NavigationFunctions.calculateDifference(originLatitude, originLongitude, stationLatitude, stationLongitude);
-                                    stationX = distance * Math.cos(Math.toRadians(alpha));
-                                    stationY = distance * Math.sin(Math.toRadians(alpha));
-                                    ContentValues alphaUpdate = new ContentValues();
-                                    alphaUpdate.put(DatabaseHelper.alpha, alpha);
-                                    alphaUpdate.put(DatabaseHelper.distance, distance);
-                                    alphaUpdate.put(DatabaseHelper.xPosition, stationX);
-                                    alphaUpdate.put(DatabaseHelper.yPosition, stationY);
-                                    alphaUpdate.put(DatabaseHelper.updateTime, String.valueOf(System.currentTimeMillis() - timeDiff));
-                                    alphaUpdate.put(DatabaseHelper.isCalculated, DatabaseHelper.MOBILE_STATION_IS_CALCULATED);
-                                    //Log.d(TAG, "MMSI:  " + String.valueOf(stationMMSI) +  "Alpha " + String.valueOf(alpha)  +  "Distance " + String.valueOf(distance));
-                                    db.update(DatabaseHelper.mobileStationTable, alphaUpdate, DatabaseHelper.mmsi + " = ?", new String[]{String.valueOf(stationMMSI)});
+                    try {
+                        if (!stopTimer) {
+                            DatabaseHelper dbHelper = DatabaseHelper.getDbInstance(getApplicationContext());
+                            SQLiteDatabase db = dbHelper.getReadableDatabase();
+                            if (readFromDatabase(db)) {
+                                if (mobileStationCursor != null && mobileStationCursor.moveToFirst()) {
+                                    do {
+                                        stationLatitude = mobileStationCursor.getDouble(mobileStationCursor.getColumnIndex(DatabaseHelper.latitude));
+                                        stationLongitude = mobileStationCursor.getDouble(mobileStationCursor.getColumnIndex(DatabaseHelper.longitude));
+                                        stationMMSI = mobileStationCursor.getInt(mobileStationCursor.getColumnIndex(DatabaseHelper.mmsi));
+                                        theta = NavigationFunctions.calculateAngleBeta(originLatitude, originLongitude, stationLatitude, stationLongitude);
+                                        //alpha = Math.abs(theta - beta);
+                                        alpha = theta - beta;
+                                        distance = NavigationFunctions.calculateDifference(originLatitude, originLongitude, stationLatitude, stationLongitude);
+                                        stationX = distance * Math.cos(Math.toRadians(alpha));
+                                        stationY = distance * Math.sin(Math.toRadians(alpha));
+                                        ContentValues alphaUpdate = new ContentValues();
+                                        alphaUpdate.put(DatabaseHelper.alpha, alpha);
+                                        alphaUpdate.put(DatabaseHelper.distance, distance);
+                                        alphaUpdate.put(DatabaseHelper.xPosition, stationX);
+                                        alphaUpdate.put(DatabaseHelper.yPosition, stationY);
+                                        alphaUpdate.put(DatabaseHelper.updateTime, String.valueOf(System.currentTimeMillis() - timeDiff));
+                                        alphaUpdate.put(DatabaseHelper.isCalculated, DatabaseHelper.MOBILE_STATION_IS_CALCULATED);
+                                        //Log.d(TAG, "MMSI:  " + String.valueOf(stationMMSI) +  "Alpha " + String.valueOf(alpha)  +  "Distance " + String.valueOf(distance));
+                                        db.update(DatabaseHelper.mobileStationTable, alphaUpdate, DatabaseHelper.mmsi + " = ?", new String[]{String.valueOf(stationMMSI)});
 
-                                } while (mobileStationCursor.moveToNext());
-                                mobileStationCursor.close();
+                                    } while (mobileStationCursor.moveToNext());
+                                    mobileStationCursor.close();
+                                } else {
+                                    Log.d(TAG, "Error with Mobile Station Cursor");
+                                }
+
                             } else {
-                                Log.d(TAG, "Error with Mobile Station Cursor");
+                                Log.d(TAG, "Error Reading from Database");
                             }
-
                         } else {
-                            Log.d(TAG, "Error Reading from Database");
+                            timer.cancel();
                         }
-                    } else{
-                        timer.cancel();
+                    }catch (SQLException e){
+                        Log.d(TAG, "Database Error");
+                        e.printStackTrace();
+                    }finally {
+                        if (mobileStationCursor != null){
+                            mobileStationCursor.close();
+                        }
                     }
                 }
             }, TIMER_DELAY, TIMER_PERIOD);
@@ -151,8 +161,11 @@ public class AlphaCalculationService extends IntentService {
     }
 
     private boolean readFromDatabase(SQLiteDatabase db){
+        Cursor baseStationCursor = null;
+        Cursor fixedStationCursor = null;
+        Cursor betaCursor = null;
         try {
-            Cursor baseStationCursor = db.query(DatabaseHelper.baseStationTable,
+            baseStationCursor = db.query(DatabaseHelper.baseStationTable,
                     new String[] {DatabaseHelper.mmsi},
                     DatabaseHelper.isOrigin +" = ?",
                     new String[]{String.valueOf(DatabaseHelper.ORIGIN)},
@@ -165,7 +178,7 @@ public class AlphaCalculationService extends IntentService {
                     originMMSI = baseStationCursor.getInt(baseStationCursor.getColumnIndex(DatabaseHelper.mmsi));
                 }
             }
-            Cursor fixedStationCursor = db.query(DatabaseHelper.fixedStationTable,
+            fixedStationCursor = db.query(DatabaseHelper.fixedStationTable,
                     new String[] {DatabaseHelper.latitude, DatabaseHelper.longitude},
                     DatabaseHelper.mmsi +" = ?",
                     new String[] {String.valueOf(originMMSI)},
@@ -179,7 +192,7 @@ public class AlphaCalculationService extends IntentService {
                     originLongitude = fixedStationCursor.getDouble(fixedStationCursor.getColumnIndex(DatabaseHelper.longitude));
                 }
             }
-            Cursor betaCursor = db.query(DatabaseHelper.betaTable,
+            betaCursor = db.query(DatabaseHelper.betaTable,
                     new String[]{DatabaseHelper.beta, DatabaseHelper.updateTime},
                     null, null,
                     null, null, null);
@@ -204,9 +217,19 @@ public class AlphaCalculationService extends IntentService {
             e.printStackTrace();
             Log.d(TAG, "Error reading Database");
             return false;
+        }finally {
+            if (baseStationCursor != null){
+                baseStationCursor.close();
+            }
+            if (fixedStationCursor != null){
+                fixedStationCursor.close();
+            }
+            if (betaCursor != null){
+                betaCursor.close();
+            }
         }
     }
-
+/*
     private class ReadfromDB extends AsyncTask<Void, Void, Boolean>{
 
         double betaValue;
@@ -255,6 +278,5 @@ public class AlphaCalculationService extends IntentService {
                 beta = betaValue;
             }
         }
-    }
-
+    }*/
 }

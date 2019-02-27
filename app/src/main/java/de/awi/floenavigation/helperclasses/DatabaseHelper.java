@@ -371,41 +371,47 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     /********************************************/
 
     public String searchPassword(String uname, Context context){
-        SQLiteOpenHelper dbHelper = getDbInstance(context);
-        SQLiteDatabase db = dbHelper.getReadableDatabase();
-        //String query = "SELECT USERNAME, PASSWORD FROM USERS";
-        Cursor cursor = db.query(usersTable,
-                new String[]{userName, password},
-                null, null, null, null, null);
-        String user, pwd;
-        pwd = "Not Found";
+        Cursor cursor = null;
+        String pwd = "Not Found";
+        try {
+            SQLiteOpenHelper dbHelper = getDbInstance(context);
+            SQLiteDatabase db = dbHelper.getReadableDatabase();
+            //String query = "SELECT USERNAME, PASSWORD FROM USERS";
+            cursor = db.query(usersTable,
+                    new String[]{userName, password},
+                    null, null, null, null, null);
+            String user;
 
-        if (cursor.moveToFirst()){
 
+            if (cursor.moveToFirst()) {
+                do {
 
-            do {
+                    user = cursor.getString(0);
+                    if (user.equals(uname)) {
+                        pwd = cursor.getString(1);
 
-                user = cursor.getString(0);
-                if (user.equals(uname)){
-                    pwd = cursor.getString(1);
-
-                    break;
-                }
-            } while(cursor.moveToNext());
+                        break;
+                    }
+                } while (cursor.moveToNext());
+            }
+        }catch(SQLException e){
+            Log.d(TAG, "Database Unavailable");
+        }finally {
+            if (cursor != null){
+                cursor.close();
+            }
         }
-        cursor.close();
-        //db.close();
-
         return pwd;
     }
 
     public  double[] readBaseCoordinatePointsLatLon(Context context){
         double[] coordinates = new double[4];
+        Cursor cursor = null;
         try {
             SQLiteOpenHelper dbHelper = getDbInstance(context);
             SQLiteDatabase db = dbHelper.getReadableDatabase();
 
-            Cursor cursor = db.query(fixedStationTable,
+            cursor = db.query(fixedStationTable,
                     new String[]{latitude, longitude},
                     "(X_Position = ? AND Y_POSITION = ?) OR (X_POSITION = ? AND Y_POSITION = ?)",
                     new String[]{Long.toString(station1InitialX), Long.toString(station1InitialY), Long.toString(station2InitialX), Long.toString(station2InitialY)},
@@ -424,6 +430,10 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         } catch (SQLiteException e){
             Log.d(TAG, "Database Unavailable");
             e.printStackTrace();
+        }finally {
+            if(cursor != null){
+                cursor.close();
+            }
         }
         return coordinates;
     }
@@ -438,7 +448,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     public static void loadDeviceList(Context mContext){
 
-
+        Cursor mDeviceListCursor = null;
         deviceTypes = new ArrayList<String>();
         deviceIDs = new ArrayList<String>();
         deviceNames = new ArrayList<String>();
@@ -447,7 +457,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         try {
             SQLiteOpenHelper dbHelper = getDbInstance(mContext);
             SQLiteDatabase db = dbHelper.getReadableDatabase();
-            Cursor mDeviceListCursor = db.query(deviceListTable, null,
+            mDeviceListCursor = db.query(deviceListTable, null,
                     null, null, null, null, null);
             if (mDeviceListCursor.moveToFirst()) {
                 do {
@@ -461,6 +471,10 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         }catch (SQLException e){
             Log.d(TAG, "Database Unavailable");
             e.printStackTrace();
+        }finally {
+            if(mDeviceListCursor != null){
+                mDeviceListCursor.close();
+            }
         }
     }
 
@@ -488,10 +502,11 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     public static boolean readCoordinateDisplaySetting(Context context){
         boolean changeFormat = false;
+        Cursor formatCursor = null;
         try{
             SQLiteOpenHelper dbHelper = DatabaseHelper.getDbInstance(context);
             SQLiteDatabase db = dbHelper.getReadableDatabase();
-            Cursor formatCursor = db.query(DatabaseHelper.configParametersTable,
+            formatCursor = db.query(DatabaseHelper.configParametersTable,
                     new String[] {DatabaseHelper.parameterName, DatabaseHelper.parameterValue},
                     DatabaseHelper.parameterName + " = ?",
                     new String[] {DatabaseHelper.lat_long_view_format},
@@ -515,15 +530,20 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             Log.d(TAG, "Error Reading from Database");
             e.printStackTrace();
             return changeFormat;
+        }finally {
+            if(formatCursor != null){
+                formatCursor.close();
+            }
         }
     }
 
     public static int readSiginificantDigitsSetting(Context context){
         int significantFigure = 5;
+        Cursor mSignificantFiguresCursor = null;
         try{
             SQLiteOpenHelper dbHelper = DatabaseHelper.getDbInstance(context);
             SQLiteDatabase db = dbHelper.getReadableDatabase();
-            Cursor mSignificantFiguresCursor = db.query(DatabaseHelper.configParametersTable,
+            mSignificantFiguresCursor = db.query(DatabaseHelper.configParametersTable,
                     new String[] {DatabaseHelper.parameterName, DatabaseHelper.parameterValue},
                     DatabaseHelper.parameterName + " = ?",
                     new String[] {DatabaseHelper.decimal_number_significant_figures},
@@ -541,6 +561,10 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         } catch (SQLException e){
             Log.d(TAG, "Error Reading from Database");
             e.printStackTrace();
+        }finally {
+            if(mSignificantFiguresCursor != null){
+                mSignificantFiguresCursor.close();
+            }
         }
         return significantFigure;
     }

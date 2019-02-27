@@ -199,12 +199,13 @@ public class CoordinateFragment extends Fragment implements View.OnClickListener
     private boolean checkForCoordinates(){
         int index;
         boolean success = false;
+        Cursor cursor = null;
         try{
             SQLiteOpenHelper dbHelper = DatabaseHelper.getDbInstance(getActivity());;
             SQLiteDatabase db = dbHelper.getReadableDatabase();
             countAIS = DatabaseUtils.queryNumEntries(db, DatabaseHelper.stationListTable);
             Log.d(TAG, "countAIS:" + String.valueOf(countAIS));
-            Cursor cursor = db.query(DatabaseHelper.fixedStationTable,
+            cursor = db.query(DatabaseHelper.fixedStationTable,
                     new String[]{DatabaseHelper.stationName, DatabaseHelper.recvdLatitude, DatabaseHelper.recvdLongitude, DatabaseHelper.isLocationReceived},
                     DatabaseHelper.mmsi + " = ? AND (" + DatabaseHelper.packetType + " = ? OR " + DatabaseHelper.packetType + " = ? )",
                     new String[] {Integer.toString(MMSINumber), Integer.toString(AISDecodingService.POSITION_REPORT_CLASSA_TYPE_1), Integer.toString(AISDecodingService.POSITION_REPORT_CLASSB)},
@@ -227,6 +228,10 @@ public class CoordinateFragment extends Fragment implements View.OnClickListener
         } catch (SQLiteException e){
             Log.d(TAG, "Database Unavailable");
             Toast.makeText(getActivity(), "Database Unavailable", Toast.LENGTH_LONG).show();
+        }finally {
+            if(cursor != null){
+                cursor.close();
+            }
         }
         return success;
     }

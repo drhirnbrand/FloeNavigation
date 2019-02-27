@@ -96,12 +96,13 @@ public class ValidationService extends IntentService {
                 @Override
                 public void run() {
                     if(!stopRunnable) {
+                        Cursor mFixedStnCursor = null;
                         try{
                             SQLiteOpenHelper databaseHelper = DatabaseHelper.getDbInstance(getApplicationContext());
                             SQLiteDatabase db = databaseHelper.getReadableDatabase();
                             baseStationsRetrievalfromDB(db);
                             retrieveConfigurationParametersDatafromDB(db);
-                            Cursor mFixedStnCursor;
+
                             double fixedStnrecvdLatitude;
                             double fixedStnrecvdLongitude;
                             double fixedStnLatitude;
@@ -190,6 +191,10 @@ public class ValidationService extends IntentService {
                             mValidationHandler.postDelayed(this, VALIDATION_TIME);
                         }catch (SQLException e){
                             Log.d(TAG, String.valueOf(e));
+                        }finally {
+                            if (mFixedStnCursor != null){
+                                mFixedStnCursor.close();
+                            }
                         }
                     }
                     else{
@@ -285,11 +290,11 @@ public class ValidationService extends IntentService {
     }
 
     private void baseStationsRetrievalfromDB(SQLiteDatabase db){
-
+        Cursor mBaseStnCursor = null;
         try {
             //SQLiteOpenHelper dbHelper = DatabaseHelper.getDbInstance(getApplicationContext());
             //SQLiteDatabase db = dbHelper.getReadableDatabase();
-            Cursor mBaseStnCursor = db.query(DatabaseHelper.baseStationTable, new String[]{DatabaseHelper.mmsi, DatabaseHelper.isOrigin},
+            mBaseStnCursor = db.query(DatabaseHelper.baseStationTable, new String[]{DatabaseHelper.mmsi, DatabaseHelper.isOrigin},
                     null, null, null, null, DatabaseHelper.isOrigin + " DESC");
 
             if (mBaseStnCursor.getCount() == DatabaseHelper.NUM_OF_BASE_STATIONS) {
@@ -313,13 +318,18 @@ public class ValidationService extends IntentService {
 
             Log.d(TAG, "SQLiteException");
             e.printStackTrace();
+        }finally {
+            if (mBaseStnCursor != null){
+                mBaseStnCursor.close();
+            }
         }
 
     }
 
     private void retrieveConfigurationParametersDatafromDB(SQLiteDatabase db){
+        Cursor configParamCursor = null;
         try{
-            Cursor configParamCursor = db.query(DatabaseHelper.configParametersTable, null, null,
+            configParamCursor = db.query(DatabaseHelper.configParametersTable, null, null,
                     null, null, null, null);
             String parameterName = null;
             int parameterValue = 0;
@@ -346,6 +356,10 @@ public class ValidationService extends IntentService {
 
             Log.d(TAG, "SQLiteException");
             e.printStackTrace();
+        }finally {
+            if (configParamCursor != null){
+                configParamCursor.close();
+            }
         }
     }
 

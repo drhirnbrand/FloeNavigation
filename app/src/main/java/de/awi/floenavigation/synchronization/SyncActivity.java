@@ -293,11 +293,12 @@ public class SyncActivity extends Activity {
     }
 
     private boolean readParamsfromDatabase(){
+        Cursor parameterCursor = null;
         try {
             dbHelper = DatabaseHelper.getDbInstance(this);
             db = dbHelper.getReadableDatabase();
             String parameterName;
-            Cursor parameterCursor = db.query(DatabaseHelper.configParametersTable,
+            parameterCursor = db.query(DatabaseHelper.configParametersTable,
                     new String[] {DatabaseHelper.parameterName, DatabaseHelper.parameterValue},
                     DatabaseHelper.parameterName + " = ? OR " + DatabaseHelper.parameterName + " = ?" ,
                     new String[] {DatabaseHelper.sync_server_hostname, DatabaseHelper.sync_server_port},
@@ -324,6 +325,10 @@ public class SyncActivity extends Activity {
 
             e.printStackTrace();
             return false;
+        }finally {
+            if (parameterCursor != null){
+                parameterCursor.close();
+            }
         }
     }
 
@@ -399,11 +404,12 @@ public class SyncActivity extends Activity {
     }
 
     public void readMobileStations(){
+        Cursor mobileStationCursor = null;
         try{
             int i = 0;
             dbHelper = DatabaseHelper.getDbInstance(mContext);
             db = dbHelper.getReadableDatabase();
-            Cursor mobileStationCursor = db.query(DatabaseHelper.mobileStationTable,
+            mobileStationCursor = db.query(DatabaseHelper.mobileStationTable,
                     null,
                     null,
                     null,
@@ -422,6 +428,10 @@ public class SyncActivity extends Activity {
         } catch (SQLiteException e){
             Log.d(TAG, "Database Error");
             e.printStackTrace();
+        }finally {
+            if (mobileStationCursor != null){
+                mobileStationCursor.close();
+            }
         }
 
     }

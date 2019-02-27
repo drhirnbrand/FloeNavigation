@@ -43,7 +43,7 @@ public class UsersSync {
     private HashMap<Integer, String> userNameData = new HashMap<>();
     private HashMap<Integer, String> userPasswordData = new HashMap<>();
     private HashMap<Integer, String> deletedUserData = new HashMap<>();
-    private Cursor userCursor;
+    private Cursor userCursor = null;
     private Users user;
     private ArrayList<Users> usersList = new ArrayList<>();
     private RequestQueue requestQueue;
@@ -85,6 +85,10 @@ public class UsersSync {
         } catch (SQLiteException e){
             Log.d(TAG, "Database Error");
             e.printStackTrace();
+        }finally {
+            if (userCursor != null){
+                userCursor.close();
+            }
         }
 
     }
@@ -221,10 +225,11 @@ public class UsersSync {
     }
 
     private void sendUsersDeleteRequest(){
+        Cursor deletedUserCursor = null;
         try{
             dbHelper = DatabaseHelper.getDbInstance(mContext);
             db = dbHelper.getReadableDatabase();
-            Cursor deletedUserCursor = db.query(DatabaseHelper.userDeletedTable,
+            deletedUserCursor = db.query(DatabaseHelper.userDeletedTable,
                     null,
                     null,
                     null,
@@ -249,6 +254,10 @@ public class UsersSync {
         } catch (SQLException e){
             Log.d(TAG, "Database Error");
             e.printStackTrace();
+        }finally {
+            if (deletedUserCursor != null){
+                deletedUserCursor.close();
+            }
         }
 
         for(int j = 0; j < deletedUserData.size(); j++){
