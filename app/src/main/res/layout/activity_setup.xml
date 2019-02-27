@@ -30,7 +30,7 @@
                     android:layout_height="wrap_content"
                     android:text="@string/mmsi"
                     android:textAllCaps="true"
-                    android:textSize="15sp"
+                    android:textSize="25sp"
                     android:layout_marginEnd="15dp"
                     android:textColor="@color/white"/>
 
@@ -39,7 +39,7 @@
                     android:layout_width="wrap_content"
                     android:layout_weight="2"
                     android:layout_height="40sp"
-                    android:textSize="15sp"
+                    android:textSize="25sp"
                     android:textColor="@color/white"
                     android:inputType="none"
                     android:paddingLeft="15dp"
@@ -58,7 +58,7 @@
                     android:layout_height="wrap_content"
                     android:text="@string/firstStationRcvLat"
                     android:textAllCaps="true"
-                    android:textSize="15sp"
+                    android:textSize="25sp"
                     android:layout_marginEnd="15dp"
                     android:textColor="@color/white"/>
 
@@ -67,7 +67,7 @@
                     android:layout_width="wrap_content"
                     android:layout_weight="2"
                     android:layout_height="40sp"
-                    android:textSize="15sp"
+                    android:textSize="25sp"
                     android:textColor="@color/white"
                     android:inputType="none"
                     android:paddingLeft="15dp"
@@ -86,7 +86,7 @@
                     android:layout_height="wrap_content"
                     android:text="@string/firstStationRcvLong"
                     android:textAllCaps="true"
-                    android:textSize="15sp"
+                    android:textSize="25sp"
                     android:layout_marginEnd="15dp"
                     android:textColor="@color/white"/>
 
@@ -95,7 +95,7 @@
                     android:layout_width="wrap_content"
                     android:layout_weight="2"
                     android:layout_height="40sp"
-                    android:textSize="15sp"
+                    android:textSize="25sp"
                     android:textColor="@color/white"
                     android:inputType="none"
                     android:paddingLeft="15dp"
@@ -113,7 +113,7 @@
                     android:layout_height="wrap_content"
                     android:text="@string/firstStationPrdLat"
                     android:textAllCaps="true"
-                    android:textSize="15sp"
+                    android:textSize="25sp"
                     android:layout_marginEnd="15dp"
                     android:textColor="@color/white"/>
 
@@ -122,7 +122,7 @@
                     android:layout_width="wrap_content"
                     android:layout_weight="2"
                     android:layout_height="40sp"
-                    android:textSize="15sp"
+                    android:textSize="25sp"
                     android:textColor="@color/white"
                     android:inputType="none"
                     android:paddingLeft="15dp"
@@ -141,7 +141,7 @@
                     android:layout_height="wrap_content"
                     android:text="@string/firstStationPrdLong"
                     android:textAllCaps="true"
-                    android:textSize="15sp"
+                    android:textSize="25sp"
                     android:layout_marginEnd="15dp"
                     android:textColor="@color/white"/>
 
@@ -150,7 +150,7 @@
                     android:layout_width="wrap_content"
                     android:layout_weight="2"
                     android:layout_height="40sp"
-                    android:textSize="15sp"
+                    android:textSize="25sp"
                     android:textColor="@color/white"
                     android:inputType="none"
                     android:paddingLeft="15dp"
@@ -169,7 +169,7 @@
                     android:layout_height="wrap_content"
                     android:text="@string/distanceDiff"
                     android:textAllCaps="true"
-                    android:textSize="15sp"
+                    android:textSize="25sp"
                     android:layout_marginEnd="15dp"
                     android:textColor="@color/white"/>
 
@@ -178,7 +178,7 @@
                     android:layout_width="wrap_content"
                     android:layout_weight="2"
                     android:layout_height="40sp"
-                    android:textSize="15sp"
+                    android:textSize="25sp"
                     android:textColor="@color/white"
                     android:inputType="none"
                     android:paddingLeft="15dp"
@@ -197,7 +197,7 @@
                     android:layout_height="wrap_content"
                     android:text="@string/updateTime"
                     android:textAllCaps="true"
-                    android:textSize="15sp"
+                    android:textSize="25sp"
                     android:layout_marginEnd="15dp"
                     android:textColor="@color/white"/>
 
@@ -206,7 +206,7 @@
                     android:layout_width="wrap_content"
                     android:layout_weight="2"
                     android:layout_height="40sp"
-                    android:textSize="15sp"
+                    android:textSize="25sp"
                     android:textColor="@color/white"
                     android:inputType="none"
                     android:paddingLeft="15dp"
@@ -225,7 +225,7 @@
                     android:layout_height="wrap_content"
                     android:text="@string/first_station_message_count"
                     android:textAllCaps="true"
-                    android:textSize="15sp"
+                    android:textSize="25sp"
                     android:layout_marginEnd="15dp"
                     android:textColor="@color/white"/>
 
@@ -234,7 +234,7 @@
                     android:layout_width="wrap_content"
                     android:layout_weight="2"
                     android:layout_height="40sp"
-                    android:textSize="15sp"
+                    android:textSize="25sp"
                     android:textColor="@color/white"
                     android:inputType="none"
                     android:paddingLeft="15dp"
@@ -261,7 +261,7 @@
                     android:layout_height="wrap_content"
                     android:text="@string/mmsi"
                     android:textAllCaps="true"
-                    android:textSize="15sp"
+                    android:textSize="25sp"
                     android:layout_marginEnd="15dp"
                     android:textColor="@color/white"/>
 
@@ -270,7 +270,7 @@
                     android:layout_width="wrap_content"
                     android:layout_weight="2"
                     android:layout_height="40sp"
-                    android:textSize="15sp"
+                    android:textSize="25sp"
                     android:textColor="@color/white"
                     android:inputType="none"
                     android:paddingLeft="15dp"
@@ -290,7 +290,7 @@
                     android:layout_height="wrap_content"
                     android:text="@string/secondStationRcvLat"
                     android:textAllCaps="true"
-                    android:textSize="15sp"
+                    android:textSize="25sp"
                     android:layout_marginEnd="15dp"
                     android:textColor="@color/white"/>
 
@@ -299,7 +299,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="40sp"
                     android:layout_weight="2"
-                    android:textSize="15sp"
+                    android:textSize="25sp"
                     android:textColor="@color/white"
                     android:inputType="none"
                     android:paddingLeft="15dp"
@@ -321,7 +321,7 @@
                     android:layout_height="wrap_content"
                     android:text="@string/secondStationRcvLong"
                     android:textAllCaps="true"
-                    android:textSize="15sp"
+                    android:textSize="25sp"
                     android:layout_marginEnd="15dp"
                     android:textColor="@color/white"/>
 
@@ -330,7 +330,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="40sp"
                     android:layout_weight="2"
-                    android:textSize="15sp"
+                    android:textSize="25sp"
                     android:textColor="@color/white"
                     android:inputType="none"
                     android:paddingLeft="15dp"
@@ -352,7 +352,7 @@
                     android:layout_height="wrap_content"
                     android:text="@string/secondStationPrdLat"
                     android:textAllCaps="true"
-                    android:textSize="15sp"
+                    android:textSize="25sp"
                     android:layout_marginEnd="15dp"
                     android:textColor="@color/white"/>
 
@@ -361,7 +361,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="40sp"
                     android:layout_weight="2"
-                    android:textSize="15sp"
+                    android:textSize="25sp"
                     android:textColor="@color/white"
                     android:inputType="none"
                     android:paddingLeft="15dp"
@@ -383,7 +383,7 @@
                     android:layout_height="wrap_content"
                     android:text="@string/secondStationPrdLong"
                     android:textAllCaps="true"
-                    android:textSize="15sp"
+                    android:textSize="25sp"
                     android:layout_marginEnd="15dp"
                     android:textColor="@color/white"/>
 
@@ -392,7 +392,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="40sp"
                     android:layout_weight="2"
-                    android:textSize="15sp"
+                    android:textSize="25sp"
                     android:textColor="@color/white"
                     android:inputType="none"
                     android:paddingLeft="15dp"
@@ -414,7 +414,7 @@
                     android:layout_height="wrap_content"
                     android:text="@string/distanceDiff"
                     android:textAllCaps="true"
-                    android:textSize="15sp"
+                    android:textSize="25sp"
                     android:layout_marginEnd="15dp"
                     android:textColor="@color/white"/>
 
@@ -423,7 +423,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="40sp"
                     android:layout_weight="2"
-                    android:textSize="15sp"
+                    android:textSize="25sp"
                     android:textColor="@color/white"
                     android:inputType="none"
                     android:paddingLeft="15dp"
@@ -444,7 +444,7 @@
                     android:layout_height="wrap_content"
                     android:text="@string/updateTime"
                     android:textAllCaps="true"
-                    android:textSize="15sp"
+                    android:textSize="25sp"
                     android:layout_marginEnd="15dp"
                     android:textColor="@color/white"/>
 
@@ -453,7 +453,7 @@
                     android:layout_width="wrap_content"
                     android:layout_weight="2"
                     android:layout_height="40sp"
-                    android:textSize="15sp"
+                    android:textSize="25sp"
                     android:textColor="@color/white"
                     android:inputType="none"
                     android:paddingLeft="15dp"
@@ -472,7 +472,7 @@
                     android:layout_height="wrap_content"
                     android:text="@string/second_station_message_count"
                     android:textAllCaps="true"
-                    android:textSize="15sp"
+                    android:textSize="25sp"
                     android:layout_marginEnd="15dp"
                     android:textColor="@color/white"/>
 
@@ -481,7 +481,7 @@
                     android:layout_width="wrap_content"
                     android:layout_weight="2"
                     android:layout_height="40sp"
-                    android:textSize="15sp"
+                    android:textSize="25sp"
                     android:textColor="@color/white"
                     android:inputType="none"
                     android:paddingLeft="15dp"
@@ -501,7 +501,7 @@
                     android:layout_height="wrap_content"
                     android:text="@string/predictedBeta"
                     android:textAllCaps="true"
-                    android:textSize="15sp"
+                    android:textSize="25sp"
                     android:layout_marginEnd="15dp"
                     android:textColor="@color/white"/>
 
@@ -510,7 +510,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="40sp"
                     android:layout_weight="2"
-                    android:textSize="15sp"
+                    android:textSize="25sp"
                     android:textColor="@color/white"
                     android:inputType="none"
                     android:paddingLeft="15dp"
@@ -532,7 +532,7 @@
                     android:layout_height="wrap_content"
                     android:text="@string/calculatedBeta"
                     android:textAllCaps="true"
-                    android:textSize="15sp"
+                    android:textSize="25sp"
                     android:layout_marginEnd="15dp"
                     android:textColor="@color/white"/>
 
@@ -541,7 +541,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="40sp"
                     android:layout_weight="2"
-                    android:textSize="15sp"
+                    android:textSize="25sp"
                     android:textColor="@color/white"
                     android:inputType="none"
                     android:paddingLeft="15dp"
@@ -560,7 +560,7 @@
                         android:layout_height="wrap_content"
                         android:text="@string/betaDifference"
                         android:textAllCaps="true"
-                        android:textSize="15sp"
+                        android:textSize="25sp"
                         android:layout_marginEnd="15dp"
                         android:textColor="@color/white"/>
 
@@ -569,7 +569,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="40sp"
                         android:layout_weight="2"
-                        android:textSize="15sp"
+                        android:textSize="25sp"
                         android:textColor="@color/white"
                         android:inputType="none"
                         android:paddingLeft="15dp"
@@ -593,7 +593,7 @@
                 android:background="@drawable/btn_bg"
                 android:textColor="@color/white"
                 android:layout_gravity="right"
-                android:textSize="15sp"
+                android:textSize="30sp"
                 android:clickable="true"
                 android:focusable="true"
                 android:foreground="?android:attr/selectableItemBackground"/>

@@ -9,6 +9,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.database.Cursor;
 import android.database.DatabaseUtils;
+import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteOpenHelper;
@@ -246,34 +247,38 @@ public class WaypointActivity extends Activity implements View.OnClickListener{
             Toast.makeText(this, "Invalid waypoint label", Toast.LENGTH_LONG).show();
             return;
         }
-        tabletLat = (tabletLat == null) ? 0.0 : tabletLat;
-        tabletLon = (tabletLon == null) ? 0.0 : tabletLon;
-        if(tabletLat != 0.0 && tabletLon != 0.0) {
-            DatabaseHelper databaseHelper = DatabaseHelper.getDbInstance(this);
-            SQLiteDatabase db = databaseHelper.getReadableDatabase();
-            findViewById(R.id.waypointCoordinateView).setVisibility(View.GONE);
-            findViewById(R.id.waypointWaitingView).setVisibility(View.VISIBLE);
-            if (getOriginCoordinates(db)){
-                calculateWaypointParameters();
-                createLabel();
-                if(insertInDatabase(db)){
-                    Log.d(TAG, "Waypoint Inserted");
-                    ProgressBar progress = findViewById(R.id.waypointProgress);
-                    progress.stopNestedScroll();
-                    progress.setVisibility(View.GONE);
-                    findViewById(R.id.waypoint_finish).setClickable(true);
-                    findViewById(R.id.waypoint_finish).setEnabled(true);
-                    TextView waitingMsg = findViewById(R.id.waypointWaitingMsg);
-                    waitingMsg.setText(changeText);
-                }else {
-                    Log.d(TAG, "Error inserting new Waypoint");
+        DatabaseHelper databaseHelper = DatabaseHelper.getDbInstance(this);
+        SQLiteDatabase db = databaseHelper.getReadableDatabase();
+        if (!checkWaypointInDBTables(db)) {
+            tabletLat = (tabletLat == null) ? 0.0 : tabletLat;
+            tabletLon = (tabletLon == null) ? 0.0 : tabletLon;
+            if (tabletLat != 0.0 && tabletLon != 0.0) {
+                findViewById(R.id.waypointCoordinateView).setVisibility(View.GONE);
+                findViewById(R.id.waypointWaitingView).setVisibility(View.VISIBLE);
+                if (getOriginCoordinates(db)) {
+                    calculateWaypointParameters();
+                    createLabel();
+                    if (insertInDatabase(db)) {
+                        Log.d(TAG, "Waypoint Inserted");
+                        ProgressBar progress = findViewById(R.id.waypointProgress);
+                        progress.stopNestedScroll();
+                        progress.setVisibility(View.GONE);
+                        findViewById(R.id.waypoint_finish).setClickable(true);
+                        findViewById(R.id.waypoint_finish).setEnabled(true);
+                        TextView waitingMsg = findViewById(R.id.waypointWaitingMsg);
+                        waitingMsg.setText(changeText);
+                    } else {
+                        Log.d(TAG, "Error inserting new Waypoint");
+                    }
+                } else {
+                    Log.d(TAG, "Error reading Origin Coordinates");
                 }
-            } else{
-                Log.d(TAG, "Error reading Origin Coordinates");
+            } else {
+                Log.d(TAG, "Error with GPS Service");
+                Toast.makeText(this, "Error reading Device Lat and Long", Toast.LENGTH_LONG).show();
             }
-        } else{
-            Log.d(TAG, "Error with GPS Service");
-            Toast.makeText(this, "Error reading Device Lat and Long", Toast.LENGTH_LONG).show();
+        }else{
+                Toast.makeText(getApplicationContext(), "Duplicate Waypoint, already exists", Toast.LENGTH_LONG).show();
         }
     }
 
@@ -330,6 +335,28 @@ public class WaypointActivity extends Activity implements View.OnClickListener{
         labelElements.add(labelId);
         waypointLabel = TextUtils.join(",", labelElements);
         Log.d(TAG, "Label: " + waypointLabel);
+    }
+
+    private boolean checkWaypointInDBTables(SQLiteDatabase db){
+        boolean isPresent = false;
+        Cursor mWaypointCursor = null;
+        labelId_TV = findViewById(R.id.waypointLabelId);
+        labelId = labelId_TV.getText().toString();
+        labelId = tabletID + "_" + labelId;
+        try{
+            mWaypointCursor = db.query(DatabaseHelper.waypointsTable, new String[]{DatabaseHelper.labelID}, DatabaseHelper.labelID + " = ?",
+                    new String[]{labelId}, null, null, null);
+
+            isPresent =  mWaypointCursor.moveToFirst();
+        }catch (SQLException e){
+            Log.d(TAG, "SQLiteException");
+            e.printStackTrace();
+        } finally {
+            if(mWaypointCursor != null){
+                mWaypointCursor.close();
+            }
+        }
+        return isPresent;
     }
 
     private boolean getOriginCoordinates(SQLiteDatabase db){
