@@ -100,7 +100,7 @@ public class MapView extends View{
     private static final int StarSize = 35;
 
     private int numRows = DEFAULT_NUMBER_OF_ROWS, numColumns = DEFAULT_NUMBER_OF_COLUMNS;
-    private static final int DEFAULT_ZOOM_LEVEL = 5000;
+    private static final int DEFAULT_ZOOM_LEVEL = 1000; // 1 km zoom radius
 
     private static LinearLayout linearLayout;
     private static BubbleDrawable drawableBubble;
@@ -369,6 +369,8 @@ public class MapView extends View{
                         } else{
                             setLineColor(Color.RED);
                             drawStar((float) getDrawX(getMobileXposition(i)), (float) getDrawY(getMobileYposition(i)), StarSize, StarSize, mDataPaint, canvas);
+                            //drawTriangle((float) getDrawX(getMobileXposition(i)), (float) getDrawY(getMobileYposition(i)), TabTriangleWidth, TabTriangleHeight, false, mDataPaint, canvas);
+
                         }
                     }
                 }
@@ -709,7 +711,6 @@ public class MapView extends View{
         path.reset();
 
         paint.setStyle(Paint.Style.FILL);
-
 
         // top left
         path.moveTo(xPos + mid + half * 0.5f, yPos + half * 0.84f);

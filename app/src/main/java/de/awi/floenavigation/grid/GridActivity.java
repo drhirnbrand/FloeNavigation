@@ -438,7 +438,7 @@ public class GridActivity extends Activity implements View.OnClickListener{
             }
         };
 
-        statusHandler.postDelayed(gpsLocationRunnable, ActionBarActivity.UPDATE_TIME);
+        statusHandler.post(gpsLocationRunnable);
         ///******************************************/
     }
 

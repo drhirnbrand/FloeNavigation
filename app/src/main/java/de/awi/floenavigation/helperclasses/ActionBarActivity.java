@@ -26,7 +26,7 @@ public class ActionBarActivity extends Activity {
     private boolean packetStatus = false;
     private final Handler statusHandler = new Handler();
     private MenuItem gpsIconItem, aisIconItem;
-    public static final int UPDATE_TIME = 5 * 1000;
+    public static final int UPDATE_TIME = 2 * 1000;
     public static final String colorGreen = "#00bfa5";
     public static final String colorRed = "#d32f2f";
     private long gpsTime;
