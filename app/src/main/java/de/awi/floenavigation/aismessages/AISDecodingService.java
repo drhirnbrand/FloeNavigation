@@ -318,7 +318,6 @@ public class AISDecodingService extends IntentService {
             if(cursor_stnlist != null){
 
                 cursor_stnlist.close();
-                //cursor_fixedstnlist.close();
             }
         }
     }

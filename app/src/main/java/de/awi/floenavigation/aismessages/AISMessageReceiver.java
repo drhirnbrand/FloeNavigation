@@ -24,21 +24,61 @@ public class AISMessageReceiver implements Runnable {
     private static final String TAG = "AISMessageReceiver";
 
     /**
-     *
+     *This variable stores the ip address of the AIS Transponder to which the tablet is connected over Wifi
+     * You can change the value of the variable in {@link de.awi.floenavigation.initialsetup.GridSetupActivity#dstAddress}
      */
     private String dstAddress;
+    /**
+     *This variable stores the port number of the AIS transponder
+     * You can change the value of the variable in {@link de.awi.floenavigation.initialsetup.GridSetupActivity#dstPort}
+     */
     private int dstPort;
+    /**
+     * Used to establish telnet client connection
+     */
     private TelnetClient client;
+    /**
+     * Stores the packet received from the buffered reader on the basis of AIVDM and AIVDO
+     */
     private String packet;
+    /**
+     * To initialize input stream reader
+     */
     private BufferedReader bufferedReader;
+    /**
+     * Used to store the read lines from the buffered reader
+     */
     StringBuilder responseString;
+    /**
+     * Flag to store the status of client connection
+     */
     boolean isConnected = false;
-   // private NetworkMonitor monitor;
+    /**
+     * Stores the context of the application
+     */
     private Context context;
+    /**
+     * The flag receives its value from {@link de.awi.floenavigation.network.NetworkMonitor}
+     * Used to disconnect the client connection when the ping request is unsuccessful with the AIS transponder
+     */
     private boolean mDisconnectFlag = false;
+    /**
+     * Broadcast receiver to receive intent packets from {@link de.awi.floenavigation.network.NetworkMonitor}
+     */
     private BroadcastReceiver reconnectReceiver;
+    /**
+     * Flag to stop decoding AIS packets, set from {@link de.awi.floenavigation.synchronization.SyncActivity}
+     * Triggered when Synchronization with the server is in progress.
+     */
     private static boolean stopDecoding = false;
 
+    /**
+     * Default constructor to initialize broadcast receiver
+     * Object created from {@link de.awi.floenavigation.network.NetworkMonitor}
+     * @param addr Sets the ip address of the AIS transponder
+     * @param port Sets the port number of the AIS transponder
+     * @param con Sets the context of the Activity from which this object is initialized
+     */
     public AISMessageReceiver(String addr, int port, Context con){
         this.dstAddress = addr;
         this.dstPort = port;
@@ -58,6 +98,11 @@ public class AISMessageReceiver implements Runnable {
 
     }
 
+    /**
+     * Overides the run method of the runnable, which is continuously executed that helps in
+     * setting up the client connection and reading the input stream from the buffered reader and thereby filtering
+     * on the basis of AIVDM and AIVDO packets and calling the {@link AISDecodingService} to decode the ASCII packet
+     */
     @Override
     public void run(){
         context.registerReceiver(reconnectReceiver, new IntentFilter("Reconnect"));
@@ -129,11 +174,11 @@ public class AISMessageReceiver implements Runnable {
 
     }
 
-
-    public boolean isConnected(){
-        return client.isConnected();
-    }
-
+    /**
+     * Function for the setting the value
+     * @param stopAISDecoding flag received from {@link de.awi.floenavigation.synchronization.SyncActivity} to stop the
+     *                        decoding when the sync activity is in progress
+     */
     public static void setStopDecoding(boolean stopAISDecoding){
         stopDecoding = stopAISDecoding;
     }

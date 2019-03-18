@@ -4,15 +4,47 @@ import android.util.Log;
 
 import java.util.Arrays;
 
+/**
+ * This class is called from {@link AISDecodingService} to segregate the ASCII packet
+ * on the basis of comma. The payload is segregated from the entire packet sequence and used for further
+ * processing.
+ */
 public class AIVDM {
 
+    /**
+     * TAG used for logging
+     */
     private static final String TAG = "AIVDM";
+    /**
+     * Stores the packet name, identifies this as an AIVDM or AIVDO packet.
+     */
     private String packetName;
+    /**
+     * Stores the count of fragments in the currently accumulating message
+     */
     private int fragCount;
+    /**
+     * Stores the fragment number of the received sentence
+     */
     private int fragNum;
+    /**
+     * Stores the sequential message ID for multi-sentence messages
+     */
     private int seqMsgID;
+    /**
+     * Stores the radio channel code. AIS uses the high side of the duplex from two VHF radio channels:
+     * AIS Channel A is 161.975Mhz (87B);
+     * AIS Channel B is 162.025Mhz (88B).
+     */
     private char channelCode;
+    /**
+     * Stores the data payload
+     */
     private String payload;
+    /**
+     * Stores the the number of fill bits requires to pad the data payload to a 6 bit boundary
+     * and the NMEA 0183 data-integrity checksum for the sentence received.
+     */
     private String eod;
 
     AIVDM()
