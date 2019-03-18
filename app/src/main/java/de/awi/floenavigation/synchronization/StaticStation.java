@@ -9,7 +9,7 @@ import android.util.Log;
 import de.awi.floenavigation.helperclasses.DatabaseHelper;
 
 /**
- * Creates a Static Station object with getters and setters for all the properties of a Static Station.
+ * Creates a Static Station object with getters and setters for all the parameters of a {@link DatabaseHelper#staticStationListTable} Table in Database.
  * Used by {@link StaticStationSync} to create a new Static Station Object to be inserted in to the Database.
  *
  * @see SyncActivity

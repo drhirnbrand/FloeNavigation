@@ -29,17 +29,17 @@ import java.util.Map;
 import de.awi.floenavigation.helperclasses.DatabaseHelper;
 
 /**
- * Synchronizes all the Static Stations in the Local Database with the Server.
- * Reads all the {@link StaticStation} Data from the Database and stores it in {@link HashMap}s.
+ * Pushes Static Station table parameters in the Local Database to the Server.
+ * Reads all the parameters of {@link DatabaseHelper#staticStationListTable} from the Database and stores it in {@link HashMap}s.
  * Creates {@link StringRequest}s and inserts it in to a {@link RequestQueue} to push and pull Data from the Server.
- * Clears the Static Station table before inserting Data that was pulled from the Server.
+ * Clears the Static Station Table before inserting Data that was pulled from the Server.
+ *
  * <p>
- * Uses {@link StaticStation} to create a new Static Station Object  and insert it in Database, for each Static Station that is pulled from the Server.
+ * Uses {@link StaticStation} to create a new fixed station Object and insert into local Database, the parameters that is pulled from the Server.
  *</p>
- * @see DatabaseHelper#staticStationListTable
- * @see DatabaseHelper#staticStationDeletedTable
+ * @see DatabaseHelper#sampleMeasurementTable
  * @see SyncActivity
- * @see StaticStation
+ * @see DeviceList
  * @see de.awi.floenavigation.synchronization
  */
 
@@ -122,6 +122,10 @@ public class StaticStationSync {
     private boolean dataPullCompleted;
 
 
+    /**
+     * Default Constructor.
+     * @param context Used to create a {@link DatabaseHelper} object.
+     */
     StaticStationSync(Context context, RequestQueue requestQueue, XmlPullParser xmlPullParser){
         this.mContext = context;
         this.requestQueue = requestQueue;
@@ -132,7 +136,8 @@ public class StaticStationSync {
     /**
      * Reads the {@value DatabaseHelper#staticStationListTable} Table and inserts the data from all the Columns of the
      * {@value DatabaseHelper#staticStationListTable} Table in to their respective {@link HashMap}.
-     *
+     * @throws SQLiteException In case of error in reading database
+     * @see #staticStationCursor
      */
     public void onClickStaticStationReadButton(){
         try{
@@ -171,10 +176,10 @@ public class StaticStationSync {
     }
 
     /**
-     * Creates {@link StringRequest}s for each Static Station and inserts all the requests in the {@link RequestQueue}
-     *
-     * {@link @value DatabaseHelper#staticStationListTable} Table in to their respective {@link HashMap}.
-     *
+     * Creates {@link StringRequest}s as per the size of {@link #stationNameData} data extracted from the local database and inserts all the requests in the {@link RequestQueue}
+     * A Stringrequest {@link #request} for pushing the data is registered and added to the {@link #requestQueue}.
+     * callback function {@link Response.Listener#onResponse(Object)} notifies whether the request was successful or not
+     * If it is unsuccessful or the connection is not established {@link Response.Listener#error(VolleyError)} gets called
      */
     public void onClickStaticStationSyncButton(){
         for(int i = 0; i < stationNameData.size(); i++){
@@ -223,6 +228,23 @@ public class StaticStationSync {
         }
         sendSSDeleteRequest();
     }
+
+    /**
+     * Function is used to pull data from internal database to the server
+     * A Stringrequest {@link #request} for pulling the data is registered and added to the {@link #requestQueue}.
+     * callback function {@link Response.Listener#onResponse(Object)} notifies whether the request was successful or not
+     * If it is unsuccessful or the connection is not established {@link Response.Listener#error(VolleyError)} gets called
+     * On pulling the data from the server internal database tables {@link DatabaseHelper#staticStationListTable} and
+     * {@link DatabaseHelper#staticStationDeletedTable} are cleared.
+     *
+     * <p>
+     * The server sends the data in .xml format, therefore it has to extract the data based on the tags
+     * Inside {@link Response.Listener#onResponse(Object)} it loops through the entire xml file till it reaches the end of document.
+     * Based on the {@link XmlPullParser#START_TAG}, {@link XmlPullParser#TEXT}, {@link XmlPullParser#END_TAG} it adds the values received to
+     * the corresponding columns of the {@link DatabaseHelper#staticStationListTable}
+     * Each {@link #staticStation} is added to the {@link #staticStationList} which is individually taken and added to the internal database.
+     * </p>
+     */
 
     public void onClickStaticStationPullButton(){
         try {
@@ -315,6 +337,11 @@ public class StaticStationSync {
 
     }
 
+    /**
+     * Used to initialize {@link #URL}, {@link #pullURL} and {@link #deleteURL}
+     * @param baseUrl Url set by the administrator, which is stored in the local database
+     * @param port port number set by the administrator, which is stored in the local database (default value is 80)
+     */
     public void setBaseUrl(String baseUrl, String port){
         URL = "http://" + baseUrl + ":" + port + "/StaticStation/pullStations.php";
         pullURL = "http://" + baseUrl + ":" + port + "/StaticStation/pushStations.php";
@@ -326,6 +353,13 @@ public class StaticStationSync {
         return dataPullCompleted;
     }
 
+    /**
+     * Reads the {@value DatabaseHelper#staticStationDeletedTable} Table and inserts the data from all the Columns of the
+     * {@value DatabaseHelper#staticStationDeletedTable} Table in to their respective {@link HashMap}.
+     * @throws SQLiteException In case of error in reading database
+     * After reading the data, it creates string requests to forward the data to the server
+     * This facilitates the server to know which stations should be marked for deletion since these stations are no longer used.
+     */
     private void sendSSDeleteRequest(){
         Cursor deletedStaticStationCursor = null;
         try {

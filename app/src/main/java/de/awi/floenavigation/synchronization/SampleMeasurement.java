@@ -8,6 +8,15 @@ import android.util.Log;
 
 import de.awi.floenavigation.helperclasses.DatabaseHelper;
 
+/**
+ * Creates a Sample Measurement object with getters and setters for all the parameters of a {@link DatabaseHelper#sampleMeasurementTable} Table in Database.
+ * Used by {@link SampleMeasurementSync} to create a new Sample Measurement Object to be inserted into the Database.
+ *
+ * @see SyncActivity
+ * @see SampleMeasurementSync
+ * @see de.awi.floenavigation.synchronization
+ */
+
 public class SampleMeasurement {
 
     private static final String TAG = "SampleMeasurement";
@@ -30,6 +39,10 @@ public class SampleMeasurement {
     private Context appContext;
     ContentValues sample;
 
+    /**
+     * Default Constructor.
+     * @param context Used to create a {@link DatabaseHelper} object.
+     */
     public SampleMeasurement(Context context){
         appContext = context;
         try {
@@ -40,6 +53,10 @@ public class SampleMeasurement {
             e.printStackTrace();
         }
     }
+
+    /**
+     * Inserts the values of the fixed station parameters into {@link #sample}
+     */
 
     private void generateContentValues(){
         sample = new ContentValues();
@@ -57,6 +74,11 @@ public class SampleMeasurement {
         sample.put(DatabaseHelper.comment, this.comment);
         sample.put(DatabaseHelper.label, this.label);
     }
+
+    /**
+     * Inserts the Sample Measurement created from pulling Data from the Server into the local Database.
+     * Unused for now as Samples are only pushed to the Sync Server and not pulled.
+     */
 
     public void insertSampleInDB(){
         generateContentValues();
