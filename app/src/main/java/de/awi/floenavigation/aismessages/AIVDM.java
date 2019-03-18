@@ -47,6 +47,9 @@ public class AIVDM {
      */
     private String eod;
 
+    /**
+     * Default constructor to initialize the packet fields
+     */
     AIVDM()
     {
         packetName = null;
@@ -58,38 +61,65 @@ public class AIVDM {
         eod = null;
     }
 
+    /**
+     * Getter to get the packet name
+     * @return returns the packet name
+     */
     public String getPacketName()
     {
         return packetName;
     }
 
+    /**
+     * Getter to get the frag count
+     * @return returns the count of fragments
+     */
     public int getFragCount()
     {
         return fragCount;
     }
 
+    /**
+     * Getter to get the sequential message ID
+     * @return returns the sequential message ID
+     */
     public int getSeqMsgID()
     {
         return seqMsgID;
     }
 
+    /**
+     * Getter to get the channel code
+     * @return returns the channel code
+     */
     public char getChannelCode()
     {
         return channelCode;
     }
 
+    /**
+     * Getter to get the payload
+     * @return returns the payload
+     */
     public String getPayload()
     {
         return payload;
     }
 
+    /**
+     * Getter to get the checksum
+     * @return returns the checksum received in the sentence
+     */
     public String getEod()
     {
         return eod;
     }
 
-
-    //Should be called by the WiFi Service
+    /**
+     * Sets the data to each of the variables by splitting the packet
+     * Used regular expressions to split the data
+     * @param dataExtr
+     */
     public void setData(String[] dataExtr)
     {
         try{
@@ -105,6 +135,10 @@ public class AIVDM {
         }
     }
 
+    /**
+     * Used to change ASCII characters of the payload to decimal and then to binary format
+     * @return returns the binary output of the ASCII payload
+     */
     public StringBuilder decodePayload()
     {
 
@@ -121,23 +155,14 @@ public class AIVDM {
         }
 
         return binary;
-        /*
-        byte[] bytes = payload.getBytes();
-        StringBuilder binary = new StringBuilder();
-        for (byte b : bytes)
-        {
-            int val = b;
-            for (int i = 0; i < 8; i++)
-            {
-                binary.append((val & 128) == 0 ? 0 : 1);
-                val <<= 1;
-            }
-            // binary.append(' ');
-        }
-        return binary; */
     }
 
 
+    /**
+     * Called from {@link AIVDM#decodePayload()}
+     * @param val receives the ascii character value in decimal and does manipulation of the value as per the protocol
+     * @return returns the manipulated decimal value
+     */
     private int asciitodec(int val)
     {
         val = val - 48;
@@ -146,6 +171,18 @@ public class AIVDM {
         return val;
     }
 
+    /**
+     * Generic function implemented to process the payload
+     * Receives the binary data and splits according to the begin and the end index and converts to a decimal value
+     * which represents a valid data for the various fields of the AIS payload
+     * @param begin index of the beginning of a member of the AIS payload
+     * @param end index of the end of a member of the AIS payload
+     * @param len represents the length of the member
+     * @param binLocal Binary equivalent of the payload
+     * @param type Datatype value used to truncate the data field as per the datatype value expected from the calling function
+     * @param <T> Generic data type (template concept of java)
+     * @return returns the decimal equivalent
+     */
     static <T> Object strbuildtodec(int begin, int end, int len, StringBuilder binLocal, Class<?> type)
     {
         try{
@@ -159,7 +196,7 @@ public class AIVDM {
                 if(array[pow - 1] == '1')
                     decimal += Math.pow(2,len - pow);
             }
-    //		System.out.println("dec: " + decimal);
+
             if(type == int.class)
                 return (int)(long)decimal;
             else
@@ -171,11 +208,19 @@ public class AIVDM {
                 return (int)(long)0;
             else
                 return (long) 0;
-            //return 0;
+
         }
-        //return Integer.parseInt(new String(array));
+
     }
 
+    /**
+     * Generic function to process the payload and return the value in form of String instead of decimal value
+     * @param begin index of the beginning of a member of the AIS payload
+     * @param end index of the end of a member of the AIS payload
+     * @param len represents the length of the member
+     * @param bin Binary equivalent of the payload
+     * @return returns the String equivalent
+     */
     public static String convertToString(int begin, int end, int len, StringBuilder bin){
 
         try {

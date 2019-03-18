@@ -4,15 +4,59 @@ package de.awi.floenavigation.aismessages;
 import static de.awi.floenavigation.aismessages.AIVDM.convertToString;
 import static de.awi.floenavigation.aismessages.AIVDM.strbuildtodec;
 
+/**
+ * Class to process Type 5 messages of Class B transponders.
+ * The packet is used to associate a MMSI with a name on either class A or class B equipment.
+ *
+ * A "Type 24" may be in part A or part B format;
+ * According to the standard, parts A and B are expected to be broadcast in adjacent pairs;
+ * in the real world they may (due to quirks in various aggregation methods) be separated by other sentences
+ * or even interleaved with different Type 24 pairs; decoders must cope with this. The interpretation of
+ * some fields in Type B format changes depending on the range of the Type B MMSI field.
+ * 160 bits for part A, 168 bits for part B.
+ */
 public class StaticDataReport {
 
+    /**
+     * Message type, constant value of 24
+     */
     private int msgInd;
+    /**
+     * Message repeat count
+     * The Repeat Indicator is a directive to an AIS transceiver that this message should be rebroadcast.
+     * This was intended as a way of getting AIS messages around hills and other obstructions in coastal waters,
+     * but is little used as base station coverage is more effective. It is intended that the bit be incremented
+     * on each retransmission, to a maximum of three hops. A value of 3 indicates "Do not repeat".
+     */
     private int repeatInd;
+    /**
+     * An MMSI is a Mobile Marine Service Identifier, a unique 9-digit ID for the ship’s radio(s).
+     * The first three digits convey information about the country in which the ID was issued.
+     * Different formats of MMSI are used for different classes of transmitter.
+     * A MID is a three-digit decimal literal ranging from 201 to 775 that identifies a country or other maritime jurisdiction.
+     */
     private long mmsi;
+    /**
+     * If the Part Number field is 0, the rest of the message is interpreted as a Part A;
+     * if it is 1, the rest of the message is interpreted as a Part B; values 2 and 3 are not allowed.
+     */
     private int partNum;
+    /**
+     * 20 sixbit chars
+     * Bits 48-89 are as described in ITU-R 1371-4. In earlier versions to 1371-3 this was one sixbit-encoded
+     * 42-bit (7-character) string field, the name of the AIS equipment vendor.
+     * The last 4 characters of the string are reinterpreted as a model/serial numeric pair.
+     *
+     */
     private String vesselName;
     private int spare_1;
+    /**
+     * Ship and cargo classification
+     */
     private int shipType;
+    /**
+     * (Part B) 3 six-bit chars
+     */
     private String vendorID;
     private int unitModelCode;
     private int serialNum;
