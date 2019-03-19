@@ -48,43 +48,165 @@ import de.awi.floenavigation.services.ValidationService;
 import de.awi.floenavigation.aismessages.AISMessageReceiver;
 import de.awi.floenavigation.initialsetup.SetupActivity;
 
+/**
+ * This Activity runs the Synchronization Process between the App and the Sync Server. The Activity uses a separate Sync Class for each
+ * object which is to be synchronized. A Java {@link RequestQueue} is created and {@link StringRequest}s are added to the Request Queue
+ * to push and Pull the Data from the Server. The Synchronization process is Asynchronous which means that each Sync Class's Push and Pull method run
+ * asynchronously and the Synchronization is not done in a specific order.
+ * The Activity is configured to read the data from the Database tables and push the data to the Sync Server on pressing the Start button on
+ * the UI and then clearing the local Database tables and pulling fresh data from the Sync Server on Pressing the Pull Button on the UI.
+ * <p>
+ *     The Activity uses the Configuration Parameters {@link DatabaseHelper#sync_server_hostname} and {@link DatabaseHelper#sync_server_port}
+ *     to connect to the Sync Server.
+ * </p>
+ * @see RequestQueue
+ * @see XmlPullParser
+ * @see XmlPullParserFactory
+ * @see StringRequest
+ */
 public class SyncActivity extends Activity {
 
     private static final String TAG = "SyncActivity";
     private static final String toastMsg = "Please wait until Sync Finishes";
 
 
-
+    /**
+     * The Common RequestQueue which is shared by the Sync Classes to run the Synchronization Process.
+     */
     private RequestQueue requestQueue;
+
+    /**
+     * Default XML Parser Factory which is used to create the XML Parser.
+     */
     private XmlPullParserFactory factory;
+
+    /**
+     * Default XML parser which is used by the Sync Classes to read the XML Tags in the XML coming from the Sync Server and insert it
+     * in to the local database accordingly.
+     */
     private XmlPullParser parser;
 
+    /**
+     * Sync Class used for Synchronizing {@link Users}s.
+     * @see UsersSync
+     */
     private UsersSync usersSync;
+
+    /**
+     * Sync Class used for Synchronizing {@link FixedStation}s.
+     * @see FixedStationSync
+     */
     private FixedStationSync fixedStationSync;
+
+    /**
+     * Sync Class used for Synchronizing {@link StationList}s.
+     * @see StationListSync
+     */
     private StationListSync stationListSync;
+
+    /**
+     * Sync Class used for Synchronizing {@link Waypoints}s.
+     * @see WaypointsSync
+     */
     private WaypointsSync waypointsSync;
+
+    /**
+     * Sync Class used for Synchronizing {@link BaseStation}s.
+     * @see BaseStationSync
+     */
     private BaseStationSync baseStationSync;
+
+    /**
+     * Sync Class used for Synchronizing {@link ConfigurationParameter}s.
+     * @see ConfigurationParameterSync
+     */
     private ConfigurationParameterSync parameterSync;
+
+    /**
+     * Sync Class used for Synchronizing {@link Beta}.
+     * @see BetaSync
+     */
     private BetaSync betaSync;
+
+    /**
+     * Sync Class used for Synchronizing {@link SampleMeasurement}s.
+     * @see SampleMeasurementSync
+     */
     private SampleMeasurementSync sampleSync;
+
+    /**
+     * Sync Class used for Synchronizing {@link StaticStation}s.
+     * @see StaticStationSync
+     */
     private StaticStationSync staticStationSync;
+
+
     private DatabaseHelper dbHelper;
+
+    /**
+     * Default Database object used for reading and inserting the data in to the local database.
+     * @see DatabaseHelper
+     */
     private SQLiteDatabase db;
+
+    /**
+     * The Synchronization process must not be interrupted, so the back button on the tablet is disabled.
+     * Local variable used to disable the back button.
+     * <code>true</code> when backButton is enabled.
+     */
     private boolean backButtonEnabled = true;
+
+    /**
+     * The hostname/IP address of the Sync Server. It is set to the value of {@link DatabaseHelper#sync_server_hostname}.
+     */
     private String hostname;
+
+    /**
+     * The port used on the Sync Server. It is set to the value of {@link DatabaseHelper#sync_server_port}.
+     */
     private String port;
+
+    /**
+     * <code>true</code> when the Push to the Sync Server is completed.
+     */
     private boolean isPushCompleted = false;
     private String msg = "";
+
+
     private TextView waitingMsg ;
+
+    /**
+     * <code>true</code> when Pull from the Sync Server is completed.
+     */
     boolean isPullCompleted = false;
 
     public long numOfBaseStations;
 
+    /**
+     * Stores {@link DatabaseHelper#stationName} of all {@link DatabaseHelper#mobileStationTable}.
+     * Use only when Mobile Stations are also synchronized.
+     */
     private HashMap<Integer, String> stationNameData = new HashMap<>();
+
+    /**
+     * Stores {@link DatabaseHelper#mmsi} of all {@link DatabaseHelper#mobileStationTable}.
+     * Use only when Mobile Stations are also synchronized.
+     */
     private HashMap<Integer, Integer> mmsiData = new HashMap<>();
 
+    /**
+     * Current Application Context
+     */
     Context mContext;
 
+    /**
+     * Default onCreate method of the Activity. Creates the {@link RequestQueue} and {@link XmlPullParser}.
+     * Reads the {@link DatabaseHelper#sync_server_hostname} and {@link DatabaseHelper#sync_server_port} from the local Database.
+     * Initializes the Sync Objects by passing them the created {@link RequestQueue}  and {@link XmlPullParser} and then waits for User
+     * to push the Start Synchronization button.
+     * @param savedInstanceState
+     * @throws XmlPullParserException
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -111,6 +233,24 @@ public class SyncActivity extends Activity {
         staticStationSync = new StaticStationSync(this, requestQueue, parser);
     }
 
+    /**
+     * Callback function for Start Sync Button.
+     * Reads the Sync Server parameters from the database and tries to ping the Sync Server. If ping fails it displays an error message and
+     * and the Synchronization process is not run. If Sync Server is available it changes the Screen layout, stops the background {@link de.awi.floenavigation.services}s,
+     * and checks if the coordinate system is initialized.
+     *
+     * The NavigationBar at the bottom of the screen and the hard back button are disabled during this process.
+     * <p>
+     *     If the Coordinate System is already setup the {@link DatabaseHelper#mobileStationTable} is cleared and the data for the other tables
+     *     is read from the local database and pushed in to the {@link RequestQueue} using the individual Sync Objects for each table.
+     *     The Screen Layout is changed to show a waiting view with a Pull Button and {@link #isPushCompleted} is set to <code>true</code> and {@link #isPullCompleted} is set to <code>false</code>.
+     *
+     *     If the Coordinate System is not setup, the Push process is skipped and the App tries to pull the data from the Sync Server. The Screen Layout is changed
+     *     to show a Finish button and {@link #isPushCompleted} is set to <code>false</code> and {@link #isPullCompleted} is set to <code>true</code>.
+     * </p>
+     *
+     * @param view
+     */
     public void onClickStartSync(View view) {
         if(readParamsfromDatabase()) {
             hideNavigationBar();
@@ -218,8 +358,9 @@ public class SyncActivity extends Activity {
 
     }
 
-
-
+    /**
+     * Function to stop the background services and sets {@link MainActivity#areServicesRunning} to false.
+     */
     private void stopServices(){
         AlphaCalculationService.stopTimer(true);
         AISMessageReceiver.setStopDecoding(true);
@@ -229,6 +370,9 @@ public class SyncActivity extends Activity {
         MainActivity.areServicesRunning = false;
     }
 
+    /**
+     * Clears the {@link DatabaseHelper#mobileStationTable} Table.
+     */
     private void clearMobileStationTable(){
         try {
             dbHelper = DatabaseHelper.getDbInstance(this);
@@ -241,6 +385,11 @@ public class SyncActivity extends Activity {
         }
     }
 
+    /**
+     * Sets the Base URLs for pushing, pulling and deleting data on the Sync Server.
+     * @param host the hostname/IP of the Sync Serer
+     * @param port the port used by the Sync Server
+     */
     private void setBaseUrl(String host, String port){
         fixedStationSync.setBaseUrl(host, port);
         baseStationSync.setBaseUrl(host, port);
@@ -253,11 +402,11 @@ public class SyncActivity extends Activity {
         parameterSync.setBaseUrl(host, port);
     }
 
-
-
-
-
-
+    /**
+     * Checks if the Sync Server is reachable on the network.
+     * @param host the hostname/IP of the Sync Server
+     * @return <code>true</code> if the Sync Server is reachable
+     */
     private boolean pingRequest(String host){
 
         boolean mExitValue = false;
@@ -273,7 +422,10 @@ public class SyncActivity extends Activity {
 
     }
 
-
+    /**
+     * Overrides the normal back button behavior. If the {@link #backButtonEnabled} is <code>true</code> it will return to {@link MainActivity}
+     * otherwise it will just show a {@link Toast}.
+     */
     @Override
     public void onBackPressed(){
 
@@ -285,6 +437,9 @@ public class SyncActivity extends Activity {
         }
     }
 
+    /**
+     * Hides the hard Navigation buttons at the bottom of the tablet during Synchronization process
+     */
     private void hideNavigationBar() {
 
         View decorView = getWindow().getDecorView();
@@ -292,6 +447,9 @@ public class SyncActivity extends Activity {
         decorView.setSystemUiVisibility(uiOptions);
     }
 
+    /**
+     *  Reads the {@link DatabaseHelper#sync_server_hostname} and {@link DatabaseHelper#sync_server_port} from the local Database.
+     */
     private boolean readParamsfromDatabase(){
         Cursor parameterCursor = null;
         try {
@@ -332,6 +490,14 @@ public class SyncActivity extends Activity {
         }
     }
 
+    /**
+     * Callback function for Start Pull from Server Button.
+     * If data has already been push to the RequestQueue, it starts adding the Pull requests to the RequestQueue and changes the layout to display the finish
+     * button.
+     * If Pull Requests have already been added to the the RequestQueue, that means the synchronization process is complete and it restarts the
+     * background Services and returns to the {@link AdminPageActivity}.
+     * @param view
+     */
     public void onClickProgressBarButton(View view) {
 
         if(isPushCompleted){
@@ -354,6 +520,9 @@ public class SyncActivity extends Activity {
         }
     }
 
+    /**
+     * Clears the local database and starts adding the Pull requests to the {@link #requestQueue} for each database table which is to be synced.
+     */
     private void pullDatafromServer(){
 
         msg = "Clearing Database and Pulling Fixed Stations from the Server";
@@ -403,6 +572,11 @@ public class SyncActivity extends Activity {
         parameterSync.onClickParameterPullButton(numOfBaseStations);
     }
 
+    /**
+     * Reads the {@value DatabaseHelper#mobileStationTable} Table and inserts the data from all the Columns of the
+     * {@value DatabaseHelper#mobileStationTable} Table in to their respective {@link HashMap}.
+     * @throws SQLiteException In case of error in reading database.
+     */
     public void readMobileStations(){
         Cursor mobileStationCursor = null;
         try{
@@ -436,6 +610,12 @@ public class SyncActivity extends Activity {
 
     }
 
+    /**
+     * Creates {@link StringRequest}s as per the size of {@link #mmsiData} data extracted from the local database and inserts all the requests in the {@link RequestQueue}
+     * A Stringrequest for pushing the data is registered and added to the {@link #requestQueue}.
+     * callback function {@link Response.Listener#onResponse(Object)} notifies whether the request was successful or not
+     * If it is unsuccessful or the connection is not established {@link Response.Listener#error(VolleyError)} gets called
+     */
     public void sendMobileStations(){
         for(int i = 0; i < mmsiData.size(); i++){
             final int index = i;
@@ -483,6 +663,9 @@ public class SyncActivity extends Activity {
         //sendSLDeleteRequest();
     }
 
+    /**
+     * Async Task for restarting the Background services. It checks if the Pull requests have been added to the {@link #requestQueue} before starting the Services.
+     */
     private class RestartServices extends AsyncTask<Void,Void,Void> {
 
         Timer timer = new Timer();
