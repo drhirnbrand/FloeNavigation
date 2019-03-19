@@ -30,29 +30,87 @@ import de.awi.floenavigation.helperclasses.ActionBarActivity;
 import de.awi.floenavigation.helperclasses.DatabaseHelper;
 import de.awi.floenavigation.R;
 
-
+/**
+ * This Activity deals with configuring and displaying of the important internal parameters of the system
+ * These parameters are available in {@value DatabaseHelper#configParametersTable}
+ * The fields are changed for entering the value w.r.t the parameter selected. Different fields are present such as radio buttons
+ * for changing lat-lon display format {@value DatabaseHelper#lat_long_view_format}, seek bar view available for {@value DatabaseHelper#error_threshold},
+ * edit texts available for {@value DatabaseHelper#tabletId} and so on.
+ *
+ */
 public class ConfigurationActivity extends ActionBarActivity {
 
     private static final String TAG = "ConfigurationActivity";
+    /**
+     * View used to enter the value of the parameter selected
+     */
     private EditText valueField;
+    /**
+     * flag used for setting up the display mode of geographical coordinate
+     * in deg:min:sec or in decimal format
+     */
     private boolean coordinateTypeDegMinSec = false;
+    /**
+     * flag used to enable the visibility of the {@link #valueField} based on the paramter selected
+     */
     private boolean isNormalParam = true;
+    /**
+     * flag used to display time units when time related parameter is selected
+     */
     private boolean isTimeRangeParam = false;
+    /**
+     * flag used to display distance units when distance related parameter is selected
+     */
     private boolean isDistanceRangeParam = false;
+    /**
+     * Used for accessing the spinner item position
+     */
     private int spinnerItem = 0;
+    /**
+     * Used for adding default value for the seek bar value
+     */
     private int MIN_VALUE;
+    /**
+     * Default value for minimum time
+     */
     private int TIME_MIN_VALUE = 10;
-    private int DISTANCE_MIN_VALUE = 0;
-    private int DISTANCE_MAX_VALUE = 100;
+    /**
+     * Default value for maximum time
+     */
     private int TIME_MAX_VALUE = 50;
+    /**
+     * Default value for minimum distance
+     */
+    private int DISTANCE_MIN_VALUE = 0;
+    /**
+     * Default value for maximum distance
+     */
+    private int DISTANCE_MAX_VALUE = 100;
+    /**
+     * Default value for minimum digits for {@value DatabaseHelper#decimal_number_significant_figures}
+     */
     private int SIGNIFICANT_FIGURES_MIN_VALUE = 0;
+    /**
+     * Default value for maximum digits for {@value DatabaseHelper#decimal_number_significant_figures}
+     */
     private int SIGNIFICANT_FIGURES_MAX_VALUE = 10;
+    /**
+     * Used for displaying the unit string
+     */
     private String units = "";
+    /**
+     * Default value for the seek bar
+     */
     private int progressValue = MIN_VALUE;
 
-
-
-
+    /**
+     * This function is responsible for setting up the layout and the default parameter and the value field is visible
+     * Based on the parameter selected from a list (Spinner), the value field changes accordingly
+     * Visibility of the fields are governed by the spinner position of the selected item
+     * The function makes sure that corresponding flags are initialized {@link #isNormalParam}, {@link #isDistanceRangeParam},
+     * {@link #isTimeRangeParam} properly
+     * @param savedInstanceState Used to store the previous saved state
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -172,8 +230,12 @@ public class ConfigurationActivity extends ActionBarActivity {
         });
     }
 
-
-
+    /**
+     * Based on the {}
+     * @param view The view that has been clicked {@link #isNormalParam}, {@link #isDistanceRangeParam}, {@link #isTimeRangeParam}
+     * flags, different operations are undertaken such as validation of the entered data, adding an offset to the data
+     * and eventually updating the values to the internal database
+     */
     public void onClickConfigurationParamsconfirm(View view) {
         try {
             SQLiteOpenHelper dbHelper = DatabaseHelper.getDbInstance(getApplicationContext());
@@ -231,8 +293,9 @@ public class ConfigurationActivity extends ActionBarActivity {
         }
     }
 
-
-
+    /**
+     * Function initializes the spinner list with the parameters present in {@value DatabaseHelper#configParametersTable}
+     */
     private void populateParameters(){
         List<String> parameterList = new ArrayList<String>();
 
@@ -246,6 +309,12 @@ public class ConfigurationActivity extends ActionBarActivity {
         parameterType.setAdapter(adapter);
     }
 
+    /**
+     * Function used to update the local internal database
+     * @param db SQLiteDatabase object
+     * @param parameterName name of the parameter
+     * @param inputValue corresponding value
+     */
     private void updateDatabaseTable(SQLiteDatabase db, String parameterName, String inputValue){
         ContentValues configParamsContents = new ContentValues();
         configParamsContents.put(DatabaseHelper.parameterName, parameterName);
@@ -255,19 +324,38 @@ public class ConfigurationActivity extends ActionBarActivity {
 
     }
 
+    /**
+     * onClick listener to display the internal parameters with their most updated value
+     * Used for verfication purpose
+     * The Listener starts {@link ParameterViewActivity} activity when the view is pressed
+     * @param view The view that has been clicked
+     */
     public void onClickViewConfigurationParams(View view) {
         Intent parameterActivityIntent = new Intent(this, ParameterViewActivity.class);
         startActivity(parameterActivityIntent);
     }
 
+    /**
+     * Validate the text field for empty string
+     * @param valueField value received as an input argument
+     * @return <code>true</code> is valid value present
+     */
     private boolean validateValueField(EditText valueField) {
         return !TextUtils.isEmpty(valueField.getText().toString());
     }
 
+    /**
+     * Used to update the flag {@link #coordinateTypeDegMinSec} based on the radio button pressed
+     * @param view The view that has been clicked
+     */
     public void onClickDegreeFraction(View view) {
         coordinateTypeDegMinSec = false;
     }
 
+    /**
+     * Used to update the flag {@link #coordinateTypeDegMinSec} based on the radio button pressed
+     * @param view The view that has been clicked
+     */
     public void onClickDegMinSec(View view) {
         coordinateTypeDegMinSec = true;
     }

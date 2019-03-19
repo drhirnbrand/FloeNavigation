@@ -21,13 +21,26 @@ import de.awi.floenavigation.helperclasses.ActionBarActivity;
 import de.awi.floenavigation.helperclasses.DatabaseHelper;
 import de.awi.floenavigation.R;
 
+/**
+ * {@link RecoveryActivity} activity is responsible for recovery of static and fixed stations from the system
+ * Only a admin has the privilege to do this task
+ * This class sets up the layout screen for the recovery activity and initializes various fields of the layout
+ * Radio button is presented with yes/no option for selection between fixed and static station
+ */
 public class RecoveryActivity extends ActionBarActivity {
 
     private static final String TAG = "RecoveryActivity";
     private boolean aisDeviceCheck = true;
+    /**
+     * Array to store the base stations
+     */
     private int[] baseStnMMSI = new int[DatabaseHelper.INITIALIZATION_SIZE];
 
 
+    /**
+     * onCreate function to set the corresponding layout and initialize all the views corresponding to the layout
+     * @param savedInstanceState Used to store previous saved state
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -60,7 +73,12 @@ public class RecoveryActivity extends ActionBarActivity {
         });
     }
 
-
+    /**
+     * Based on the radio button selected, the mmsi for the fixed station or the station name for the static station is validated
+     * and checked whether it is present in internal local database.
+     * Validation of the field also involves check for empty string
+     * @param view The view that has been clicked
+     */
     public void onClickRecoveryListenerconfirm(View view) {
         try {
             SQLiteOpenHelper dbHelper = DatabaseHelper.getDbInstance(getApplicationContext());
@@ -97,6 +115,12 @@ public class RecoveryActivity extends ActionBarActivity {
         }
     }
 
+    /**
+     * Function to check the presence of station name entered by the admin in the local internal database {@link DatabaseHelper#staticStationListTable}
+     * @param db SQLiteDatabase object
+     * @param stationToBeRemoved station to be removed
+     * @return <code>true</code> if the station is present
+     */
     private boolean checkEntryInStaticStnTable(SQLiteDatabase db, String stationToBeRemoved){
         boolean isPresent = false;
         Cursor staticStnCursor = null;
@@ -115,6 +139,9 @@ public class RecoveryActivity extends ActionBarActivity {
         return isPresent;
     }
 
+    /**
+     * @return The number of entries in the {@link DatabaseHelper#staticStationListTable}
+     */
     private long getNumOfAISStation() {
         try {
             SQLiteOpenHelper dbHelper = DatabaseHelper.getDbInstance(this);
@@ -128,6 +155,13 @@ public class RecoveryActivity extends ActionBarActivity {
         return 0;
     }
 
+    /**
+     * The function is responsible for deleting the mmsi of the fixed station from the internal database tables
+     * {@value DatabaseHelper#stationListTable}, {@value DatabaseHelper#fixedStationTable}, {@value DatabaseHelper#baseStationTable}
+     * Also insert the mmsi into the deleted tables {@value DatabaseHelper#fixedStationDeletedTable}, {@value DatabaseHelper#stationListDeletedTable},
+     * {@value DatabaseHelper#baseStationDeletedTable} for synchronization purpose
+     * @param mmsiToBeRemoved mmsi to be recovered
+     */
     private void deleteEntryfromDBTables(String mmsiToBeRemoved){
         try {
             SQLiteOpenHelper dbHelper = DatabaseHelper.getDbInstance(this);
@@ -164,6 +198,11 @@ public class RecoveryActivity extends ActionBarActivity {
         }
     }
 
+    /**
+     * Function is used to add the mmsi into the {@value DatabaseHelper#baseStationDeletedTable} table
+     * @param db SQLiteDatabase object
+     * @param mmsi mmsi recovered
+     */
     private void insertIntoBaseStationDeletedTable(SQLiteDatabase db, String mmsi) {
         ContentValues deletedBaseStation = new ContentValues();
         deletedBaseStation.put(DatabaseHelper.mmsi, mmsi);
@@ -171,6 +210,11 @@ public class RecoveryActivity extends ActionBarActivity {
         db.insert(DatabaseHelper.baseStationDeletedTable, null, deletedBaseStation);
     }
 
+    /**
+     * Function is used to add the mmsi into the {@value DatabaseHelper#fixedStationDeletedTable} table
+     * @param db SQLiteDatabase object
+     * @param mmsiToBeAdded mmsi recovered
+     */
     private void insertIntoFixedStationDeletedTable(SQLiteDatabase db, String mmsiToBeAdded) {
         ContentValues deletedStation = new ContentValues();
         deletedStation.put(DatabaseHelper.mmsi, Integer.valueOf(mmsiToBeAdded));
@@ -178,6 +222,11 @@ public class RecoveryActivity extends ActionBarActivity {
         db.insert(DatabaseHelper.fixedStationDeletedTable, null, deletedStation);
     }
 
+    /**
+     * Function is used to add the mmsi into the {@value DatabaseHelper#stationListDeletedTable} table
+     * @param db SQLiteDatabase object
+     * @param mmsiToBeAdded mmsi recovered
+     */
     private void insertIntoStationListDeletedTable(SQLiteDatabase db, String mmsiToBeAdded){
         ContentValues deletedStation = new ContentValues();
         deletedStation.put(DatabaseHelper.mmsi, Integer.valueOf(mmsiToBeAdded));
@@ -185,6 +234,11 @@ public class RecoveryActivity extends ActionBarActivity {
         db.insert(DatabaseHelper.stationListDeletedTable, null, deletedStation);
     }
 
+    /**
+     * Function is used to add the recovered static station into the {@value DatabaseHelper#staticStationDeletedTable} table
+     * @param db SQLiteDatabase object
+     * @param staticStnName mmsi recovered
+     */
     private void insertIntoStaticStationDeletedTable(SQLiteDatabase db, String staticStnName) {
         ContentValues deletedStation = new ContentValues();
         deletedStation.put(DatabaseHelper.staticStationName, staticStnName);
@@ -192,6 +246,14 @@ public class RecoveryActivity extends ActionBarActivity {
         db.insert(DatabaseHelper.staticStationDeletedTable, null, deletedStation);
     }
 
+    /**
+     * If the recovered fixed stations are part of the original base stations which were used to setup the initial grid
+     * then the mmsi's for those stations are assigned {@value DatabaseHelper#BASESTN1} or {@value DatabaseHelper#BASESTN2} values such that the predictions for these
+     * stations are in progress and can be redeployed at a different point in the grid even though these are recovered
+     * @param mmsi mmsi to be recovered
+     * @param db SQLiteDatabase instance
+     * @param originFlag <code>true</code> if the mmsi is of the origin base station
+     */
     private void updataMMSIInDBTables(int mmsi, SQLiteDatabase db, boolean originFlag){
         ContentValues mContentValues = new ContentValues();
         mContentValues.put(DatabaseHelper.mmsi, ((originFlag) ? DatabaseHelper.BASESTN1 : DatabaseHelper.BASESTN2));
@@ -200,6 +262,12 @@ public class RecoveryActivity extends ActionBarActivity {
         db.update(DatabaseHelper.baseStationTable, mContentValues, DatabaseHelper.mmsi + " = ?", new String[]{String.valueOf(mmsi)});
     }
 
+    /**
+     * Function to check whether mmsi is present in the internal local database table
+     * @param db SQLiteDatabase instance
+     * @param mmsi mmsi to be recovered
+     * @return <code>true</code> if the station is present in {@value DatabaseHelper#stationListTable}
+     */
     private boolean checkEntryInStationListTable(SQLiteDatabase db, String mmsi){
         boolean isPresent = false;
         Cursor stationListCursor = null;
@@ -218,6 +286,10 @@ public class RecoveryActivity extends ActionBarActivity {
         return isPresent;
     }
 
+    /**
+     * Function used to store the base stations from the {@value DatabaseHelper#baseStationTable} into the {@link #baseStnMMSI}
+     * @param db SQLiteDatabase instance
+     */
     private void baseStationsRetrievalfromDB(SQLiteDatabase db){
         Cursor mBaseStnCursor = null;
         try {
@@ -253,6 +325,10 @@ public class RecoveryActivity extends ActionBarActivity {
 
     }
 
+    /**
+     * Function starts the {@link ListViewActivity} to display the list of Fixed stations or the Static Stations stored inside the internal database table
+     * @param view View that has been clicked
+     */
     public void onClickViewDeployedStations(View view) {
         try {
             SQLiteOpenHelper dbHelper = DatabaseHelper.getDbInstance(this);

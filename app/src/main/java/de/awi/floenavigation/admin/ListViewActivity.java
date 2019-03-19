@@ -40,6 +40,12 @@ import de.awi.floenavigation.R;
 import de.awi.floenavigation.sample_measurement.SampleMeasurementActivity;
 import de.awi.floenavigation.waypoint.WaypointActivity;
 
+/**
+ * {@link ListViewActivity} is responsible for displaying a list of static stations and fixed stations depending on the
+ * intent extra received from the calling activity {@link RecoveryActivity#onClickViewDeployedStations(View)}
+ * Added feature of swipping right on the entry present in the list will recover/delete the corresponding station from the internal
+ * local database tables
+ */
 public class ListViewActivity extends ActionBarActivity {
 
     private static final String TAG = "ListViewActivity";

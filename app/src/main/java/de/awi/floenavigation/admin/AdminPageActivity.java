@@ -22,11 +22,24 @@ import de.awi.floenavigation.deployment.DeploymentActivity;
 import de.awi.floenavigation.initialsetup.GridSetupActivity;
 import de.awi.floenavigation.synchronization.SyncActivity;
 
+/**
+ * Activity is responsible for presenting all the menus accessible for the admin
+ * On pressing any of the menu, the admin is redirected to the corresponding activity associated with that menu
+ * On first login, the admin has an added task to enter the tablet id {@value DatabaseHelper#tabletId} which would be stored in
+ * {@link DatabaseHelper#configParametersTable} table.
+ * This class handles animation of the menus to be visible on the activity in a precalculated delay
+ */
 public class AdminPageActivity extends ActionBarActivity {
     private static final String TAG = "AdminPageActivity";
 
+    /**
+     * Cardview objects for different menus
+     */
     CardView gridConfigOption, SyncOption, adminPrivilegesOption, configParamsOption,
             recoverycardOption, deploymentcardOption;
+    /**
+     * Handler object to execute the runnable
+     */
     Handler handler = new Handler();
     Runnable gridConfigRunnable = new Runnable() {
         @Override
@@ -68,6 +81,11 @@ public class AdminPageActivity extends ActionBarActivity {
         }
     };
 
+    /**
+     * onCreate function is responsible for initializing and associating a handler {@link #handler} with a runnable object with the views {@link #gridConfigOption},
+     * {@link #SyncOption} etc., of the .xml file
+     * @param savedInstanceState Used to store previous information of paramters before the app is minimized
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -89,18 +107,27 @@ public class AdminPageActivity extends ActionBarActivity {
         handler.postDelayed(deploymentRunnable, 1100);
     }
 
+    /**
+     * onClick listener to start {@link GridSetupActivity} activity
+     * It is called when a view has been clicked
+     * The {@link GridSetupActivity} activity is only called when the initial configuration is done for the first time.
+     * If the grid is setup, this menu will be disabled.
+     * @param view The view that was clicked
+     */
     public void onClickGridConfiguration(View view){
        if(!isSetupComplete()){
            Intent intent = new Intent(this, GridSetupActivity.class);
            startActivity(intent);
        } else{
            Toast.makeText(this, "Grid is already Setup", Toast.LENGTH_LONG).show();
-           //For testing purposes has to be removed later.
-           //clearDatabase();
        }
     }
 
-
+    /**
+     * Function to check whether the initial grid setup has been completed.
+     * It accesses the local internal database {@value DatabaseHelper#stationListTable} to check the number of entries
+     * @return It returns <code>true</code> if the grid initial setup is complete.
+     */
     private boolean isSetupComplete(){
         long count = 0;
         boolean success = true;
@@ -121,6 +148,12 @@ public class AdminPageActivity extends ActionBarActivity {
         return success;
     }
 
+    /**
+     * Function to verify whether the tablet name has been entered by the admin for the first login
+     * If the tablet name is initialized and its present in its internal local database, the return value makes sure that the dialog box to enter the tabletName is not
+     * visible for successive logins and the admin is only presented directly with all the menus of the admin dashboard.
+     * @return <code>true</code> if the tablet name is setup
+     */
     private boolean isTabletNameSetup(){
         boolean success = false;
         Cursor paramCursor = null;
@@ -154,28 +187,32 @@ public class AdminPageActivity extends ActionBarActivity {
         return success;
     }
 
-    private void clearDatabase(){
-        try {
-            SQLiteOpenHelper dbHelper = DatabaseHelper.getDbInstance(getApplicationContext());;
-            SQLiteDatabase db = dbHelper.getReadableDatabase();
-            db.execSQL("delete from AIS_STATION_LIST");
-            db.execSQL("delete from AIS_FIXED_STATION_POSITION");
-            db.execSQL("delete from BASE_STATIONS");
-        } catch (SQLiteException e){
-            Toast.makeText(this, "Database Unavailable", Toast.LENGTH_LONG).show();
-        }
-    }
-
+    /**
+     * onClick listener to start {@link ConfigurationActivity} activity
+     * It is called when a view has been clicked
+     * @param view The view that was clicked
+     */
     public void onClickConfigurationParams(View view) {
         Intent configActivityIntent = new Intent(this, ConfigurationActivity.class);
         startActivity(configActivityIntent);
     }
 
+    /**
+     * onClick listener to start {@link AdminUserPwdActivity} activity
+     * It is called when a view has been clicked
+     * @param view The view that was clicked
+     */
     public void onClickAdminPrivilegesListener(View view) {
         Intent adminUserPwdActIntent = new Intent(this, AdminUserPwdActivity.class);
         startActivity(adminUserPwdActIntent);
     }
 
+    /**
+     * onClick listener to start {@link RecoveryActivity} activity
+     * It is called when a view has been clicked
+     * The activity is only called when there are 2 AIS stations available on the grid.
+     * @param view The view that was clicked
+     */
     public void onClickRecoveryListener(View view) {
 
         long numOfBaseStations = 0;
@@ -196,6 +233,10 @@ public class AdminPageActivity extends ActionBarActivity {
         }
     }
 
+    /**
+     * Function to start {@link DialogActivity} activity
+     * Used to display dialog box pop up
+     */
     private void dialogBoxDisplay() {
 
         String popupMsg = "Please Give a Unique ID to this Tablet: ";
@@ -210,6 +251,10 @@ public class AdminPageActivity extends ActionBarActivity {
         startActivity(dialogIntent);
     }
 
+    /**
+     * Overridden the back pressed function of android, to start {@link MainActivity} activity on back button press
+     * when present in {@link AdminPageActivity}
+     */
     @Override
     public void onBackPressed() {
         super.onBackPressed();
@@ -218,6 +263,12 @@ public class AdminPageActivity extends ActionBarActivity {
         startActivity(mainActivityIntent);
     }
 
+    /**
+     * onClick listener to start {@link DeploymentActivity} activity
+     * It is called when a view has been clicked
+     * The activity is only called when there are 2 AIS stations available on the grid
+     * @param view The view that was clicked
+     */
     public void onClickDeploymentListener(View view) {
         long numOfBaseStations = 0;
         try {
@@ -239,6 +290,11 @@ public class AdminPageActivity extends ActionBarActivity {
 
     }
 
+    /**
+     * onClick listener to start {@link SyncActivity} activity
+     * It is called when a view has been clicked
+     * @param view The view that was clicked
+     */
     public void onClickSyncListener(View view) {
         Intent syncIntent = new Intent(this, SyncActivity.class);
         startActivity(syncIntent);
