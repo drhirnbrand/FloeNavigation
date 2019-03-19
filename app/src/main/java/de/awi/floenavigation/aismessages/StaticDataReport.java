@@ -5,7 +5,7 @@ import static de.awi.floenavigation.aismessages.AIVDM.convertToString;
 import static de.awi.floenavigation.aismessages.AIVDM.strbuildtodec;
 
 /**
- * Class to process Type 5 messages of Class B transponders.
+ * Class to process Type 24 messages.
  * The packet is used to associate a MMSI with a name on either class A or class B equipment.
  *
  * A "Type 24" may be in part A or part B format;
@@ -58,16 +58,46 @@ public class StaticDataReport {
      * (Part B) 3 six-bit chars
      */
     private String vendorID;
+    /**
+     * (Part B) Model Code - part of the last 4 characters of the 7 character string field
+     */
     private int unitModelCode;
+    /**
+     * (Part B) Serial Number - part of the last 4 characters of the 7 character string field
+     */
     private int serialNum;
+    /**
+     * 7 Six-bit characters
+     */
     private String callSign;
+    /**
+     * (Part B) - meters
+     */
     private int dimToBow;
+    /**
+     * (Part B) - meters
+     */
     private int dimToStern;
+    /**
+     * (Part B) - meters
+     */
     private int dimToPort;
+    /**
+     * (Part B) - meters
+     */
     private int dimToStarBoard;
+    /**
+     * An MMSI is associated with an auxiliary craft when it is of the form 98XXXYYYY,
+     * where (1) the 98 in positions 1 and 2 is required to designate an auxiliary craft,
+     * (2) the digits XXX in the 3, 4 and 5 positions are the MID (the three-digit country code as described in [ITU-MID]) and
+     * (3) YYYY is any decimal literal from 0000 to 9999.
+     */
     private long mothershipMMSI;
     private int spare_2;
 
+    /**
+     * Constructor to initialize the fields with default values
+     */
     public StaticDataReport()
     {
 
@@ -90,91 +120,146 @@ public class StaticDataReport {
         spare_2 = -1;
     }
 
+    /**
+     * @return returns the value of {@link StaticDataReport#msgInd}
+     */
     public int getMsgInd()
     {
         return msgInd;
     }
 
+    /**
+     * @return returns the value of {@link StaticDataReport#repeatInd}
+     */
     public int getRepeatInd()
     {
         return repeatInd;
     }
 
+    /**
+     * @return returns the value of {@link StaticDataReport#mmsi}
+     */
     public long getMMSI()
     {
         return mmsi;
     }
 
+    /**
+     * @return returns the value of {@link StaticDataReport#partNum}
+     */
     public int getPartNum()
     {
         return partNum;
     }
 
+    /**
+     * @return returns the value of {@link StaticDataReport#vesselName}
+     */
     public String getVesselName()
     {
         return vesselName;
     }
 
+    /**
+     * @return returns the value of {@link StaticDataReport#spare_1}
+     */
     public int getSpare_1()
     {
         return spare_1;
     }
 
+    /**
+     * @return returns the value of {@link StaticDataReport#shipType}
+     */
     public int getShipType()
     {
         return shipType;
     }
 
+    /**
+     * @return returns the value of {@link StaticDataReport#vendorID}
+     */
     public String getvendorID()
     {
         return vendorID;
     }
 
+    /**
+     * @return returns the value of {@link StaticDataReport#unitModelCode}
+     */
     public int getUnitModelCode()
     {
         return unitModelCode;
     }
 
+    /**
+     * @return returns the value of {@link StaticDataReport#serialNum}
+     */
     public int getSerialNum()
     {
         return serialNum;
     }
 
+    /**
+     * @return returns the value of {@link StaticDataReport#callSign}
+     */
     public String getCallSign()
     {
         return callSign;
     }
 
+    /**
+     * @return returns the value of {@link StaticDataReport#dimToBow}
+     */
     public int getDimToBow()
     {
         return dimToBow;
     }
 
+    /**
+     * @return returns the value of {@link StaticDataReport#dimToStern}
+     */
     public int getDimToStern()
     {
         return dimToStern;
     }
 
+    /**
+     * @return returns the value of {@link StaticDataReport#dimToPort}
+     */
     public int getDimToPort()
     {
         return dimToPort;
     }
 
+    /**
+     * @return returns the value of {@link StaticDataReport#dimToStarBoard}
+     */
     public int getDimToStarBoard()
     {
         return dimToStarBoard;
     }
 
+    /**
+     * @return returns the value of {@link StaticDataReport#mothershipMMSI}
+     */
     public long getMothershipMMSI()
     {
         return mothershipMMSI;
     }
 
+    /**
+     * @return returns the value of {@link StaticDataReport#spare_2}
+     */
     public int getSpare_2()
     {
         return spare_2;
     }
 
+    /**
+     * Function to assign the values of the various fields of the payload
+     * @param bin Binary data equivalent of the ASCII character set of payload
+     */
     public void setData(StringBuilder bin)
     {
         msgInd = (int)strbuildtodec(0,5,6,bin,int.class);
