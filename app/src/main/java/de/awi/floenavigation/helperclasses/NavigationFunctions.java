@@ -9,8 +9,8 @@ public class NavigationFunctions {
 
     public static double[] calculateNewPosition(double lat, double lon, double speed, double bearing){
 
-        final double r = 6371 * 1000; // Earth Radius in m
-        double distance = speed * 10;
+        final double r = 6364.348 * 1000; // Earth Radius in m
+        double distance = speed * 10 * 0.51444;
 
         double lat2 = Math.asin(Math.sin(Math.toRadians(lat)) * Math.cos(distance / r)
                 + Math.cos(Math.toRadians(lat)) * Math.sin(distance / r) * Math.cos(Math.toRadians(bearing)));
@@ -24,7 +24,7 @@ public class NavigationFunctions {
 
     public static double calculateDifference(double lat1, double lon1, double lat2, double lon2){
 
-        final int R = 6360; // Radius of the earth change this
+        final double R = 6364.348; // Radius of the earth change this
 
         double latDistance = Math.toRadians(lat2 - lat1);
         double lonDistance = Math.toRadians(lon2 - lon1);

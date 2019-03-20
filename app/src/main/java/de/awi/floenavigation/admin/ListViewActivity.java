@@ -49,14 +49,41 @@ import de.awi.floenavigation.waypoint.WaypointActivity;
 public class ListViewActivity extends ActionBarActivity {
 
     private static final String TAG = "ListViewActivity";
+    /**
+     * Object is used to store different parameters in case of fixed station recovery
+     * the name of the station and the x, y positions of the station in the grid
+     * This helps in displaying the contents on the list
+     */
     private ArrayList<ParameterListObject> parameterObjects = new ArrayList<ParameterListObject>();
+    /**
+     * Recycler view used to display scrolling list of elements
+     */
     private RecyclerView mRecyclerView;
+    /**
+     * List view adapter to be used by {@link #mRecyclerView}
+     */
     private RecyclerView.Adapter mAdapter;
+    /**
+     * Grid layout manager to be used by {@link #mRecyclerView}
+     */
     private RecyclerView.LayoutManager mLayoutManager;
+    /**
+     * Intent variable used to store the intent activity which is to be started when the
+     * station/user is removed
+     */
     private Intent intentOnExit;
+    /**
+     * Array to store the base stations used to initially set up the grid
+     */
     private int[] baseStnMMSI = new int[DatabaseHelper.INITIALIZATION_SIZE];
 
 
+    /**
+     * Initializes the layout and the recycler view {@link #mRecyclerView}
+     * Listener initialization for the swipe event in case of removal
+     * Paint method added for the animation and the layout of the element in the list
+     * @param savedInstanceState stores the previously saved state
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -112,6 +139,14 @@ public class ListViewActivity extends ActionBarActivity {
 
     }
 
+    /**
+     * This method is called from {@link android.support.v7.widget.helper.ItemTouchHelper} callback in {@link #onCreate(Bundle)}
+     * The Listener is called when the admin or the user swipes the element in the list
+     * Depending on the
+     * @param callingActivityString
+     * @param position
+     * @param numOfStations
+     */
     private void deleteEntry(String callingActivityString, int position, long numOfStations){
 
         boolean isRemoved = false;
