@@ -43,31 +43,86 @@ import de.awi.floenavigation.R;
 
 
 /**
- * A simple {@link Fragment} subclass.
+ * This {@link Fragment} runs on top of the {@link DeploymentActivity} and shows the layout for deployment of a Static Station or a Fixed Station
+ * depending on the value of {@link DeploymentActivity#aisDeployment}. The Layout for deployment of Fixed Station shows an extra MMSI field whereas
+ * if a Static Station is being deployed the MMSI field is hidden and the tablet's Latitude and Longitude are shown.
+ *
+ * @see BroadcastReceiver
+ * @see DeploymentActivity
+ * @see Runnable
  */
 public class StationInstallFragment extends Fragment implements View.OnClickListener {
 
     private static final String TAG = "StationInstallFragment";
+
+    /**
+     * Valid Length of an MMSI Number. Currently set to 9
+     */
     private static final int VALID_MMSI_LENGTH = 9;
 
+    /**
+     * Default empty constructor
+     */
     public StationInstallFragment() {
         // Required empty public constructor
     }
 
+    /**
+     * Main View of the Fragment which allows access to its members
+     */
     View activityView;
+    /**
+     * <code>true</code> when the station type being deployed is Fixed Station
+     */
     private boolean stationTypeAIS;
     private BroadcastReceiver broadcastReceiver;
+    /**
+     * Current Latitude of the tablet read from the tablet's built in GPS
+     */
     private Double tabletLat;
+    /**
+     * Current Longitude of the tablet read from the tablet's built in GPS
+     */
     private Double tabletLon;
+    /**
+     * Sets the format for display of Geographic Coordinates on the Screen.
+     * If <code>true</code> the coordinates will be displayed as degree, minutes, seconds
+     */
     private boolean changeFormat;
+    /**
+     * Sets the number of significant figures to show after a decimal point on the screen. This does not affect the calculations.
+     * The value is read from {@link DatabaseHelper#decimal_number_significant_figures}
+     */
     private int numOfSignificantFigures;
+    /**
+     * The Icons to show on the Action Bar on the screen.
+     */
     private MenuItem gpsIconItem, aisIconItem, gridSetupIconItem;
+    /**
+     * <code>true</code> when the tablet has a GPS Connection
+     */
     private boolean locationStatus = false;
+    /**
+     * <code>true</code> when the tablet is connected to the WiFi network of an AIS Transponder
+     */
     private boolean packetStatus = false;
     private final Handler statusHandler = new Handler();
+    /**
+     * {@link BroadcastReceiver} for checking the WiFi connection to an AIS Transponder.
+     */
     private BroadcastReceiver aisPacketBroadcastReceiver;
 
 
+    /**
+     * Default {@link Fragment#onCreateView(LayoutInflater, ViewGroup, Bundle)}. Check the type of station being deployed by reading the arguments
+     * passed to it from {@link DeploymentActivity}. If the Fixed Station is being deployed it shows the MMSI field and hides the Tablet's latitude and longitude field
+     * If a Static Station is being deployed it hides the MMSI field, shows the Tablet's latitude and longitude and reads the {@link DatabaseHelper#configParametersTable}
+     * to set {@link #numOfSignificantFigures} and {@link #changeFormat}.
+     * @param inflater
+     * @param container
+     * @param savedInstanceState
+     * @return
+     */
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -99,6 +154,11 @@ public class StationInstallFragment extends Fragment implements View.OnClickList
         return layout;
     }
 
+    /**
+     * Default Handler for the Confirm button on the Screen. It checks the Station type being deployed and calls the specific function
+     * for the deployment of that type.
+     * @param v
+     */
     @Override
     public void onClick(View v){
         activityView = getView();
@@ -113,6 +173,9 @@ public class StationInstallFragment extends Fragment implements View.OnClickList
         }
     }
 
+    /**
+     * Called when Fragment is no longer in foreground. It unregisters the AIS and GPS {@link BroadcastReceiver}s.
+     */
     @Override
     public void onPause(){
         super.onPause();
@@ -122,6 +185,12 @@ public class StationInstallFragment extends Fragment implements View.OnClickList
         aisPacketBroadcastReceiver = null;
     }
 
+    /**
+     * Creates the Action Bar icons on top of the screen. For a static station deployment it shows the Option Menu of Changing Lat/Long View format.
+     * By default it shows the GPS icon, AIS Connectivity icon and the Grid Setup icon.
+     * @param menu
+     * @param inflater
+     */
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         inflater.inflate(R.menu.main_menu, menu);
@@ -154,6 +223,13 @@ public class StationInstallFragment extends Fragment implements View.OnClickList
         super.onCreateOptionsMenu(menu,inflater);
     }
 
+    /**
+     * Default handler for the Action Bar Option Menu of Change Lat/Lon View format. Only called when a Static Station is deployed.
+     * It inverts the value of {@link #changeFormat} and updates its value in {@link DatabaseHelper#configParametersTable} so that the
+     * same format is shown throughout the App.
+     * @param menuItem
+     * @return
+     */
     @Override
     public boolean onOptionsItemSelected(MenuItem menuItem){
         switch (menuItem.getItemId()){
@@ -168,6 +244,19 @@ public class StationInstallFragment extends Fragment implements View.OnClickList
         }
     }
 
+    /**
+     * Registers and implements the {@link BroadcastReceiver}s for the AIS Connectivity and GPS location broadcasts; which are sent from
+     * {@link de.awi.floenavigation.network.NetworkMonitor} and {@link GPS_Service} respectively.
+     * The GPS Broadcast receiver sets the value of {@link #locationStatus}, {@link #tabletLat} and {@link #tabletLon} to the values from the {@link GPS_Service}.
+     * The AIS Connectivity broadcast receiver sets the boolean {@link #packetStatus}.
+     * This also registers {@link Runnable} which runs at a regular interval specified by {@link ActionBarActivity#UPDATE_TIME}  and
+     * it checks the booleans {@link #locationStatus} and {@link #packetStatus} and changes the Action Bar icons for GPS and AIS Connectivity
+     * accrodingly.
+     *
+     * @see Runnable
+     * @see BroadcastReceiver
+     * @see ActionBarActivity
+     */
     private void actionBarUpdatesFunction() {
 
         //***************ACTION BAR UPDATES*************************/
@@ -224,6 +313,13 @@ public class StationInstallFragment extends Fragment implements View.OnClickList
         //****************************************/
     }
 
+    /**
+     * Reads the values of {@link #tabletLat} and {@link #tabletLon} and populates it on the Screen formatting the coordinates according
+     * as specified by {@link #changeFormat}. Uses the {@link NavigationFunctions#locationInDegrees(double, double)}  to convert the format
+     * of the coordinates.
+     * @see NavigationFunctions#locationInDegrees(double, double)
+     * @see String#format(String, Object...)
+     */
     private void populateTabLocation(){
         View v = getView();
         TextView latView = v.findViewById(R.id.staticStationCurrentLat);
@@ -239,10 +335,26 @@ public class StationInstallFragment extends Fragment implements View.OnClickList
         }
     }
 
+    /**
+     * @param mmsi the {@link EditText} for the MMSI field on the Layout
+     * @return  <code>true</code> if the MMSI field is not empty, contains only digits and has a valid length (specified by {@link #VALID_MMSI_LENGTH})
+     */
     private boolean validateMMSINumber(EditText mmsi) {
         return mmsi.getText().length() == VALID_MMSI_LENGTH && !TextUtils.isEmpty(mmsi.getText().toString()) && TextUtils.isDigitsOnly(mmsi.getText().toString());
     }
 
+    /**
+     * Inserts a Fixed Station in the Database table {@link DatabaseHelper#fixedStationTable} and {@link DatabaseHelper#stationListTable}.
+     * Only inserts the Fixed Station if the MMSI and Station name are valid. Before inserting in the Database tables it checks if the Station already
+     * exists as a Mobile Station or is already in the Fixed Station Deleted tables. If the MMSI being added is a mobile station it removes from
+     * the Database table {@link DatabaseHelper#mobileStationTable} and then inserts the name and MMSI of the Fixed Station to the Database
+     * tables {@link DatabaseHelper#fixedStationTable} and {@link DatabaseHelper#stationListTable}. It replaces the current
+     * fragment with {@link AISStationCoordinateFragment} to calculate and insert the parameters such as angle Alpha and x, y coordinates
+     * of the station. It passes the MMSI number of the Fixed Station to {@link AISStationCoordinateFragment}.
+     * @see AISStationCoordinateFragment
+     * @see DatabaseHelper
+     * @see ContentValues
+     */
     private void insertAISStation(){
 
         EditText mmsi_TV = activityView.findViewById(R.id.station_mmsi);
@@ -317,6 +429,17 @@ public class StationInstallFragment extends Fragment implements View.OnClickList
 
     }
 
+    /**
+     * Inserts a Static in the Database table {@link DatabaseHelper#staticStationListTable}.
+     * Checks the validity of the Station Name of the station and if the current tablet location is available. Before inserting in the Database tables
+     * it checks if the Station already exists if so it shows a {@link Toast} message to that effect and no values are inserted in the Database.
+     * Otherwise it replaces the current fragment with {@link StaticStationFragment} to calculate and insert the parameters such as x, y coordinates
+     * of the station. It passes the current tablet location and the station name to {@link StaticStationFragment}.
+     * @see StaticStationFragment
+     * @see DatabaseHelper
+     * @see ContentValues
+     * @see Toast
+     */
     private void insertStaticStation(){
 
         EditText stationName_TV = activityView.findViewById(R.id.station_name);
@@ -354,6 +477,10 @@ public class StationInstallFragment extends Fragment implements View.OnClickList
 
     }
 
+    /**
+     * Called when the Fragment come back from background to foreground. Enables the Up Button and calls the
+     * {@link #actionBarUpdatesFunction()} to set the correct icon colors in the Action Bar.
+     */
     @Override
     public void onResume(){
         super.onResume();
@@ -364,6 +491,10 @@ public class StationInstallFragment extends Fragment implements View.OnClickList
         actionBarUpdatesFunction();
     }
 
+    /**
+     * Populates the {@link Spinner} with values from the
+     * @param v
+     */
     private void populateStationType(View v){
         List<String> stationList = new ArrayList<String>();
         /*for(int i = 0; i < DatabaseHelper.stationTypes.length; i++){

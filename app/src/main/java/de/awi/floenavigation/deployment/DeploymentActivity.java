@@ -15,16 +15,34 @@ import de.awi.floenavigation.helperclasses.FragmentChangeListener;
 import de.awi.floenavigation.dashboard.MainActivity;
 import de.awi.floenavigation.R;
 
+/**
+ * This is the primary {@link FragmentActivity} for installation of a Static Station or a Fixed Station. The activity's own layout is empty containing only
+ * a single {@link android.widget.FrameLayout}. There are multiple Fragments running on top of this activity which handle the different type
+ * of stations to be installed separately. The primary fragment which is running by default is {@link StationInstallFragment}.
+ * <p>
+     * The icons shown on the Action Bar and the Up button on the screen depend on the running fragment. The Backbutton, Action Bar icons and
+     * Up Button are disabled in the fragments {@link StaticStationFragment} and {@link AISStationCoordinateFragment} while are enabled in
+     * {@link StationInstallFragment}.
+ * </p>
+ */
 
 public class DeploymentActivity extends FragmentActivity implements FragmentChangeListener {
+
 
     private static final String TAG = "DeploymentActivity";
     //Action Bar Updates
 
 
-
+    /**
+     * <code>true</code>When the activity is called from {@link AdminPageActivity} which means a Fixed Station is being deployed.
+     */
     private boolean aisDeployment;
 
+    /**
+     * Default implementation of {@link #onCreate(Bundle)}. Read a boolean from the calling Intent and sets the value of {@link #aisDeployment}
+     * accordingly. Runs the fragment {@link StationInstallFragment}.
+     * @param savedInstanceState
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -46,16 +64,24 @@ public class DeploymentActivity extends FragmentActivity implements FragmentChan
 
     }
 
+    /**
+     * Shows the Up button in the ActionBar on the tablet Screen.
+     */
     public void showUpButton(){
         getActionBar().setDisplayHomeAsUpEnabled(true);
     }
 
+    /**
+     * Hides the Up button in the ActionBar on the tablet Screen.
+     */
     public void hideUpButton(){
         getActionBar().setDisplayHomeAsUpEnabled(false);
     }
 
 
-
+    /**
+     * @inheritDoc
+     */
     @Override
     public void replaceFragment(Fragment fragment){
         FragmentManager fragmentManager = getSupportFragmentManager();
@@ -65,6 +91,10 @@ public class DeploymentActivity extends FragmentActivity implements FragmentChan
         fragmentTransaction.commit();
     }
 
+    /**
+     * Overrides the Default Back button behavior of Android. Checks the value of {@link #aisDeployment} to return the App to the activity
+     * from which it came originally.
+     */
     @Override
     public void onBackPressed(){
         Fragment frag = this.getSupportFragmentManager().findFragmentById(R.id.frag_container);
@@ -81,8 +111,6 @@ public class DeploymentActivity extends FragmentActivity implements FragmentChan
             Toast.makeText(this, "Please finish Setup of the Station", Toast.LENGTH_LONG).show();
         }
     }
-
-
 
 
     @Override
