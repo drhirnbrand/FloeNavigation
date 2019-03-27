@@ -24,41 +24,121 @@ import de.awi.floenavigation.helperclasses.NavigationFunctions;
  * An {@link IntentService} subclass for handling asynchronous task requests in
  * a service on a separate handler thread.
  * <p>
+ * {@link AlphaCalculationService} class is used to calculate {@link DatabaseHelper#alpha} at regular intervals for all the
+ * mobile stations and subsequently calculate the corresponding coordinates in the grid
+ * </p>
+ *
  * TODO: Customize class - update intent actions and extra parameters.
  */
 public class AlphaCalculationService extends IntentService {
 
     private static final String TAG = "AlphaCalculationService";
+    /**
+     * Variable used to store the value of {@value DatabaseHelper#beta}
+     * It is the angle between the x-axis and the geographic longitudinal axis
+     */
     private double beta;
+    /**
+     * Variable used to store the mmsi of the origin fixed station
+     */
     private int originMMSI;
+    /**
+     * Variable used to store the mmsi's of the mobile stations
+     */
     private int stationMMSI;
+    /**
+     * Variable used to store the latitude coordinate of the origin fixed station
+     * Read from the internal local database table {@link DatabaseHelper#fixedStationTable}
+     */
     private double originLatitude;
+    /**
+     * Variable used to store the longitude coordinate of the origin fixed station
+     * Read from the internal local database table {@link DatabaseHelper#fixedStationTable}
+     */
     private double originLongitude;
+    /**
+     * Variable used to store the latitude of the mobile station
+     * Read from the internal local database table {@link DatabaseHelper#mobileStationTable}
+     */
     private double stationLatitude;
+    /**
+     * Variable used to store the longitude of the mobile station
+     * Read from the internal local database table {@link DatabaseHelper#mobileStationTable}
+     */
     private double stationLongitude;
+    /**
+     * distance calculated between the origin fixed station and the mobile station in meters
+     */
     private double distance;
+    /**
+     * X axis value in meters of the mobile station
+     */
     private double stationX;
+    /**
+     * Y axis value in meters of the mobile station
+     */
     private double stationY;
+    /**
+     * Angle calculated between the origin fixed station and the mobile station
+     */
     private double theta;
+    /**
+     * Angle calculated between the x-axis and the mobile station
+     */
     private double alpha;
+    /**
+     * Mobile station cursor to iterate over the rows of the database table {@link DatabaseHelper#mobileStationTable}
+     */
     private Cursor mobileStationCursor = null;
+    /**
+     * Timer to execute the task of calculating angle periodically
+     */
     Timer timer = new Timer();
+    /**
+     * Timer value
+     */
     private static final int TIMER_PERIOD = 10 * 1000;
+    /**
+     * Delay before starting the timer
+     */
     private static final int TIMER_DELAY = 0;
 
+    /**
+     * Broadcast receiver to receive the {@link GPS_Service#GPSTime}
+     */
     private BroadcastReceiver broadcastReceiver;
+    /**
+     * variable to store the gps time received from {@link #broadcastReceiver}
+     */
     private long gpsTime;
+    /**
+     * It is used to synchronize the update time with the gps time
+     * Stores the timing difference between {@link System#currentTimeMillis()} and {@link GPS_Service#GPSTime}
+     */
     private long timeDiff;
 
+    /**
+     * <code>true</code> to stop the timer
+     * <code>false</code> otherwise
+     */
     private static boolean stopTimer  = false;
 
+    /**
+     * Not used - only for debugging
+     */
     private static AlphaCalculationService instance = null;
 
 
+    /**
+     * Default constructor
+     */
     public AlphaCalculationService() {
         super("AlphaCalculationService");
     }
 
+    /**
+     * onDestroy method of the activity life cycle used to unregister the {@link #broadcastReceiver}
+     */
     @Override
     public void onDestroy() {
         super.onDestroy();
@@ -70,6 +150,10 @@ public class AlphaCalculationService extends IntentService {
 
     }
 
+    /**
+     * onCreate method of the activity lifecycle used to register the {@link #broadcastReceiver}
+     * and to receive the {@link #gpsTime}
+     */
     @Override
     public void onCreate(){
         super.onCreate();
@@ -87,10 +171,15 @@ public class AlphaCalculationService extends IntentService {
         registerReceiver(broadcastReceiver, new IntentFilter(GPS_Service.GPSBroadcast));
     }
 
-    public static boolean isInstanceCreated(){
-        return instance != null;
-    }
-
+    /**
+     * This method is invoked on the worker thread
+     * {@link #timer} is initialized with a Timer task to run every {@value #TIMER_PERIOD} msecs
+     * In the task for each mobile station read from the internal local database {@link DatabaseHelper#mobileStationTable}
+     * {@link #distance}, {@link #alpha}, {@link #stationX} and {@link #stationY} are calculated and stored
+     * in the {@link DatabaseHelper#mobileStationTable} table
+     *
+     * @param intent Intent
+     */
     @Override
     protected void onHandleIntent(Intent intent) {
         if (intent != null){
@@ -152,14 +241,28 @@ public class AlphaCalculationService extends IntentService {
 
     }
 
+    /**
+     * function called from {@link de.awi.floenavigation.initialsetup.SetupActivity#runServices(Context)}
+     * @param stop flag to set {@link #stopTimer}
+     */
     public static void stopTimer(boolean stop){
         stopTimer = stop;
     }
 
+    /**
+     *
+     * @return returns value of {@link #stopTimer}
+     */
     public static boolean getStopTimer(){
         return stopTimer;
     }
 
+    /**
+     * Reads required parameters of {@link DatabaseHelper#baseStationTable}, {@link DatabaseHelper#fixedStationTable}
+     * and {@link DatabaseHelper#betaTable} tables
+     * @param db SQLiteDatabase object
+     * @return <code>true</code> if successful in reading all the required parameters from the database
+     */
     private boolean readFromDatabase(SQLiteDatabase db){
         Cursor baseStationCursor = null;
         Cursor fixedStationCursor = null;
@@ -229,54 +332,4 @@ public class AlphaCalculationService extends IntentService {
             }
         }
     }
-/*
-    private class ReadfromDB extends AsyncTask<Void, Void, Boolean>{
-
-        double betaValue;
-
-        @Override
-        protected void onPreExecute(){
-
-        }
-
-        protected Boolean doInBackground(Void...voids){
-
-            DatabaseHelper dbHelper = DatabaseHelper.getDbInstance(getApplicationContext());
-            try{
-                SQLiteDatabase db = dbHelper.getReadableDatabase();
-                Cursor betaCursor = db.query(DatabaseHelper.betaTable,
-                        new String[] {DatabaseHelper.beta, DatabaseHelper.updateTime},
-                        null, null,
-                        null, null, null);
-                Cursor mobileStationCursor = db.query(DatabaseHelper.mobileStationTable,
-                        new String[] {DatabaseHelper.mmsi, DatabaseHelper.latitude, DatabaseHelper.longitude},
-                        null, null,
-                        null, null, null);
-                if(betaCursor.getCount() == 1) {
-                    if (betaCursor.moveToFirst()) {
-                        betaValue = betaCursor.getDouble(betaCursor.getColumnIndex(DatabaseHelper.beta));
-
-                    }
-                    betaCursor.close();
-                    return true;
-                } else {
-                    Log.d(TAG, "Error in Beta Table");
-                    return false;
-                }
-            } catch(SQLiteException e){
-                e.printStackTrace();
-                return false;
-            }
-
-        }
-
-        @Override
-        protected void onPostExecute(Boolean result){
-            if (!result){
-                Log.d(TAG, "Database Unavailable");
-            } else{
-                beta = betaValue;
-            }
-        }
-    }*/
 }
