@@ -61,6 +61,7 @@ public class ListViewActivity extends ActionBarActivity {
     private RecyclerView mRecyclerView;
     /**
      * List view adapter to be used by {@link #mRecyclerView}
+     * Used for notifying the position of the item removed from the list
      */
     private RecyclerView.Adapter mAdapter;
     /**
@@ -142,14 +143,16 @@ public class ListViewActivity extends ActionBarActivity {
     /**
      * This method is called from {@link android.support.v7.widget.helper.ItemTouchHelper} callback in {@link #onCreate(Bundle)}
      * The Listener is called when the admin or the user swipes the element in the list
-     * Depending on the
-     * @param callingActivityString
-     * @param position
-     * @param numOfStations
+     * Depending on the calling activity, the local variable flag isRemoved is initialized
+     * If the flag is set to true, the entry is removed from the list
+     * @param callingActivityString the name of the calling activity
+     * @param position position of the entry in the list
+     * @param numOfStations Only required for logging purpose
      */
     private void deleteEntry(String callingActivityString, int position, long numOfStations){
 
         boolean isRemoved = false;
+
         switch (callingActivityString){
             case "WaypointActivity":
                 isRemoved = deleteEntryfromWaypointsTableinDB(parameterObjects.get(position).getLabelID());
@@ -182,6 +185,11 @@ public class ListViewActivity extends ActionBarActivity {
         }
     }
 
+    /**
+     * Function to determine the name of the activity from which the list view is called
+     * Depending on the name of the activity {@link #mAdapter} and {@link #intentOnExit} are initialized
+     * @return returns the name of the calling activity
+     */
     private String getCallingActivityName(){
 
         Intent intent = getIntent();
@@ -215,6 +223,10 @@ public class ListViewActivity extends ActionBarActivity {
         return callingActivityString;
     }
 
+    /**
+     * Internal local database access to determine number of fixed ais stations installed
+     * @return the number of fixed ais stations
+     */
     private long getNumOfAISStation() {
         try {
             SQLiteOpenHelper dbHelper = DatabaseHelper.getDbInstance(this);
@@ -229,6 +241,14 @@ public class ListViewActivity extends ActionBarActivity {
     }
 
 
+    /**
+     * This function is called from {@link #deleteEntry(String, int, long)} (String)}
+     * Based on the waypoint label ID, its entry from the local internal database is removed
+     * Also inserts the waypoint name into the waypoint deleted table {@link #insertIntoWaypointsDeletedTable(SQLiteDatabase, String)}, which is later used for synchronization purpose
+     * @param waypointToBeRemoved waypoint label ID
+     * @return <code>true</code> if successful in deleting the entry from the database
+     *         <code>false</code> otherwise
+     */
     private boolean deleteEntryfromWaypointsTableinDB(String waypointToBeRemoved){
         try {
             SQLiteOpenHelper dbHelper = DatabaseHelper.getDbInstance(this);
@@ -249,6 +269,14 @@ public class ListViewActivity extends ActionBarActivity {
         return false;
     }
 
+    /**
+     * This function is called from {@link #deleteEntry(String, int, long)} (String)}
+     * Based on the static station name, its entry from the local internal database is removed
+     * Also inserts the static station name into the static station deleted table {@link #insertIntoStaticStationDeletedTable(SQLiteDatabase, String)}, which is later used for synchronization purpose
+     * @param stationToBeRemoved static station name to be removed
+     * @return <code>true</code> if successful in deleting the entry from the database
+     *         <code>false</code> otherwise
+     */
     private boolean deleteEntryfromStaticStnTableinDB(String stationToBeRemoved){
         try {
             SQLiteOpenHelper dbHelper = DatabaseHelper.getDbInstance(this);
@@ -268,6 +296,17 @@ public class ListViewActivity extends ActionBarActivity {
         return false;
     }
 
+    /**
+     * This function is called from {@link #deleteEntry(String, int, long)} (String)}
+     * Based on the mmsi of the station, its entry from the local internal database is removed
+     * Also inserts the mmsi into the deleted tables {@link #insertIntoFixedStationDeletedTable(SQLiteDatabase, String)},
+     * {@link #insertIntoBaseStationDeletedTable(SQLiteDatabase, String)}}
+     * {@link #insertIntoStationListDeletedTable(SQLiteDatabase, String)}
+     * which is later used for synchronization purpose
+     * @param mmsiToBeRemoved mmsi to be removed
+     * @return <code>true</code> if successful in deleting the entry from the database
+     *         <code>false</code> otherwise
+     */
     private boolean deleteEntryfromDBTables(String mmsiToBeRemoved){
         try {
             SQLiteOpenHelper dbHelper = DatabaseHelper.getDbInstance(this);
@@ -307,6 +346,14 @@ public class ListViewActivity extends ActionBarActivity {
         return false;
     }
 
+    /**
+     * This function is called from {@link #deleteEntry(String, int, long)} (String)}
+     * Based on the user name, its entry from the local internal database is removed
+     * Also inserts the user name into the deleted tables {@link #insertIntoUsersDeletedTable(SQLiteDatabase, String)}, which is later used for synchronization purpose
+     * @param name user name  to be removed
+     * @return <code>true</code> if successful in deleting the entry from the database
+     *         <code>false</code> otherwise
+     */
     private boolean deleteEntryfromUsersTableinDB(String name){
         try {
             SQLiteOpenHelper dbHelper = DatabaseHelper.getDbInstance(this);
@@ -328,6 +375,11 @@ public class ListViewActivity extends ActionBarActivity {
         return false;
     }
 
+    /**
+     * Inserts the user name to be removed into the {@link DatabaseHelper#userDeletedTable}
+     * @param db SQLiteDatabase object
+     * @param user user name to be removed
+     */
     private void insertIntoUsersDeletedTable(SQLiteDatabase db, String user) {
         ContentValues deletedUser = new ContentValues();
         deletedUser.put(DatabaseHelper.userName, user);
@@ -335,6 +387,11 @@ public class ListViewActivity extends ActionBarActivity {
         db.insert(DatabaseHelper.userDeletedTable, null, deletedUser);
     }
 
+    /**
+     * Inserts the mmsi to be removed into the {@link DatabaseHelper#baseStationDeletedTable}
+     * @param db SQLiteDatabase object
+     * @param mmsi mmsi to be removed
+     */
     private void insertIntoBaseStationDeletedTable(SQLiteDatabase db, String mmsi) {
         ContentValues deletedBaseStation = new ContentValues();
         deletedBaseStation.put(DatabaseHelper.mmsi, mmsi);
@@ -342,6 +399,11 @@ public class ListViewActivity extends ActionBarActivity {
         db.insert(DatabaseHelper.baseStationDeletedTable, null, deletedBaseStation);
     }
 
+    /**
+     * Inserts the mmsi to be removed into the {@link DatabaseHelper#fixedStationDeletedTable}
+     * @param db SQLiteDatabase object
+     * @param mmsiToBeAdded mmsi to be removed
+     */
     private void insertIntoFixedStationDeletedTable(SQLiteDatabase db, String mmsiToBeAdded) {
         ContentValues deletedStation = new ContentValues();
         deletedStation.put(DatabaseHelper.mmsi, Integer.valueOf(mmsiToBeAdded));
@@ -349,6 +411,11 @@ public class ListViewActivity extends ActionBarActivity {
         db.insert(DatabaseHelper.fixedStationDeletedTable, null, deletedStation);
     }
 
+    /**
+     * Inserts the mmsi to be removed into the {@link DatabaseHelper#stationListDeletedTable}
+     * @param db SQLiteDatabase object
+     * @param mmsiToBeAdded mmsi to be removed
+     */
     private void insertIntoStationListDeletedTable(SQLiteDatabase db, String mmsiToBeAdded){
         ContentValues deletedStation = new ContentValues();
         deletedStation.put(DatabaseHelper.mmsi, Integer.valueOf(mmsiToBeAdded));
@@ -356,6 +423,11 @@ public class ListViewActivity extends ActionBarActivity {
         db.insert(DatabaseHelper.stationListDeletedTable, null, deletedStation);
     }
 
+    /**
+     * Inserts the static station name to be removed into the {@link DatabaseHelper#staticStationDeletedTable}
+     * @param db SQLiteDatabase object
+     * @param staticStnName static station name to be removed
+     */
     private void insertIntoStaticStationDeletedTable(SQLiteDatabase db, String staticStnName) {
         ContentValues deletedStation = new ContentValues();
         deletedStation.put(DatabaseHelper.staticStationName, staticStnName);
@@ -363,6 +435,11 @@ public class ListViewActivity extends ActionBarActivity {
         db.insert(DatabaseHelper.staticStationDeletedTable, null, deletedStation);
     }
 
+    /**
+     * Inserts the waypoint label ID to be removed into the {@link DatabaseHelper#waypointDeletedTable}
+     * @param db SQLiteDatabase object
+     * @param labelID waypoint label ID to be removed
+     */
     private void insertIntoWaypointsDeletedTable(SQLiteDatabase db, String labelID) {
         ContentValues deletedWaypoint = new ContentValues();
         deletedWaypoint.put(DatabaseHelper.labelID, labelID);
@@ -370,6 +447,18 @@ public class ListViewActivity extends ActionBarActivity {
         db.insert(DatabaseHelper.waypointDeletedTable, null, deletedWaypoint);
     }
 
+    /**
+     * If the removed station is one of the base station that was used for initial grid setup
+     * Change the mmsi number to either {@link DatabaseHelper#BASESTN1} or {@link DatabaseHelper#BASESTN2} based on whether the station is origin or x-axis
+     * base station.
+     * This is done so that {@link de.awi.floenavigation.services.PredictionService} can keep on predicting the positions of these stations
+     * and the grid/coordinate system remains intact
+     * Also these mmsi's could be used for redeployment at a different point on the grid
+     * @param mmsi mmsi
+     * @param db SQLiteDatabase object
+     * @param originFlag <code>true</code> if the mmsi is of origin base station
+     *                   <code>false</code> otherwise, if the mmsi is of x-axis base station
+     */
     private void updataMMSIInDBTables(int mmsi, SQLiteDatabase db, boolean originFlag){
         ContentValues mContentValues = new ContentValues();
         mContentValues.put(DatabaseHelper.mmsi, ((originFlag) ? DatabaseHelper.BASESTN1 : DatabaseHelper.BASESTN2));
@@ -378,6 +467,13 @@ public class ListViewActivity extends ActionBarActivity {
         db.update(DatabaseHelper.baseStationTable, mContentValues, DatabaseHelper.mmsi + " = ?", new String[]{String.valueOf(mmsi)});
     }
 
+    /**
+     * Checks whether the mmsi is part of the stations installed on the grid
+     * @param db SQLiteDatabase object
+     * @param mmsi mmsi
+     * @return <code>true</code> if the mmsi is present in the internal local database
+     *         <code>false</code> otherwise
+     */
     private boolean checkEntryInStationListTable(SQLiteDatabase db, String mmsi){
         boolean isPresent = false;
         Cursor stationListCursor = null;
@@ -396,6 +492,13 @@ public class ListViewActivity extends ActionBarActivity {
         return isPresent;
     }
 
+    /**
+     * Checks whether the waypoint is part of the waypoints installed on the grid
+     * @param db SQLiteDatabase object
+     * @param waypointToBeRemoved waypoint label ID
+     * @return <code>true</code> if the waypoint is present in the internal local database
+     *         <code>false</code> otherwise
+     */
     private boolean checkEntryInWaypointsTable(SQLiteDatabase db, String waypointToBeRemoved){
         boolean isPresent = false;
         Cursor waypointCursor = null;
@@ -414,6 +517,13 @@ public class ListViewActivity extends ActionBarActivity {
         return isPresent;
     }
 
+    /**
+     * Checks whether the static station name is part of the stations installed on the grid
+     * @param db SQLiteDatabase object
+     * @param stationToBeRemoved static station name
+     * @return <code>true</code> if the static station is present in the internal local database
+     *         <code>false</code> otherwise
+     */
     private boolean checkEntryInStaticStnTable(SQLiteDatabase db, String stationToBeRemoved){
         boolean isPresent = false;
         Cursor staticStnCursor = null;
@@ -432,6 +542,10 @@ public class ListViewActivity extends ActionBarActivity {
         return isPresent;
     }
 
+    /**
+     * Returns the base stations used for initial grid setup
+     * @param db SQLiteDatabase object
+     */
     private void baseStationsRetrievalfromDB(SQLiteDatabase db){
 
         Cursor mBaseStnCursor = null;
@@ -469,6 +583,10 @@ public class ListViewActivity extends ActionBarActivity {
     }
 
 
+    /**
+     * Used to populate each entry in the list from the data extracted from the database
+     * @return Returns {@link DatabaseHelper#labelID}, {@link DatabaseHelper#xPosition}, {@link DatabaseHelper#yPosition} of the waypoint
+     */
     private ArrayList<ParameterListObject> generateDataFromWaypointsTable(){
         Cursor waypointsCursor = null;
         try{
@@ -503,6 +621,11 @@ public class ListViewActivity extends ActionBarActivity {
 
     }
 
+    /**
+     * Used to populate each entry in the list from the data extracted from the database
+     * @return Returns {@link DatabaseHelper#labelID}, {@link DatabaseHelper#updateTime}, {@link DatabaseHelper#xPosition},
+     * {@link DatabaseHelper#yPosition} of the sample or the measurement taken
+     */
     private ArrayList<ParameterListObject> generateDataFromSamplesTable(){
         String displayTime = "";
         Cursor samplesCursor = null;
@@ -547,16 +670,16 @@ public class ListViewActivity extends ActionBarActivity {
 
     }
 
+    /**
+     * Used to populate each entry in the list from the data extracted from the database
+     * @return Returns {@link DatabaseHelper#mmsi}, {@link DatabaseHelper#stationName}, {@link DatabaseHelper#xPosition},
+     * {@link DatabaseHelper#yPosition} of the fixed station
+     */
     private ArrayList<ParameterListObject> generateDataFromFixedStnTable(){
         Cursor fixedStnCursor = null;
         try{
             SQLiteOpenHelper dbHelper = DatabaseHelper.getDbInstance(this);
             SQLiteDatabase db = dbHelper.getReadableDatabase();
-            //Cursor fixedStnCursor = db.query(DatabaseHelper.fixedStationTable,
-            //        new String[] {DatabaseHelper.stationName, DatabaseHelper.mmsi, DatabaseHelper.xPosition, DatabaseHelper.yPosition},
-            //        null,
-            //        null,
-            //        null, null, null);
             fixedStnCursor = db.rawQuery("Select " + DatabaseHelper.stationName + ", " + DatabaseHelper.mmsi + ", " + DatabaseHelper.xPosition +
                     ", " + DatabaseHelper.yPosition + " from " + DatabaseHelper.fixedStationTable
                     + " where " + DatabaseHelper.mmsi + " in (Select " + DatabaseHelper.mmsi + " from " + DatabaseHelper.stationListTable + ")", null);
@@ -585,10 +708,14 @@ public class ListViewActivity extends ActionBarActivity {
             }
         }
         return parameterObjects;
-        //arrayAdapter.notifyDataSetChanged();
 
     }
 
+    /**
+     * Used to populate each entry in the list from the data extracted from the database
+     * @return Returns {@link DatabaseHelper#staticStationName}, {@link DatabaseHelper#xPosition},
+     * {@link DatabaseHelper#yPosition} of the static station
+     */
     private ArrayList<ParameterListObject> generateDataFromStaticStnTable(){
         Cursor staticStnCursor = null;
         try{
@@ -623,16 +750,15 @@ public class ListViewActivity extends ActionBarActivity {
 
     }
 
+    /**
+     * Used to populate each entry in the list from the data extracted from the database
+     * @return Returns {@link DatabaseHelper#userName} of the user
+     */
     private ArrayList<ParameterListObject> generateDataUsersTable(){
         Cursor usersCursor = null;
         try{
             SQLiteOpenHelper dbHelper = DatabaseHelper.getDbInstance(this);
             SQLiteDatabase db = dbHelper.getReadableDatabase();
-            //Cursor fixedStnCursor = db.query(DatabaseHelper.fixedStationTable,
-            //        new String[] {DatabaseHelper.stationName, DatabaseHelper.mmsi, DatabaseHelper.xPosition, DatabaseHelper.yPosition},
-            //        null,
-            //        null,
-            //        null, null, null);
             usersCursor = db.query(DatabaseHelper.usersTable,
                     new String[] {DatabaseHelper.userName},
                     null,
@@ -661,6 +787,12 @@ public class ListViewActivity extends ActionBarActivity {
 
     }
 
+    /**
+     * Return back to the calling activity
+     * @param item menu item clicked
+     * @return <code>true</code> if home button on the top menu bar is clicked
+     *         <code>false</code> otherwise
+     */
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId() == android.R.id.home) {
@@ -674,14 +806,39 @@ public class ListViewActivity extends ActionBarActivity {
 
 }
 
+
+/**
+ * Data object to define the parameters which would be available on the entry in the list
+ */
 class ParameterListObject{
 
+    /**
+     * Used for waypoint
+     */
     private String labelID;
+    /**
+     * Used for xPosition
+     */
     private double xValue;
+    /**
+     * Used for yPosition
+     */
     private double yValue;
+    /**
+     * Used for user
+     */
     private String userName;
+    /**
+     * To determine whether the calling activity is adminitrator privileges (user) activity
+     */
     private boolean isUserActivity = false;
 
+    /**
+     * Constructor to initialize the parameters
+     * @param labelID {@link #labelID}
+     * @param xValue  {@link #xValue}
+     * @param yValue  {@link #yValue}
+     */
     ParameterListObject(String labelID, double xValue, double yValue){
         this.labelID = labelID;
         this.xValue = xValue;
@@ -689,40 +846,86 @@ class ParameterListObject{
         this.isUserActivity = false;
     }
 
+    /**
+     * Constructor to initialize for user entry list
+     * @param userName
+     */
     ParameterListObject(String userName){
         this.userName = userName;
         this.isUserActivity = true;
     }
 
+    /**
+     *
+     * @return returns {@link #labelID}
+     */
     public String getLabelID() {
         return labelID;
     }
 
+    /**
+     *
+     * @return returns {@link #xValue}
+     */
     public String getxValue() {
         return String.valueOf(xValue);
     }
 
+    /**
+     *
+     * @return returns {@link #yValue}
+     */
     public String getyValue() {
         return String.valueOf(yValue);
     }
 
+    /**
+     *
+     * @return returns {@link #userName}
+     */
     public String getUserName() {
         return userName;
     }
+
+    /**
+     *
+     * @return <code>true</code> if the calling activity is user activity
+     *         <code>false</code> otherwise
+     */
     public boolean getIsUserActivity(){ return isUserActivity; }
 }
 
+/**
+ * Class to generate the {@link android.support.v7.widget.RecyclerView.Adapter}
+ * which will be used as an input to {@link android.support.v7.widget.RecyclerView} to initialize the layout
+ */
 class ListViewAdapter extends RecyclerView.Adapter<ListViewAdapter.ViewHolder> {
 
     private static final String TAG = "ListViewActivity";
+    /**
+     * array of parameter list objects {@link ParameterListObject}
+     */
     private ArrayList<ParameterListObject> parameters;
-    private Context context;
+    /**
+     * the view name
+     */
     private View view;
 
+    /**
+     * constructor to initialize the parameters
+     * @param listViewActivity the current activity
+     * @param parameterListObjects the array of {@link ParameterListObject} objects
+     */
     ListViewAdapter(ListViewActivity listViewActivity, ArrayList<ParameterListObject> parameterListObjects) {
         this.parameters = parameterListObjects;
     }
 
+    /**
+     * to create the view holder
+     * @param parent parent view group
+     * @param viewType not used
+     * @return returns the view holder
+     */
     @NonNull
     @Override
     public ListViewAdapter.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
@@ -731,6 +934,11 @@ class ListViewAdapter extends RecyclerView.Adapter<ListViewAdapter.ViewHolder> {
         return new ViewHolder(view);
     }
 
+    /**
+     * Binds the view holder
+     * @param holder holder to accommodate the each parameters
+     * @param position position value of the entry
+     */
     @Override
     public void onBindViewHolder(@NonNull ListViewAdapter.ViewHolder holder, int position) {
         Log.d(TAG, "Parameter label: " + parameters.get(position).getLabelID());
@@ -753,11 +961,18 @@ class ListViewAdapter extends RecyclerView.Adapter<ListViewAdapter.ViewHolder> {
     }
 
 
+    /**
+     *
+     * @return returns the size of parameters
+     */
     @Override
     public int getItemCount() {
         return parameters.size();
     }
 
+    /**
+     * View holder definition of all the available parameters in the entry
+     */
     class ViewHolder extends RecyclerView.ViewHolder {
 
         TextView labelIDView;
@@ -766,6 +981,11 @@ class ListViewAdapter extends RecyclerView.Adapter<ListViewAdapter.ViewHolder> {
         TextView xPosLabel;
         TextView yPosLabel;
 
+        /**
+         * Default constructor
+         * find the view by ID
+         * @param view view name
+         */
         ViewHolder(View view) {
             super(view);
             Log.d(TAG, "Parameter label: " + labelIDView);

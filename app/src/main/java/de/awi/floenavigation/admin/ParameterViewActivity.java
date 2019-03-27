@@ -11,6 +11,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.ListAdapter;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
@@ -19,30 +20,50 @@ import java.util.ArrayList;
 import de.awi.floenavigation.helperclasses.DatabaseHelper;
 import de.awi.floenavigation.R;
 
+/**
+ * {@link ParameterViewActivity} is responsible for displaying a list of configuration parameters extracted from the local database
+ * {@value DatabaseHelper#configParametersTable} table to display as a list when called from {@link ConfigurationActivity#onClickViewConfigurationParams(View)}
+ */
 public class ParameterViewActivity extends ListActivity {
 
     private static final String TAG = "ParameterViewActivity";
 
+    /**
+     * DatabaseHelper object
+     */
     private DatabaseHelper dbHelper;
+    /**
+     * SQLiteDatabase object
+     */
     private SQLiteDatabase db;
+    /**
+     * Array adapter used by {@link #setListAdapter(ListAdapter)}
+     * to display the contents
+     */
     private ArrayAdapter arrayAdapter;
+    /**
+     * array of {@link ParameterObject} objects
+     */
     private ArrayList<ParameterObject> parameterObjects = new ArrayList<>();
 
+    /**
+     * onCreate method to initialize {@link #arrayAdapter} and set {@link #setListAdapter(ListAdapter)}
+     * @param savedInstanceState used to save previous instance variables
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        //setContentView(R.layout.activity_parameter_view);
 
-
-
-        //ListView parametersLV = findViewById(R.id.parametersListView);
         arrayAdapter = new ParameterListAdapter(this, generateData());
         setListAdapter(arrayAdapter);
 
-        //displayData();
-
     }
 
+    /**
+     * Generate data to populate the list
+     * Extracted from the local database table {@link DatabaseHelper#configParametersTable}
+     * @return {@link ParameterObject} object with all the required contents
+     */
     private ArrayList<ParameterObject> generateData(){
         Cursor paramsCursor = null;
         try{
@@ -89,35 +110,67 @@ public class ParameterViewActivity extends ListActivity {
     }
 }
 
+/**
+ * Defines the list of information required from the {@value DatabaseHelper#configParametersTable}
+ *
+ */
 class ParameterObject{
     private String parameterName;
     private String parameterValue;
 
+    /**
+     * Constructor to initialize the parameters
+     * @param name {@value DatabaseHelper#parameterName}
+     * @param value {@value DatabaseHelper#parameterValue}
+     */
     ParameterObject(String name, String value){
         this.parameterName = name;
         this.parameterValue = value;
     }
 
+    /**
+     *
+     * @return returns parameter name
+     */
     public String getParameterName() {
         return parameterName;
     }
 
+    /**
+     *
+     * @return returns parameter value
+     */
     public String getParameterValue() {
         return parameterValue;
     }
 }
 
+/**
+ * Defines the array adapter
+ */
 class ParameterListAdapter extends ArrayAdapter<ParameterObject>{
 
     private ArrayList<ParameterObject> parameters;
     private Context context;
 
+    /**
+     * Default constructor
+     * @param con context of the activity
+     * @param params parameter list object
+     */
     public ParameterListAdapter(Context con, ArrayList<ParameterObject> params){
         super(con, R.layout.parameter_list_item, params);
         this.context = con;
         this.parameters = params;
     }
 
+    /**
+     * sets the view type
+     * @param position position in the list
+     * @param convertView not used
+     * @param parent parent view
+     * @return returns the view name
+     */
     @Override
     public View getView(int position, View convertView, ViewGroup parent){
 

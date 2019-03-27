@@ -140,7 +140,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     //public static final int MOTHER_SHIP_MMSI = 211202460;
     //For Testing purposes
-    public static final int MOTHER_SHIP_MMSI = 230070870;
+    public static final int MOTHER_SHIP_MMSI = 211202460;//230070870;
 
 
     public DatabaseHelper(Context context){
