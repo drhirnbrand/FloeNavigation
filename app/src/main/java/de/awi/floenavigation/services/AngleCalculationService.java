@@ -17,36 +17,88 @@ import android.util.Log;
 
 import de.awi.floenavigation.helperclasses.DatabaseHelper;
 import de.awi.floenavigation.helperclasses.NavigationFunctions;
+import de.awi.floenavigation.synchronization.SyncActivity;
 
 
 /**
  * An {@link IntentService} subclass for handling asynchronous task requests in
  * a service on a separate handler thread.
  * <p>
+ * {@link AngleCalculationService} class is used to calculate {@link DatabaseHelper#beta} at regular intervals from all the
+ * fixed stations w.r.t the origin and subsequently calculate the corresponding coordinates in the grid
+ * </p>
  * TODO: Customize class - update intent actions and extra parameters.
  */
 public class AngleCalculationService extends IntentService {
 
     private static final String TAG = "AngleCalculationService";
+    /**
+     * Specifies the number of base stations
+     */
     private static final int INITIALIZATION_SIZE = 2;
+    /**
+     * array to store the station latitudinal position
+     */
     private double[] stationLatitude;
+    /**
+     * array to store the station longitudinal positions
+     */
     private double[] stationLongitude;
+    /**
+     * Angle calculated between the x-axis and the mobile station
+     */
     private double alpha;
+    /**
+     * Variable used to store the value of {@value DatabaseHelper#beta}
+     * It is the angle between the x-axis and the geographic longitudinal axis
+     */
     private double[] beta;
+    /**
+     * Handler to execute the runnable
+     */
     private final Handler mHandler;
+    /**
+     * array to store the mmsi's
+     */
     private int[] mmsi;
+    /**
+     * mmsi extracted from the database
+     */
     private int mmsiInDBTable;
+    /**
+     * Timer period to execute the timer task periodically
+     */
     private static final int CALCULATION_TIME = 10 * 1000;
+    /**
+     * Cursor object to iterate over database tables
+     */
     private Cursor mBaseStnCursor = null, mFixedStnCursor = null, mBetaCursor = null;
+    /**
+     * Broadcast receiver to receive the {@link GPS_Service#GPSTime}
+     */
     private BroadcastReceiver broadcastReceiver;
+    /**
+     * variable to store the gps time received from {@link #broadcastReceiver}
+     */
     private long gpsTime;
+    /**
+     * It is used to synchronize the update time with the gps time
+     * Stores the timing difference between {@link System#currentTimeMillis()} and {@link GPS_Service#GPSTime}
+     */
     private long timeDiff;
-
+    /**
+     * Not used
+     */
     private static AngleCalculationService instance = null;
+    /**
+     * <code>true</code> to stop the timer
+     * <code>false</code> otherwise
+     */
     private static boolean stopRunnable = false;
 
-
-
+    /**
+     * Default constructor
+     */
     public AngleCalculationService() {
 
         super("AngleCalculationService");
@@ -65,6 +117,10 @@ public class AngleCalculationService extends IntentService {
         }
     }
 
+    /**
+     * onCreate method of the activity lifecycle used to register the {@link #broadcastReceiver}
+     * and to receive the {@link #gpsTime}
+     */
     @Override
     public void onCreate(){
         super.onCreate();
@@ -82,11 +138,14 @@ public class AngleCalculationService extends IntentService {
         registerReceiver(broadcastReceiver, new IntentFilter(GPS_Service.GPSBroadcast));
     }
 
-    public static boolean isInstanceCreated(){
-        return instance != null;
-    }
-
-
+    /**
+     * This method is invoked on the worker thread
+     * Runnable is initialized to run every {@value #CALCULATION_TIME} msecs
+     * In the runnable task, base stations which are used for initial grid setup
+     * are stored in {@link #mmsi} for further calculations
+     *
+     * @param intent Intent
+     */
     @Override
     protected void onHandleIntent(Intent intent) {
         instance = this;
@@ -145,14 +204,33 @@ public class AngleCalculationService extends IntentService {
         }
     }
 
+    /**
+     * function called from {@link de.awi.floenavigation.initialsetup.SetupActivity#runServices(Context)}
+     * {@link SyncActivity#stopServices()}
+     * @param runnable flag to set {@link #stopRunnable}
+     */
     public static void setStopRunnable(boolean runnable){
         stopRunnable = runnable;
     }
 
+    /**
+     *
+     * @return returns value of {@link #stopRunnable}
+     */
     public static boolean getStopRunnable(){
         return stopRunnable;
     }
 
+    /**
+     * This function is called from {@link #onHandleIntent(Intent)}
+     * {@link #beta} angle is calculated from all the fixed stations {@link DatabaseHelper#fixedStationTable} w.r.t the
+     * origin fixed station {@link #mmsi} by subtracting {@link #alpha} from angle theta, which is the angle between the axis connecting origin and
+     * the fixed station and the longitudinal axis
+     * For origin fixed station {@link #beta} is not calculated
+     * Each {@link #beta} calculated is stored in each index of {@link #beta}
+     * Further the beta angles are averaged and stored in the database {@link DatabaseHelper#betaTable}
+     * @param db SQLiteDatabase object
+     */
     private void betaAngleCalculation(SQLiteDatabase db){
         //Beta Angle Calculation
         try {
@@ -209,6 +287,11 @@ public class AngleCalculationService extends IntentService {
         }
     }
 
+    /**
+     * To calculate average of the values present in {@link #beta}
+     * @param beta beta received
+     * @return returns the averaged value
+     */
     private double averageBetaCalculation(double[] beta){
 
         double avg_beta;
@@ -223,6 +306,11 @@ public class AngleCalculationService extends IntentService {
         return avg_beta;
     }
 
+    /**
+     * Updates the database table {@link DatabaseHelper#betaTable} with the averaged beta value
+     * @param db SQLiteDatabase object
+     * @param beta averaged beta
+     */
     private void updateDataintoDatabase(SQLiteDatabase db, double beta){
         ContentValues mContentValues = new ContentValues();
         mContentValues.put(DatabaseHelper.beta, beta);
@@ -230,77 +318,9 @@ public class AngleCalculationService extends IntentService {
         db.update(DatabaseHelper.betaTable, mContentValues, null, null);
     }
 
-    private void alphaAngleCalculation(SQLiteDatabase db){
-        //Alpha Angle Calculation
-        try {
-            long numOfEntries = DatabaseUtils.queryNumEntries(db, DatabaseHelper.fixedStationTable);
-            if (numOfEntries > DatabaseHelper.NUM_OF_BASE_STATIONS) {
-                //Alpha angle calculation
-                double fixedStationLatitude;
-                double fixedStationLongitude;
-                double fixedStationBeta;
-                int fixedStationMMSI;
-                ContentValues mContentValues = new ContentValues(); //for updating alpha value
-
-                mBetaCursor = db.query(DatabaseHelper.betaTable, new String[]{DatabaseHelper.beta, DatabaseHelper.updateTime},
-                        null, null, null, null, null);
-
-
-                //Log.d(TAG, String.valueOf(mBetaCursor.getDouble(mBetaCursor.getColumnIndex(DatabaseHelper.beta))));
-                if (mBetaCursor.getCount() == 1) {
-                    if (mBetaCursor.moveToFirst()) {
-                        fixedStationBeta = mBetaCursor.getDouble(mBetaCursor.getColumnIndex(DatabaseHelper.beta));
-
-                        mFixedStnCursor = db.query(DatabaseHelper.fixedStationTable,
-                                new String[]{DatabaseHelper.latitude, DatabaseHelper.longitude, DatabaseHelper.mmsi}, DatabaseHelper.mmsi + " != ? AND " + DatabaseHelper.mmsi + " != ?",
-                                new String[]{Integer.toString(mmsi[0]), Integer.toString(mmsi[1])},
-                                null, null, null);
-                        Log.d(TAG, String.valueOf(mFixedStnCursor.getCount()));
-                        if (mFixedStnCursor.moveToFirst()) {
-                            do {
-                                fixedStationLatitude = mFixedStnCursor.getDouble(mFixedStnCursor.getColumnIndex(DatabaseHelper.latitude));
-                                fixedStationLongitude = mFixedStnCursor.getDouble(mFixedStnCursor.getColumnIndex(DatabaseHelper.longitude));
-                                fixedStationMMSI = mFixedStnCursor.getInt(mFixedStnCursor.getColumnIndex(DatabaseHelper.mmsi));
-                                double theta = NavigationFunctions.calculateAngleBeta(stationLatitude[0], stationLongitude[0], fixedStationLatitude, fixedStationLongitude);
-                                //double alpha = Math.abs(theta - fixedStationBeta);
-                                double alpha = theta - fixedStationBeta;
-                                double distance = NavigationFunctions.calculateDifference(stationLatitude[0], stationLongitude[0], fixedStationLatitude, fixedStationLongitude);
-                                double stationX = distance * Math.cos(Math.toRadians(alpha));
-                                double stationY = distance * Math.sin(Math.toRadians(alpha));
-                                Log.d(TAG, "mmsi: " + String.valueOf(fixedStationMMSI) + " Alpha: " + String.valueOf(alpha));
-                                //Log.d(TAG, "stationX: " + stationX + "stationY: " + stationY);
-                                mContentValues.put(DatabaseHelper.alpha, alpha);
-                                mContentValues.put(DatabaseHelper.xPosition, stationX);
-                                mContentValues.put(DatabaseHelper.yPosition, stationY);
-                                db.update(DatabaseHelper.fixedStationTable, mContentValues, DatabaseHelper.mmsi + " = ?", new String[]{String.valueOf(fixedStationMMSI)});
-                            } while (mFixedStnCursor.moveToNext());
-                            mFixedStnCursor.close();
-                        } else {
-                            Log.d(TAG, "Error mFixedStnCursor");
-                        }
-                        mBetaCursor.close();
-                    } else {
-                        Log.d(TAG, "Error mBetaCursor");
-                    }
-                } else {
-                    Log.d(TAG, "Error reading from Beta Table");
-                }
-            } else {
-                Log.d(TAG, "No New Stations Deployed");
-            }
-        }catch (SQLException e){
-            Log.d(TAG, "Database Error");
-            e.printStackTrace();
-        }finally {
-            if (mBetaCursor != null){
-                mBetaCursor.close();
-            }
-            if (mFixedStnCursor != null){
-                mFixedStnCursor.close();
-            }
-        }
-    }
-
+    /**
+     * onDestroy method of the activity life cycle used to unregister the {@link #broadcastReceiver}
+     */
     @Override
     public void onDestroy(){
         super.onDestroy();
