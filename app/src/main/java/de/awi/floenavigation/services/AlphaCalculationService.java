@@ -18,6 +18,7 @@ import java.util.TimerTask;
 
 import de.awi.floenavigation.helperclasses.DatabaseHelper;
 import de.awi.floenavigation.helperclasses.NavigationFunctions;
+import de.awi.floenavigation.synchronization.SyncActivity;
 
 
 /**
@@ -243,6 +244,7 @@ public class AlphaCalculationService extends IntentService {
 
     /**
      * function called from {@link de.awi.floenavigation.initialsetup.SetupActivity#runServices(Context)}
+     * and {@link SyncActivity#stopServices()}
      * @param stop flag to set {@link #stopTimer}
      */
     public static void stopTimer(boolean stop){
