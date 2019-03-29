@@ -33,38 +33,142 @@ import de.awi.floenavigation.helperclasses.NavigationFunctions;
 import de.awi.floenavigation.R;
 
 /**
- * A simple {@link Fragment} subclass.
+ * This {@link Fragment} runs on top of the {@link DeploymentActivity} and inserts the Static Station which is being deployed in the Database.
+ * <p>
+ *     The Fragment calculates the x,y coordinates of the Static Station from current GPS location of the tablet and inserts the new station
+ *     in the Database table {@link DatabaseHelper#staticStationListTable}.
+ * </p>
+ * @see DeploymentActivity
+ * @see ContentValues
+ * @see Runnable
+ * @see NavigationFunctions
  */
 public class StaticStationFragment extends Fragment implements View.OnClickListener{
 
     private static final String TAG = "StaticStationDeployFrag";
+
+    /**
+     * Text which is displayed when the station's parameters are calculated and inserted in to the Database successfully.
+     */
     private static final String changeText = "Station Installed";
 
+    /**
+     * {@link DatabaseHelper#staticStationName} of the Static Station to be deployed
+     */
     private String stationName;
+
+    /**
+     * {@link DatabaseHelper#stationType} of the Static Station to be deployed
+     */
     private String stationType;
+
+    /**
+     * {@link BroadcastReceiver} for receiving the GPS location broadcast from {@link GPS_Service}
+     */
     private BroadcastReceiver broadcastReceiver;
+
+    /**
+     * Current Latitude of the tablet read from the tablet's built-in GPS
+     */
     private double tabletLat;
+
+    /**
+     * Current Longitude of the tablet read from the tablet's built-in GPS
+     */
     private double tabletLon;
+
+    /**
+     * Current Latitude of the origin
+     */
     private double originLatitude;
+
+    /**
+     * Current longitude of the origin
+     */
     private double originLongitude;
+
+    /**
+     * MMSI of the origin Base/Fixed Station
+     */
     private int originMMSI;
+
+    /**
+     * Current Beta of the Coordinate System
+     */
     private double beta;
+
+    /**
+     * Distance of the Static Station from the Origin. Calculated between {@link #originLatitude}, {@link #originLatitude} and {@link #tabletLat}, {@link #tabletLon}
+     * using the Haversine formula
+     */
     private double distance;
+
+    /**
+     * The Angle alpha of the Fixed Station which it makes with the x-Axis of the Floe's Coordinate System
+     */
     private double alpha;
+
+    /**
+     * x coordinate of the Static Station on the Floe's Coordinate System
+     */
     private double xPosition;
+
+    /**
+     * y coordinate of the Static Station on the Floe's Coordinate System
+     */
     private double yPosition;
+
+    /**
+     * The Angle theta of the Static Station which it makes with the Geographical Longitudinal Axis
+     */
     private double theta;
+
+    /**
+     * {@link MenuItem}s shown on the Action Bar
+     */
     private MenuItem gpsIconItem, aisIconItem, gridSetupIconItem;
+
+    /**
+     * <code>true</code> when the tablet has a GPS Connection
+     */
     private boolean locationStatus = false;
+
+    /**
+     * <code>true</code> when the tablet is connected to the WiFi network of an AIS Transponder
+     */
     private boolean packetStatus = false;
+
+    /**
+     * A {@link Handler} which is runs a {@link Runnable} object which changes the Action Bar icons colors according to {@link #packetStatus}
+     * and {@link #locationStatus}.
+     */
     private final Handler statusHandler = new Handler();
+
+    /**
+     * {@link BroadcastReceiver} for checking the WiFi connection to an AIS Transponder which is broadcast from {@link de.awi.floenavigation.network.NetworkMonitor}.
+     */
     private BroadcastReceiver aisPacketBroadcastReceiver;
 
+    /**
+     * Default empty constructor
+     */
     public StaticStationFragment() {
         // Required empty public constructor
     }
 
-
+    /**
+     * Default {@link Fragment#onCreateView(LayoutInflater, ViewGroup, Bundle)}. Reads the name and type of the Static Station passed to it by {@link StationInstallFragment}.
+     * The layout shows a {@link ProgressBar} with a waiting message and a cancel button.
+     * <p>
+     *     The fragment reads the {@link #stationName}, {@link #stationType}, {@link #tabletLat}, {@link #tabletLon} passed to it in the {@link Bundle}.
+     *     It then reads the Origin coordinates and calculates and inserts the new station in the Database. It then changes the Layout to show
+     *     a successful insertion message ({@link #changeText}) and a Finish button.
+     * </p>
+     * @param inflater
+     * @param container
+     * @param savedInstanceState
+     * @return
+     */
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -98,6 +202,10 @@ public class StaticStationFragment extends Fragment implements View.OnClickListe
         return layout;
     }
 
+    /**
+     * Default Handler for the Finish button on the Screen. {@link MainActivity} is started when deployment is complete.
+     * @param v
+     */
     @Override
     public void onClick(View v){
         switch (v.getId()){
@@ -108,6 +216,9 @@ public class StaticStationFragment extends Fragment implements View.OnClickListe
         }
     }
 
+    /**
+     * Called when the Fragment is no longer in foreground. It unregisters the AIS and GPS {@link BroadcastReceiver}s.
+     */
     @Override
     public void onPause(){
         super.onPause();
@@ -117,6 +228,10 @@ public class StaticStationFragment extends Fragment implements View.OnClickListe
         aisPacketBroadcastReceiver = null;
     }
 
+    /**
+     * Called when the Fragment come back from background to foreground. Disables the Up Button and calls the
+     * {@link #actionBarUpdatesFunction()} to set the correct icon colors in the Action Bar.
+     */
     @Override
     public void onResume(){
         super.onResume();
@@ -128,6 +243,11 @@ public class StaticStationFragment extends Fragment implements View.OnClickListe
 
     }
 
+    /**
+     * Creates the Action Bar icons on top of the screen. By default it shows the GPS icon, AIS Connectivity icon and the Grid Setup icon.
+     * @param menu
+     * @param inflater
+     */
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         inflater.inflate(R.menu.main_menu, menu);
@@ -155,6 +275,9 @@ public class StaticStationFragment extends Fragment implements View.OnClickListe
         super.onCreateOptionsMenu(menu,inflater);
     }
 
+    /**
+     * Calculates the location parameters of the Static Station. It calculates and sets {@link #distance}, {@link #theta}, {@link #alpha}, {@link #xPosition}, {@link #yPosition}.
+     */
     private void calculateStaticStationParameters(){
         distance = NavigationFunctions.calculateDifference(tabletLat, tabletLon, originLatitude, originLongitude);
         //theta = NavigationFunctions.calculateAngleBeta(tabletLat, tabletLon, originLatitude, originLongitude);
@@ -169,6 +292,10 @@ public class StaticStationFragment extends Fragment implements View.OnClickListe
 
     }
 
+    /**
+     * Inserts the new Static Station and its location paramters into the database table {@link DatabaseHelper#staticStationListTable}.
+     * @see ContentValues
+     */
     private void insertStaticStation(){
         DatabaseHelper databaseHelper = DatabaseHelper.getDbInstance(getActivity());
         SQLiteDatabase db = databaseHelper.getReadableDatabase();
@@ -184,6 +311,11 @@ public class StaticStationFragment extends Fragment implements View.OnClickListe
         db.insert(DatabaseHelper.staticStationListTable, null, staticStation);
     }
 
+    /**
+     * Reads the basic parameters of the Floe's Coordinate system from the Database. Reads the values of {@link #originMMSI}, {@link #originLatitude}, {@link #originLongitude},
+     * {@link #beta} from their respective tables.
+     * @return <code>true</code> if all the values are read successfully.
+     */
     private boolean getOriginCoordinates(){
         Cursor baseStationCursor = null;
         Cursor fixedStationCursor = null;
@@ -252,7 +384,20 @@ public class StaticStationFragment extends Fragment implements View.OnClickListe
     }
 
 
-
+    /**
+     * Registers and implements the {@link BroadcastReceiver}s for the AIS Connectivity and GPS location broadcasts; which are sent from
+     * {@link de.awi.floenavigation.network.NetworkMonitor} and {@link GPS_Service} respectively.
+     * The GPS Broadcast receiver sets the value of {@link #locationStatus} to the value from the {@link GPS_Service}.
+     * The AIS Connectivity broadcast receiver sets the boolean {@link #packetStatus}.
+     * This also registers {@link Runnable} with the {@link Handler} {@link #statusHandler} which runs at a regular interval specified by {@link ActionBarActivity#UPDATE_TIME}  and
+     * it checks the booleans {@link #locationStatus} and {@link #packetStatus} and changes the Action Bar icons for GPS and AIS Connectivity
+     * accrodingly.
+     *
+     * @see Runnable
+     * @see Handler
+     * @see BroadcastReceiver
+     * @see ActionBarActivity
+     */
     private void actionBarUpdatesFunction() {
 
         //***************ACTION BAR UPDATES*************************/

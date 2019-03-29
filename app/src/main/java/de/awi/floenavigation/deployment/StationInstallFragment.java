@@ -75,13 +75,19 @@ public class StationInstallFragment extends Fragment implements View.OnClickList
      * <code>true</code> when the station type being deployed is Fixed Station
      */
     private boolean stationTypeAIS;
-    private BroadcastReceiver broadcastReceiver;
+
     /**
-     * Current Latitude of the tablet read from the tablet's built in GPS
+     * {@link BroadcastReceiver} for receiving the GPS location broadcast from {@link GPS_Service}
+     */
+    private BroadcastReceiver broadcastReceiver;
+
+    /**
+     * Current Latitude of the tablet read from the tablet's built-in GPS
      */
     private Double tabletLat;
+
     /**
-     * Current Longitude of the tablet read from the tablet's built in GPS
+     * Current Longitude of the tablet read from the tablet's built-in GPS
      */
     private Double tabletLon;
     /**
@@ -106,15 +112,21 @@ public class StationInstallFragment extends Fragment implements View.OnClickList
      * <code>true</code> when the tablet is connected to the WiFi network of an AIS Transponder
      */
     private boolean packetStatus = false;
-    private final Handler statusHandler = new Handler();
+
     /**
-     * {@link BroadcastReceiver} for checking the WiFi connection to an AIS Transponder.
+     * A {@link Handler} which is runs a {@link Runnable} object which changes the Action Bar icons colors according to {@link #packetStatus}
+     * and {@link #locationStatus}.
+     */
+    private final Handler statusHandler = new Handler();
+
+    /**
+     * {@link BroadcastReceiver} for checking the WiFi connection to an AIS Transponder which is broadcast from {@link de.awi.floenavigation.network.NetworkMonitor}.
      */
     private BroadcastReceiver aisPacketBroadcastReceiver;
 
 
     /**
-     * Default {@link Fragment#onCreateView(LayoutInflater, ViewGroup, Bundle)}. Check the type of station being deployed by reading the arguments
+     * Default {@link Fragment#onCreateView(LayoutInflater, ViewGroup, Bundle)}. Checks the type of station being deployed by reading the arguments
      * passed to it from {@link DeploymentActivity}. If the Fixed Station is being deployed it shows the MMSI field and hides the Tablet's latitude and longitude field
      * If a Static Station is being deployed it hides the MMSI field, shows the Tablet's latitude and longitude and reads the {@link DatabaseHelper#configParametersTable}
      * to set {@link #numOfSignificantFigures} and {@link #changeFormat}.
@@ -254,6 +266,7 @@ public class StationInstallFragment extends Fragment implements View.OnClickList
      * accrodingly.
      *
      * @see Runnable
+     * @see Handler
      * @see BroadcastReceiver
      * @see ActionBarActivity
      */
@@ -344,7 +357,7 @@ public class StationInstallFragment extends Fragment implements View.OnClickList
     }
 
     /**
-     * Inserts a Fixed Station in the Database table {@link DatabaseHelper#fixedStationTable} and {@link DatabaseHelper#stationListTable}.
+     * Inserts a Fixed Station MMSI in the Database tables {@link DatabaseHelper#fixedStationTable} and {@link DatabaseHelper#stationListTable}.
      * Only inserts the Fixed Station if the MMSI and Station name are valid. Before inserting in the Database tables it checks if the Station already
      * exists as a Mobile Station or is already in the Fixed Station Deleted tables. If the MMSI being added is a mobile station it removes from
      * the Database table {@link DatabaseHelper#mobileStationTable} and then inserts the name and MMSI of the Fixed Station to the Database
@@ -430,11 +443,10 @@ public class StationInstallFragment extends Fragment implements View.OnClickList
     }
 
     /**
-     * Inserts a Static in the Database table {@link DatabaseHelper#staticStationListTable}.
-     * Checks the validity of the Station Name of the station and if the current tablet location is available. Before inserting in the Database tables
-     * it checks if the Station already exists if so it shows a {@link Toast} message to that effect and no values are inserted in the Database.
-     * Otherwise it replaces the current fragment with {@link StaticStationFragment} to calculate and insert the parameters such as x, y coordinates
-     * of the station. It passes the current tablet location and the station name to {@link StaticStationFragment}.
+     * Checks the validity of the Station Name of the station and if the current tablet location is available.
+     * Checks if the Station already exists if so it shows a {@link Toast} message to that effect.
+     * Otherwise it replaces the current fragment with {@link StaticStationFragment} to insert the static station in the Database.
+     * It passes the current tablet location and the station name and type to {@link StaticStationFragment}.
      * @see StaticStationFragment
      * @see DatabaseHelper
      * @see ContentValues
@@ -492,7 +504,8 @@ public class StationInstallFragment extends Fragment implements View.OnClickList
     }
 
     /**
-     * Populates the {@link Spinner} with values from the
+     * Populates the {@link Spinner} with values of Station Type from {@link DatabaseHelper#stationTypes}.
+     * Static Stations and Fixed Stations both have the same list of Station Types.
      * @param v
      */
     private void populateStationType(View v){
@@ -510,6 +523,12 @@ public class StationInstallFragment extends Fragment implements View.OnClickList
         stationType.setAdapter(adapter);
     }
 
+    /**
+     * Checks if the given MMSI already exists in {@link DatabaseHelper#fixedStationTable} and {@link DatabaseHelper#stationListTable}
+     * @param db An instance {@link SQLiteDatabase}
+     * @param MMSI The MMSI number to be checked
+     * @return <code>true</code> if the given MMSI exists in {@link DatabaseHelper#fixedStationTable} and {@link DatabaseHelper#stationListTable}
+     */
     private boolean checkStationInDBTables(SQLiteDatabase db, int MMSI){
         boolean isPresent = false;
         Cursor mStationListCursor = null;
@@ -535,6 +554,12 @@ public class StationInstallFragment extends Fragment implements View.OnClickList
         }
     }
 
+    /**
+     * Checks if the given MMSI already exists in {@link DatabaseHelper#mobileStationTable}
+     * @param db An instance {@link SQLiteDatabase}
+     * @param MMSI The MMSI number to be checked
+     * @return <code>true</code> if the given MMSI exists in {@link DatabaseHelper#mobileStationTable}
+     */
     private boolean checkStationInMobileTable(SQLiteDatabase db, int MMSI){
         boolean isPresent = false;
         Cursor mMobileStationCursor = null;
@@ -553,6 +578,12 @@ public class StationInstallFragment extends Fragment implements View.OnClickList
         return isPresent;
     }
 
+    /**
+     * Checks if the given MMSI already exists in {@link DatabaseHelper#fixedStationDeletedTable}
+     * @param db An instance {@link SQLiteDatabase}
+     * @param MMSI The MMSI number to be checked
+     * @return <code>true</code> if the given MMSI exists in {@link DatabaseHelper#fixedStationDeletedTable}
+     */
     private boolean checkStationInFixedDeleteTable(SQLiteDatabase db, int MMSI){
         boolean isPresent = false;
         Cursor mFixedStationDeleteCursor = null;
@@ -572,6 +603,12 @@ public class StationInstallFragment extends Fragment implements View.OnClickList
         return isPresent;
     }
 
+    /**
+     * Checks if the given MMSI already exists in {@link DatabaseHelper#stationListDeletedTable}
+     * @param db An instance {@link SQLiteDatabase}
+     * @param MMSI The MMSI number to be checked
+     * @return <code>true</code> if the given MMSI exists in {@link DatabaseHelper#stationListDeletedTable}
+     */
     private boolean checkStationInStationListDeleteTable(SQLiteDatabase db, int MMSI){
         boolean isPresent = false;
         Cursor mStationListDeleteCursor = null;
@@ -591,7 +628,12 @@ public class StationInstallFragment extends Fragment implements View.OnClickList
         return isPresent;
     }
 
-
+    /**
+     * Checks if the given MMSI already exists in {@link DatabaseHelper#staticStationListTable}
+     * @param db An instance {@link SQLiteDatabase}
+     * @param stationName The name of the Station to be checked
+     * @return <code>true</code> if the given Station name exists in {@link DatabaseHelper#staticStationListTable}
+     */
     private boolean checkStaticStationInDBTables(SQLiteDatabase db, String stationName){
         boolean isPresent = false;
         Cursor mStaticStationListCursor = null;
