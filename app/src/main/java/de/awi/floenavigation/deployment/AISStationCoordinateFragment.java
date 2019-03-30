@@ -532,7 +532,7 @@ public class AISStationCoordinateFragment extends Fragment implements View.OnCli
      * The AIS Connectivity broadcast receiver sets the boolean {@link #packetStatus}.
      * This also registers {@link Runnable} with the {@link Handler} {@link #statusHandler} which runs at a regular interval specified by {@link ActionBarActivity#UPDATE_TIME}  and
      * it checks the booleans {@link #locationStatus} and {@link #packetStatus} and changes the Action Bar icons for GPS and AIS Connectivity
-     * accrodingly.
+     * accordingly.
      *
      * @see Runnable
      * @see Handler
