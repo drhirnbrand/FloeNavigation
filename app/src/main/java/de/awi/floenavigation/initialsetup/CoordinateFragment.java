@@ -24,6 +24,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -36,42 +37,147 @@ import de.awi.floenavigation.helperclasses.FragmentChangeListener;
 import de.awi.floenavigation.services.GPS_Service;
 import de.awi.floenavigation.R;
 
-
 /**
- * A simple {@link Fragment} subclass.
+ * This {@link Fragment} runs on top of the {@link GridSetupActivity} and displays the location of the Fixed Station which is being deployed.
+ * <p>
+ *     The {@link MMSIFragment} inserts the name and MMSI number in to the tables {@link DatabaseHelper#baseStationTable}, {@link DatabaseHelper#fixedStationTable}
+ *     and {@link DatabaseHelper#stationListTable}. This fragment waits and checks the {@link DatabaseHelper#fixedStationTable}
+ *     to see if a Position Report has been received from the given MMSI number.
+ *     The Position Report {@link de.awi.floenavigation.aismessages.PostnReportClassA} and {@link de.awi.floenavigation.aismessages.PostnReportClassB} are received, decoded
+ *     and inserted in to the Database by {@link AISDecodingService}.
+ *     If a position report is received the fragment displays the location data (Latitude and Longitude) on screen along with the tablet's own location.
+ *     If the position report is not received for a specified time the {@link MMSIFragment} is called again to re-enter MMSI number.
+ *     The Layout of this fragment shows a {@link ProgressBar} with a waiting message when waiting for the Position Report
+ *     and once it receives the position report it shows the location along with a button.
+ *     It also checks the length of {@link DatabaseHelper#stationListTable} in the button callback, if the length is less than 2 it will start {@link MMSIFragment}
+ *     and if the length is 2 {@link SetupActivity} will be started.
+ * </p>
+ * @see AISDecodingService
+ * @see GridSetupActivity
+ * @see Runnable
+ * @see de.awi.floenavigation.aismessages.AISMessageReceiver
+ * @see de.awi.floenavigation.aismessages.PostnReportClassA
+ * @see de.awi.floenavigation.aismessages.PostnReportClassB
+ * @see de.awi.floenavigation.initialsetup.SetupActivity
+ * @see NavigationFunctions
  */
 public class CoordinateFragment extends Fragment implements View.OnClickListener {
 
     private static final String TAG = "CoordinateFragment";
 
-
+    /**
+     * Default empty constructor
+     */
     public CoordinateFragment() {
         // Required empty public constructor
     }
 
-
+    /**
+     * MMSI number of the Fixed Station
+     */
     private int MMSINumber;
+
+    /**
+     * Latitude of the Fixed Station as received from the Position Report
+     */
     private double latitude;
+
+    /**
+     * Longitude of the Fixed Station as received from the Postion Report
+     */
     private double longitude;
+
+    /**
+     * Station Name of the Fixed Station
+     */
     private String stationName;
+
+    /**
+     * {@link LocationManager} to read the last known location of the tablet in case current GPS location is not available from {@link GPS_Service}
+     */
     private LocationManager locationManager;
     private LocationListener listener;
+
+    /**
+     * {@link BroadcastReceiver} for receiving the GPS location broadcast from {@link GPS_Service}
+     */
     private BroadcastReceiver broadcastReceiver;
+
+    /**
+     * A {@link Handler} which is runs the {@link Runnable} {@link #fragRunnable} which periodically checks for the Position Report.
+     */
     private final Handler handler = new Handler();
+
+    /**
+     * {@link Runnable} which checks periodically (as specified by {@link #checkInterval}) for the Position report data in {@link DatabaseHelper#fixedStationTable}.
+     */
     private Runnable fragRunnable;
+
+    /**
+     * Current Latitude of the tablet read from the tablet's built-in GPS
+     */
     private String tabletLat;
+
+    /**
+     * Current Longitude of the tablet read from the tablet's built-in GPS
+     */
     private String tabletLon;
     /*private long tabletTime;*/
+    /**
+     * Variable to check if position report has been received.
+     * <code>true</code> when a position report has been received and now layout of the Fragment has to be changed.
+     */
     private boolean isConfigDone;
+
+    /**
+     * Number stations inserted in Database. This helps in deciding whether the current station is Origin or x-Axis Marker.
+     */
     private long countAIS;
+
+    /**
+     * The interval at which the Fragment checks the Database table {@link DatabaseHelper#fixedStationTable} for insertion of Position Report by
+     * {@link AISDecodingService}
+     */
     private static final int checkInterval = 1000;
+
+    /**
+     * Sets the format for display of Geographic Coordinates on the Screen.
+     * If <code>true</code> the coordinates will be displayed as degree, minutes, seconds
+     */
     private boolean changeFormat;
+
+    /**
+     * Sets the number of significant figures to show after a decimal point on the screen. This does not affect the calculations.
+     * The value is read from {@link DatabaseHelper#decimal_number_significant_figures}
+     */
     private int numOfSignificantFigures;
+    /**
+     * Variable for keeping track of the time the fragment waits for the Position Report. It is increment every time the {@link #fragRunnable} runs.
+     */
     private int autoCancelTimer = 0;
+
+    /**
+     * A constant value specifying how long the Fragment will wait for a Position Report. Current value is 300 seconds or 5 minutes.
+     */
     private final static int MAX_TIMER = 300; //5 mins timer
 
 
-
+    /**
+     * Default {@link Fragment#onCreateView(LayoutInflater, ViewGroup, Bundle)}. Reads the MMSI number and station name of the Fixed Station passed to it by {@link MMSIFragment}.
+     * The default layout shows a {@link ProgressBar} with a waiting message and a cancel button.
+     * <p>
+     *     The fragment runs the {@link #fragRunnable} to check the {@link DatabaseHelper#fixedStationTable} if the position data has been inserted by the {@link AISDecodingService}.
+     *     If the data is inserted the Fragment changes its layout to display the received location and the current tablet location.
+     *     If the data is not yet inserted the {@link #fragRunnable} increments {@link #autoCancelTimer} and re-posts the {@link #fragRunnable} with a delay of {@link #checkInterval}.
+     *     If the {@link #autoCancelTimer} values goes above {@link #MAX_TIMER} then the MMSI is removed from the
+     *     {@link DatabaseHelper#baseStationTable}, {@link DatabaseHelper#fixedStationTable} and {@link DatabaseHelper#stationListTable},
+     *     the {@link #fragRunnable} is cancelled and control is returned to {@link MMSIFragment} to re-enter a valid MMSI number.
+     * </p>
+     * @param inflater
+     * @param container
+     * @param savedInstanceState
+     * @return
+     */
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -121,12 +227,18 @@ public class CoordinateFragment extends Fragment implements View.OnClickListener
        return layout;
     }
 
+    /**
+     * Changes the Fragment to {@link MMSIFragment}
+     */
     private void callMMSIFragment(){
         MMSIFragment mmsiFragment = new MMSIFragment();
         FragmentChangeListener fc = (FragmentChangeListener) getActivity();
         fc.replaceFragment(mmsiFragment);
     }
 
+    /**
+     * Called when the Fragment come back from background to foreground. Disables the Up Button.
+     */
     @Override
     public void onResume(){
         super.onResume();
@@ -136,7 +248,13 @@ public class CoordinateFragment extends Fragment implements View.OnClickListener
         }
     }
 
-
+    /**
+     * Default handler for the Action Bar Option Menu of Change Lat/Lon View format.
+     * It inverts the value of {@link #changeFormat} and updates its value in {@link DatabaseHelper#configParametersTable} so that the
+     * same format is shown throughout the App.
+     * @param menuItem
+     * @return
+     */
     @Override
     public boolean onOptionsItemSelected(MenuItem menuItem){
         switch (menuItem.getItemId()){
@@ -151,6 +269,12 @@ public class CoordinateFragment extends Fragment implements View.OnClickListener
         }
     }
 
+    /**
+     * Checks {@link #isConfigDone} to see which layout to display. If it is <code>true</code> meaning the AIS Position Report has been
+     * received the fragment shows the layout displaying the coordinates of the AIS Station and Tablet. Else it displays the waiting view.
+     * Registers and implements the {@link BroadcastReceiver} for the GPS location broadcasts; which is sent from {@link GPS_Service}.
+     * The GPS Broadcast receiver sets the value of {@link #tabletLat} and {@link #tabletLat} to the value from the {@link GPS_Service}.
+     */
     @Override
     public void onStart(){
         super.onStart();
@@ -180,7 +304,9 @@ public class CoordinateFragment extends Fragment implements View.OnClickListener
         getActivity().registerReceiver(broadcastReceiver, new IntentFilter(GPS_Service.GPSBroadcast));
     }
 
-
+    /**
+     * Called when the Fragment is no longer in foreground. It unregisters the GPS {@link BroadcastReceiver}.
+     */
     @Override
     public void onPause(){
         super.onPause();
@@ -190,12 +316,21 @@ public class CoordinateFragment extends Fragment implements View.OnClickListener
         }
     }
 
-
+    /**
+     * Called before {@link Fragment#onStop()}. Saves the value of {@link #isConfigDone} in a {@link Bundle} so that if the App is run again
+     * it will load the correct layout.
+     * @param savedInstanceState
+     */
     @Override
     public void onSaveInstanceState(Bundle savedInstanceState){
         savedInstanceState.putBoolean("isConfigDone", isConfigDone);
     }
 
+    /**
+     * Checks the Database table {@link DatabaseHelper#fixedStationTable} if the Position data of the Fixed Station has been inserted by
+     * the {@link AISDecodingService}. If the data is inserted it sets {@link #latitude} and {@link #longitude} to the received values.
+     * @return <code>true</code> if packet has been received.
+     */
     private boolean checkForCoordinates(){
         int index;
         boolean success = false;
@@ -236,6 +371,12 @@ public class CoordinateFragment extends Fragment implements View.OnClickListener
         return success;
     }
 
+    /**
+     * Called when an AIS Packet (Position Report) is received from the Fixed Station. It changes the Layout of the fragment.
+     * It hides the {@link ProgressBar} and the waiting message and replaces it with a new layout which shows the Latitude and Longitude
+     * of the AIS Station and Tablet.
+     * If this is the second station being deployed (meaning it is the x-Axis marker) it changes the text of the Next button to 'Start Setup'.
+     */
     private void changeLayout(){
         View v = getView();
         LinearLayout waitingLayout = null;
@@ -259,6 +400,11 @@ public class CoordinateFragment extends Fragment implements View.OnClickListener
 
     }
 
+    /**
+     * Populates the current latitude and longitude of the tablet on their respective fields on the layout.
+     * If the current latitude and longitude are not available it will populate the last know location from
+     * {@link #getLastKnownLocation()}.
+     */
     private void populateTabLocation(){
         View v = getView();
         TextView tabLat = null;
@@ -362,6 +508,10 @@ public class CoordinateFragment extends Fragment implements View.OnClickListener
 
     }
 
+    /**
+     * Default callback method for the Buttons on the screen. Depending on the button tapped calls their respective callback functions.
+     * @param v
+     */
     @Override
     public void onClick(View v){
         switch (v.getId()){
@@ -376,8 +526,11 @@ public class CoordinateFragment extends Fragment implements View.OnClickListener
         }
     }
 
-
-
+    /**
+     * Removes the {@link #MMSINumber} from the Database tables {@link DatabaseHelper#fixedStationTable}, {@link DatabaseHelper#baseStationTable} and
+     * {@link DatabaseHelper#stationListTable}.
+     * Called when a position report is not received within the specified time interval or when the cancel button is pressed.
+     */
     private void removeMMSIfromDBTable() {
         SQLiteOpenHelper dbHelper = DatabaseHelper.getDbInstance(getActivity());
         SQLiteDatabase db = dbHelper.getReadableDatabase();
@@ -389,6 +542,11 @@ public class CoordinateFragment extends Fragment implements View.OnClickListener
 
     }
 
+    /**
+     * Callback function for Next/Start Setup button on the Screen. Checks the number of Fixed/Base Stations installed. If two stations
+     * (meaning both Origin and x-Axis Marker) have been deployed it starts the {@link SetupActivity}. If only one station is installed
+     * (meaning only Origin) it will call the {@link MMSIFragment} to insert the second station (x-Axis marker).
+     */
     private void onClickBtn(){
         if(countAIS < 2) {
             callMMSIFragment();
@@ -399,6 +557,11 @@ public class CoordinateFragment extends Fragment implements View.OnClickListener
         }
     }
 
+    /**
+     * Return the last known location by reading all last location from all {@link android.location.LocationProvider}s.
+     *
+     * @return the most accurate last known {@link Location}
+     */
     @SuppressLint("MissingPermission")
     private Location getLastKnownLocation() {
         locationManager = (LocationManager) getActivity().getSystemService(Context.LOCATION_SERVICE);

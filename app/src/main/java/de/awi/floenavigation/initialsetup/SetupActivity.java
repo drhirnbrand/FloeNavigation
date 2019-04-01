@@ -43,44 +43,193 @@ public class SetupActivity extends ActionBarActivity {
 
     private static final String TAG = "SetupActivity";
     private static final int JOB_ID = 100;
+
+    /**
+     * Specifies how the total amount of time the Predictions will run for.
+     * Read from the Configuration Parameter {@link DatabaseHelper#initial_setup_time}
+     * Specifies the delay for {@link #parentTimer}.
+     */
     private static int PREDICTION_TIME;// = 2 * 60 * 1000; //30 * 60 * 1000;
+
+    /**
+     * Specifies the interval for each prediction. Currently set to 10 seconds.
+     * Specifies the time period for {@link #timer}.
+     */
     private static final int PREDICATION_TIME_PERIOD = 10 * 1000;
+
+    /**
+     * Specifies the minimum number of times the Prediction timer ({@link #timer}) has to run before it can be ended.
+     * It describes the absolute minimum number predictions that have to occur before the Setup Activity can end.
+     */
     private static final int MAX_TIMER_COUNT = 3;
 
+    /**
+     * {@link Toast} message which is displayed in case back button is pressed. Back Button is displayed in this Activity.
+     */
     private static final String toastMsg = "Please wait while Coordinate System is being Setup";
+
+    /**
+     * String which specifies the key in the {@link Bundle} for whether the activity was started from {@link CoordinateFragment}
+     */
     public static final String calledFromCoordinateFragment = "calledFromFragment";
 
-
+    /**
+     * {@link Timer} object which monitors the overall time for the Predictions. It starts with a Delay of {@link #PREDICTION_TIME}
+     * and checks every 500 milliseconds if {@link #MAX_TIMER_COUNT} number of Predictions have been done. If so, it stops both itself and
+     * the prediction timer {@link #timer}, stops the circular progess bar and displays the Next Button on the screen.
+     */
     Timer parentTimer = new Timer();
+
+    /**
+     * {@link Timer} object which runs every {@link #PREDICATION_TIME_PERIOD}, it reads the current location of both the Origin and x-Axis
+     * marker, predicts new location of the stations, displays the received location, predicted location and their difference on the screen
+     * and updates the {@link ProgressBar} percentage.
+     * <p>
+     *     It runs until it is cancelled by {@link #parentTimer}.
+     * </p>
+     */
     Timer timer = new Timer();
+
+    /**
+     * Counts the number of times the {@link #timer} is run. As each run of {@link #timer} is a new prediction this is effectively a count
+     * of the number of predictions.
+     */
     private int timerCounter = 0;
 
+    /**
+     * Array holding the MMSIs of the Origin and x-Axis Marker.
+     */
     private int[] stationMMSI = new int[DatabaseHelper.INITIALIZATION_SIZE];
+
+    /**
+     * Array holding the received latitudes of the Origin and x-Axis Marker.
+     */
     private double[] stationLatitude = new double[DatabaseHelper.INITIALIZATION_SIZE];
+
+    /**
+     * Array holding the received longitudes of the Origin and x-Axis Marker.
+     */
     private double[] stationLongitude = new double[DatabaseHelper.INITIALIZATION_SIZE];
+
+    /**
+     * Array holding the Speed Over Ground (SOG) of the Origin and x-Axis Marker.
+     */
     private double[] stationSOG = new double[DatabaseHelper.INITIALIZATION_SIZE];
+
+    /**
+     * Array holding the Course Over Ground (COG) of the Origin and x-Axis Marker.
+     */
     private double[] stationCOG = new double[DatabaseHelper.INITIALIZATION_SIZE];
+
+    /**
+     * Array holding the predicted latitudes of the Origin and x-Axis Marker.
+     */
     private double[] predictedLatitude = new double[DatabaseHelper.INITIALIZATION_SIZE];
+
+    /**
+     * Array holding the predicted longitudes of the Origin and x-Axis Marker.
+     */
     private double[] predictedLongitude = new double[DatabaseHelper.INITIALIZATION_SIZE];
+
+    /**
+     * Array holding the difference in meters between the received location and the predicted location
+     * of both the Origin and the x-Axis Marker.
+     */
     private double[] distanceDiff = new double[DatabaseHelper.INITIALIZATION_SIZE];
+
+    /**
+     * Array holding the time of last received packet of the Origin and the x-Axis Marker.
+     */
     private Date[] stationTime = new Date[DatabaseHelper.INITIALIZATION_SIZE];
+
+    /**
+     * Angle {@link DatabaseHelper#beta} calculated from Predicted coordinates ({@link #predictedLatitude}, {@link #predictedLongitude})
+     */
     private double predictedBeta = 0.0;
+
+    /**
+     * Angle {@link DatabaseHelper#beta} calculated from received coordinates ({@link #stationLatitude}, {@link #stationLongitude})
+     */
     private double receivedBeta = 0.0;
+
+    /**
+     * Difference in degrees between the {@link #predictedBeta} and {@link #receivedBeta}
+     */
     private double betaDifference = 0.0;
+
+    /**
+     * Distance between the Origin and the x-Axis marker station.
+     */
     private double xAxisDistance = 0.0;
+
+    /**
+     * Sets the format for display of Geographic Coordinates on the Screen.
+     * If <code>true</code> the coordinates will be displayed as degree, minutes, seconds
+     */
     private boolean changeFormat;
+
+    /**
+     * Counter to keep track of the progress shown in percentage inside the circulate {@link ProgressBar}.
+     */
     private int timerIndex = 0;
+
+    /**
+     * The Circular {@link ProgressBar} shown on screen which shows the number of times predictions has run as a percentage of
+     * {@link #PREDICTION_TIME}
+     */
     private ProgressBar timerProgress;
+
+    /**
+     * The percentage value shown inside {@link #timerProgress}
+     */
     private int timerPercentage;
+
+    /**
+     * {@link TextView} of the {@link ProgressBar}
+     */
     private TextView progressBarValue;
+
+    /**
+     * Number of messages received from the Origin while {@link #timer} is running.
+     */
     private static int firstStationMessageCount = 0;
+
+    /**
+     * Number of messages received from the x-Axis Marker while {@link #timer} is running.
+     */
     private static int secondStationMessageCount = 0;
+
+    /**
+     * <code>true</code> when Back Button is enabled.
+     */
     private boolean backButtonEnabled = false;
+
+    /**
+     * UTC Time in Milliseconds of last received AIS packet of the origin
+     */
     private static double firstStationpreviousUpdateTime = 0;
+
+    /**
+     * UTC Time in Milliseconds of last received AIS packet of the x-Axis marker
+     */
     private static double secondStationpreviousUpdateTime = 0;
+
+    /**
+     * Sets the number of significant figures to show after a decimal point on the screen. This does not affect the calculations.
+     * The value is read from {@link DatabaseHelper#decimal_number_significant_figures}
+     */
     private int numOfSignificantFigures;
     private boolean isLock = false;
+
+    /**
+     * {@link SimpleDateFormat} to convert the update time {@link #firstStationpreviousUpdateTime} and {@link #secondStationpreviousUpdateTime}
+     * to normal Date Time format.
+     */
     private SimpleDateFormat sdf;
+
+    /**
+     * <code>true</code> when the activity is started from {@link CoordinateFragment}
+     */
     private boolean isCalledFromCoordinateFragment = false;
 
 
@@ -93,9 +242,7 @@ public class SetupActivity extends ActionBarActivity {
         sdf = new SimpleDateFormat("HH:mm:ss");
         sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
         retrievePredictionTimefromDB();
-        //isLock = true;
-        //this.getWindow().setType(WindowManager.LayoutParams.TYPE_KEYGUARD_DIALOG);
-        //super.onAttachedToWindow();
+
         if(getIntent().getExtras().containsKey(calledFromCoordinateFragment)){
             isCalledFromCoordinateFragment = getIntent().getExtras().getBoolean(calledFromCoordinateFragment);
         }
@@ -119,8 +266,6 @@ public class SetupActivity extends ActionBarActivity {
 
         receivedBeta = NavigationFunctions.calculateAngleBeta(stationLatitude[DatabaseHelper.firstStationIndex],
                 stationLongitude[DatabaseHelper.firstStationIndex], stationLatitude[DatabaseHelper.secondStationIndex], stationLongitude[DatabaseHelper.secondStationIndex]);
-        //Log.d(TAG, "Initial Coordinates: " + String.valueOf(stationLatitude[DatabaseHelper.firstStationIndex] + " " + String.valueOf(stationLongitude[DatabaseHelper.secondStationIndex])));
-        //Log.d(TAG, "Also Inital Coordinates: " + String.valueOf(stationLatitude[DatabaseHelper.secondStationIndex] + " " + String.valueOf(stationLongitude[DatabaseHelper.secondStationIndex])));
         if(!isCalledFromCoordinateFragment){
             predictedBeta = NavigationFunctions.calculateAngleBeta(predictedLatitude[DatabaseHelper.firstStationIndex],
                     predictedLongitude[DatabaseHelper.firstStationIndex], predictedLatitude[DatabaseHelper.secondStationIndex], predictedLongitude[DatabaseHelper.secondStationIndex]);
@@ -128,53 +273,17 @@ public class SetupActivity extends ActionBarActivity {
                 distanceDiff[i] = NavigationFunctions.calculateDifference(stationLatitude[i], stationLongitude[i], predictedLatitude[i], predictedLongitude[i]);
 
             }
-            //Log.d(TAG, "Predicted Initial Coordinates: " + String.valueOf(predictedLatitude[DatabaseHelper.firstStationIndex] + " " + String.valueOf(predictedLongitude[DatabaseHelper.secondStationIndex])));
-            //Log.d(TAG, "Also Predicted Inital Coordinates: " + String.valueOf(predictedLatitude[DatabaseHelper.secondStationIndex] + " " + String.valueOf(predictedLongitude[DatabaseHelper.secondStationIndex])));
             betaDifference = Math.abs(predictedBeta - receivedBeta);
         }
-        //Log.d(TAG, "Predicted Beta: " + String.valueOf(predictedBeta));
-        //Log.d(TAG, "Received Beta: " + String.valueOf(receivedBeta));
+
         refreshScreen();
 
-        /*findViewById(R.id.first_station_predicted_Latitude).setEnabled(false);
-        findViewById(R.id.first_station_predicted_Longitude).setEnabled(false);
-        findViewById(R.id.first_station_received_Latitude).setEnabled(false);
-        findViewById(R.id.first_station_received_Longitude).setEnabled(false);
-        findViewById(R.id.first_station_diff_distance).setEnabled(false);
-        findViewById(R.id.second_station_predicted_latitude).setEnabled(false);
-        findViewById(R.id.second_station_predicted_longitude).setEnabled(false);
-        findViewById(R.id.second_station_received_latitude).setEnabled(false);
-        findViewById(R.id.second_station_received_longitude).setEnabled(false);
-        findViewById(R.id.second_station_diff_distance).setEnabled(false);
-        findViewById(R.id.first_station_MMSI).setEnabled(false);
-        findViewById(R.id.second_station_MMSI).setEnabled(false);
-        findViewById(R.id.first_station_updateTime).setEnabled(false);
-        findViewById(R.id.second_station_updateTime).setEnabled(false);
-        findViewById(R.id.receivedBeta).setEnabled(false);
-        findViewById(R.id.calculatedBeta).setEnabled(false);
-        findViewById(R.id.betaDifference).setEnabled(false);*/
 
         xAxisDistance = NavigationFunctions.calculateDifference(stationLatitude[DatabaseHelper.firstStationIndex], stationLongitude[DatabaseHelper.firstStationIndex],
                 stationLatitude[DatabaseHelper.secondStationIndex], stationLongitude[DatabaseHelper.secondStationIndex]);
         new InsertXAxisDistance().execute();
 
 
-
-       /*
-       //Code for using the JobService class; currently unused
-
-       ComponentName componentName = new ComponentName(this, SetupJobService.class);
-        @SuppressLint("MissingPermission") JobInfo info = new JobInfo.Builder(JOB_ID, componentName)
-                .setPeriodic(10  * 1000)
-                .setPersisted(false)
-                .build();
-        final JobScheduler scheduler = (JobScheduler)getSystemService(JOB_SCHEDULER_SERVICE);
-        int resultcode = scheduler.schedule(info);
-        if(resultcode == JobScheduler.RESULT_SUCCESS){
-            Log.d(TAG, "JobScheduled");
-        } else {
-            Log.d(TAG, "Job scheduling failed");
-        }*/
         timer.schedule(new TimerTask() {
             @Override
             public void run() {
@@ -185,28 +294,17 @@ public class SetupActivity extends ActionBarActivity {
                 new ReadParamsFromDB().execute();
                 for(int i = 0; i < DatabaseHelper.INITIALIZATION_SIZE; i++){
                     double[] predictedCoordinates = NavigationFunctions.calculateNewPosition(stationLatitude[i], stationLongitude[i], stationSOG[i], stationCOG[i]);
-                    //Log.d(TAG, "StationLatitude: " + String.valueOf(i) + " " + String.valueOf(stationLatitude[i]));
-                    //Log.d(TAG, "StationLongitude: " + String.valueOf(i) + " " + String.valueOf(stationLongitude[i]));
                     predictedLatitude[i] = predictedCoordinates[DatabaseHelper.LATITUDE_INDEX];
                     predictedLongitude[i] = predictedCoordinates[DatabaseHelper.LONGITUDE_INDEX];
                     distanceDiff[i] = NavigationFunctions.calculateDifference(stationLatitude[i], stationLongitude[i], predictedLatitude[i], predictedLongitude[i]);
-
-
                 }
 
                 predictedBeta = NavigationFunctions.calculateAngleBeta(predictedLatitude[DatabaseHelper.firstStationIndex], predictedLongitude[DatabaseHelper.firstStationIndex], predictedLatitude[DatabaseHelper.secondStationIndex], predictedLongitude[DatabaseHelper.secondStationIndex]);
                 receivedBeta = NavigationFunctions.calculateAngleBeta(stationLatitude[DatabaseHelper.firstStationIndex], stationLongitude[DatabaseHelper.firstStationIndex], stationLatitude[DatabaseHelper.secondStationIndex], stationLongitude[DatabaseHelper.secondStationIndex]);
-                //Log.d(TAG, "AIS 1: " + String.valueOf(stationLatitude[DatabaseHelper.firstStationIndex]) + " " + String.valueOf(stationLongitude[DatabaseHelper.firstStationIndex]));
-                //Log.d(TAG, "AIS 2: " + String.valueOf(stationLatitude[DatabaseHelper.secondStationIndex]) + " " + String.valueOf(stationLongitude[DatabaseHelper.secondStationIndex]));
-                //Log.d(TAG, "Beta: " + String.valueOf(receivedBeta));
                 betaDifference = Math.abs(predictedBeta - receivedBeta);
-                //calculateDifference();
 
                 refreshScreen();
                 progressBarValueUpdates();
-
-
-
             }
         }, 0, PREDICATION_TIME_PERIOD);
 
@@ -214,7 +312,6 @@ public class SetupActivity extends ActionBarActivity {
         parentTimer.schedule(new TimerTask() {
             @Override
             public void run() {
-                //scheduler.cancel(JOB_ID);
                 Log.d(TAG, "StartupComplete");
                 if (timerCounter >= MAX_TIMER_COUNT)
                 {
@@ -223,7 +320,6 @@ public class SetupActivity extends ActionBarActivity {
                     if(insertPredictedValuesInDB()){
                         Log.d(TAG, "Values Inserted Successfully");
                     }
-                    //For Test purposes only
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
@@ -253,41 +349,9 @@ public class SetupActivity extends ActionBarActivity {
 
     }
 
-    /*
-
-    @Override
-    public boolean dispatchKeyEvent(KeyEvent event) {
-        if ((event.getKeyCode() == KeyEvent.KEYCODE_HOME) && isLock) {
-            Log.d(TAG, "Home Button");
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    Toast.makeText(getApplicationContext(), toastMsg, Toast.LENGTH_LONG).show();
-                }
-            });
-            return true;
-        }
-        else
-            return super.dispatchKeyEvent(event);
-    }
-
-    @Override
-    public boolean onKeyDown(int keyCode, KeyEvent event) {
-        if ((event.getKeyCode() == KeyEvent.KEYCODE_HOME) && isLock) {
-            Log.d(TAG, "Home Button");
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    Toast.makeText(getApplicationContext(), toastMsg, Toast.LENGTH_LONG).show();
-                }
-            });
-            return true;
-        }
-        else
-            return super.onKeyDown(keyCode, event);
-    }
-    */
-
+    /**
+     * Hides the Navigation Bar (containing the Back Button, Home Button etc) on the bottom of the screen
+     */
     private void hideNavigationBar() {
 
         View decorView = getWindow().getDecorView();
@@ -295,6 +359,10 @@ public class SetupActivity extends ActionBarActivity {
         decorView.setSystemUiVisibility(uiOptions);
     }
 
+    /**
+     * Inserts the Predicted Latitude and Longitude of both the Origin and x-Axis marker in to the Database table {@link DatabaseHelper#fixedStationTable}
+     * @return <code>true</code> if inserted successfully.
+     */
     private boolean insertPredictedValuesInDB(){
         try{
             DatabaseHelper dbHelper = DatabaseHelper.getDbInstance(getApplicationContext());
@@ -315,6 +383,10 @@ public class SetupActivity extends ActionBarActivity {
         }
     }
 
+    /**
+     * Retrieves the total amount of time the overall Prediction timer has to run for from the Database table {@link DatabaseHelper#configParametersTable}
+     * and sets it to {@link #PREDICTION_TIME}
+     */
     private void retrievePredictionTimefromDB(){
         Cursor configParamCursor = null;
         try{
@@ -351,7 +423,9 @@ public class SetupActivity extends ActionBarActivity {
         }
     }
 
-
+    /**
+     * Updates the Percentage value shown inside the Circular {@link ProgressBar}
+     */
     private void progressBarValueUpdates(){
         //Progress Bar Value update
 

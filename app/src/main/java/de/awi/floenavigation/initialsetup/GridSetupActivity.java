@@ -39,6 +39,7 @@ import de.awi.floenavigation.R;
  * </p>
  * @see DatabaseHelper
  * @see SetupActivity
+ * @see de.awi.floenavigation.initialsetup
  */
 public class GridSetupActivity extends FragmentActivity implements FragmentChangeListener {
 
