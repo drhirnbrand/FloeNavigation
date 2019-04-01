@@ -15,33 +15,99 @@ import android.os.SystemClock;
 import android.provider.Settings;
 import android.util.Log;
 
+/**
+ * A Service is an application component that can perform long-running operations in the background,
+ * and it doesn't provide a user interface.
+ * <p>
+ *     {@link GPS_Service} is used to get GPS location for the tablet using the internal GPS
+ *
+ *
+ * </p>
+ */
 public class GPS_Service extends Service {
 
+    /**
+     * LocationManager is the main class through which your application can access location services on Android.
+     * A reference can be obtained from calling the getSystemService() method.
+     */
     private LocationManager locationManager;
+    /**
+     * Used for receiving notifications from the LocationManager when the location has changed.
+     * These methods are called if the LocationListener has been registered with the location manager service
+     */
     private LocationListener listener;
-    private double lat = 0.0;
-    private double lon = 0.0;
     private static final String TAG = "GPS_SERVICE";
+    /**
+     * Intent filter to send location updates
+     */
     public static final String GPSBroadcast = "GPSLocationUpdates";
+    /**
+     * Intent filter to send ais packet receive updates
+     */
     public static final String AISPacketBroadcast = "AISPacketUpdates";
+    /**
+     * The name of the extra data
+     */
     public static final String AISPacketStatus = "AISPacketReceived";
+    /**
+     * The name of the extra data for sending latitude value
+     */
     public static final String latitude = "LATITUDE";
+    /**
+     * The name of the extra data for sending longitude value
+     */
     public static final String longitude = "LONGITUDE";
+    /**
+     * The name of the extra data for sending gps time
+     */
     public static final String GPSTime = "TIME";
+    /**
+     * The name of the extra data for sending location status
+     */
     public static final String locationStatus = "CURRENT_LOCATION_AVAILABLE";
+    /**
+     * Update interval for the runnable
+     */
     private static final int updateInterval = 5 * 1000;
+    /**
+     * Gps listener location update time
+     */
     private static final int LOCATION_UPDATE_TIME = 10 * 1000;//30 * 1000;
+    /**
+     * Gps listener location distance in meters
+     */
     private static final int LOCATION_UPDATE_DISTANCE = 1;//5;
+    /**
+     * Location update runnable to put intent extra
+     */
     LocationUpdates locationUpdates = new LocationUpdates();
+    /**
+     * Location provide
+     */
     Location lastLocation;
+    /**
+     * Last location time used to eliminate the error between current system time and the gps time
+     */
     private long mLastLocationTimeMillis;
+    /**
+     * <code>true</code> GPSFix is available
+     * <code>false</code> Otherwise
+     */
     private boolean isGPSFix = false;
+    /**
+     * GPS listener to broadcast location updates
+     */
     private GPSListener gpsListener;
 
-
+    /**
+     * Not used
+     */
     private static GPS_Service instance = null;
 
 
+    /**
+     * Default constructor
+     */
     public GPS_Service() {
         //super(name);
         //Toast.makeText(getApplicationContext(), "startService", Toast.LENGTH_LONG).show();
@@ -58,6 +124,11 @@ public class GPS_Service extends Service {
         return null;
     }
 
+    /**
+     * OnCreate method is used to register location manager {@link #locationManager}
+     * Add Gps listener {@link #gpsListener} and {@link #listener} to the location manager
+     *
+     */
     @SuppressLint("MissingPermission")
     @Override
     public void onCreate(){
@@ -81,6 +152,9 @@ public class GPS_Service extends Service {
     }
 
 
+    /**
+     * onDestroy method to unregister listener {@link #listener}
+     */
     @SuppressLint("MissingPermission")
     @Override
     public void onDestroy() {
@@ -93,6 +167,10 @@ public class GPS_Service extends Service {
         instance = null;
     }
 
+    /**
+     * Location Listener activated by Location manager whenever there location is updated
+     * Locatoin listener sets and updates values of latitude and longitude
+     */
     private class Listener implements LocationListener{
 
 
@@ -110,19 +188,6 @@ public class GPS_Service extends Service {
             locationUpdates.setLatitude(location.getLatitude());
             locationUpdates.setLongitude(location.getLongitude());
             locationUpdates.setTime(location.getTime());
-            //locationUpdates.setLocationStatus(true);
-               /* Log.d(TAG, "Location: " + String.valueOf(location.getLatitude()) + " " +  String.valueOf(location.getLongitude()));
-                Log.d(TAG, "Location Time: " + String.valueOf(new Date(location.getTime())));*/
-                /*Date dateTime = new Date(location.getTime());*/
-                //Log.d(TAG, "Formatted TIme: " + dateTime.toString());
-            /*lastLocation.set(location);
-            Intent broadcastIntent = new Intent(GPSBroadcast);
-            broadcastIntent.putExtra(latitude, location.getLatitude());
-            broadcastIntent.putExtra(longitude, location.getLongitude());
-            //Log.d(TAG, "BroadCast sent");
-            Log.d(TAG, "Tablet Location: " + String.valueOf(location.getLatitude()) + " " +  String.valueOf(location.getLongitude()));
-            //Toast.makeText(getApplicationContext(),"Broadcast Sent", Toast.LENGTH_LONG).show();
-            sendBroadcast(broadcastIntent);*/
             lastLocation = location;
         }
 
@@ -146,6 +211,10 @@ public class GPS_Service extends Service {
         }
     }
 
+    /**
+     * GPS listener to set/update GPS location status
+     * to check whether {@link #isGPSFix} has fix
+     */
     private class GPSListener implements GpsStatus.Listener {
         @Override
         public void onGpsStatusChanged(int event){
@@ -166,6 +235,11 @@ public class GPS_Service extends Service {
         }
     }
 
+    /**
+     * Runnable thread to send intent broadcast to all the activities and fragments
+     * the location updates and the location status
+     * Runs every {@link #updateInterval}
+     */
     private class LocationUpdates implements Runnable {
         private double lat = 0.0;
         private double lon = 0.0;
@@ -205,11 +279,6 @@ public class GPS_Service extends Service {
                 broadcastIntent.putExtra(longitude, lon);
                 broadcastIntent.putExtra(GPSTime, time);
 
-
-                /*if (lat != 0.0 && lon != 0.0){
-                    broadcastIntent.putExtra(locationStatus, true);
-                }else
-                    broadcastIntent.putExtra(locationStatus, false);*/
                 broadcastIntent.putExtra(locationStatus, locStatus);
                 //Log.d(TAG, "BroadCast sent");
                 Log.d(TAG, "Tablet Location: " + String.valueOf(lat) + " " +  String.valueOf(lon));

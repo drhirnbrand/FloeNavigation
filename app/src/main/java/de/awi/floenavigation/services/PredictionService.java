@@ -17,33 +17,100 @@ import de.awi.floenavigation.helperclasses.NavigationFunctions;
  * An {@link IntentService} subclass for handling asynchronous task requests in
  * a service on a separate handler thread.
  * <p>
+ *     {@link PredictionService} service is used to predict the future positions of all the fixed stations at a
+ *     specified time interval
+ *     Since the AIS packets are received every 3 minutes, it is desirable and necessary to predict the positions of the
+ *     stations between these intervals at a higher rate, which helps the grid to show and monitor the fixed stations
+ *     in a continuous manner.
+ *     <p>
+ *         Also {@link ValidationService} service takes use of the predicted positions by comparing it with
+ *         received values to verify sea ice break scenario
+ *     </p>
+ * </p>
  * TODO: Customize class - update intent actions, extra parameters and static
  * helper methods.
  */
 public class PredictionService extends IntentService {
 
     private final static String TAG = "PREDICTION_SERVICE: ";
+    /**
+     * Handler to execute the runnable
+     */
     private final Handler mPredictionHandler;
+    /**
+     * Timer period to execute the prediction service periodically
+     */
     private final int PREDICTION_TIME = 10 * 1000;
+    /**
+     * Timer period to execute the validation service periodically
+     */
     private static final int VALIDATION_TIME = 3 * 60 * 1000;
+    /**
+     * The threshold distance/difference between the received and the predicted location
+     */
     public static int ERROR_THRESHOLD_VALUE;
+    /**
+     * The threshold time after the distance goes beyond {@link #ERROR_THRESHOLD_VALUE}
+     */
     public static int PREDICTION_ACCURACY_THRESHOLD_VALUE;
 
+    /**
+     * distance calculated between the origin fixed station and any fixed station in meters
+     */
     private double distance;
+    /**
+     * X axis value in meters of the fixed station
+     */
     private double xPosition;
+    /**
+     * Y axis value in meters of the fixed station
+     */
     private double yPosition;
+    /**
+     * Angle calculated between the x-axis and the fixed station
+     */
     private double alpha;
+    /**
+     * Angle calculated between the origin fixed station and the fixed station
+     */
     private double theta;
+    /**
+     * Origin fixed station latitude value
+     */
     private double originLatitude;
+    /**
+     * Origin fixed station longitude value
+     */
     private double originLongitude;
+    /**
+     * Origin MMSI
+     */
     private int originMMSI;
+    /**
+     * X-axis fixed station MMSI
+     */
     private int xAxisBaseStationMMSI;
+    /**
+     * Variable used to store the value of {@value DatabaseHelper#beta}
+     * It is the angle between the x-axis and the geographic longitudinal axis
+     */
     private double beta;
 
+    /**
+     * Not used
+     */
     private static PredictionService instance = null;
 
+    /**
+     * <code>true</code> to stop the runnable
+     * <code>false</code> otherwise
+     */
     private static boolean stopRunnable = false;
 
+    /**
+     * Default constructor
+     * Initializes the Handler {@link #mPredictionHandler}
+     */
     public PredictionService() {
         super("PredictionService");
         mPredictionHandler = new Handler();
@@ -55,11 +122,18 @@ public class PredictionService extends IntentService {
         instance = this;
     }
 
-    public static boolean isInstanceCreated(){
-        return instance != null;
-    }
-
-
+    /**
+     * This method is invoked on the worker thread
+     * Runnable is initialized to run every {@link #PREDICTION_TIME} msecs
+     * Fixed stations are retrieved from the local database and new positions are calculated using {@link NavigationFunctions#calculateNewPosition(double, double, double, double)}.
+     * If the origin and the x-axis fixed station are already broken off, instead of taking the received latitude and longitude values, previous predicted values
+     * are taken to predict the future positions.
+     * After the new positions are predicted the updated values are stored back to the corresponding columns of the fixed station table {@link DatabaseHelper#fixedStationTable}
+     * in the local database.
+     * if {@link #stopRunnable} is true, the runnable is stopped until {@link #setStopRunnable(boolean)} with false value is not received
+     * from {@link de.awi.floenavigation.synchronization.SyncActivity#stopServices} and {@link de.awi.floenavigation.initialsetup.SetupActivity#runServices}
+     * @param intent Intent
+     */
     @Override
     protected void onHandleIntent(Intent intent) {
         if (intent != null) {
@@ -136,14 +210,27 @@ public class PredictionService extends IntentService {
         }
     }
 
+    /**
+     * To set the value of {@link #stopRunnable}
+     * @param stop stop flag
+     */
     public static void setStopRunnable(boolean stop){
         stopRunnable = stop;
     }
 
+    /**
+     * Getter function
+     * @return returns the value of {@link #stopRunnable}
+     */
     public static boolean getStopRunnable(){
         return stopRunnable;
     }
 
+    /**
+     * Function used to retrieve the values of {@link #ERROR_THRESHOLD_VALUE} and {@link #PREDICTION_ACCURACY_THRESHOLD_VALUE}
+     * from the database table {@link DatabaseHelper#configParametersTable}
+     * @param db SQLiteDatabase object
+     */
     private void retrieveConfigurationParametersDatafromDB(SQLiteDatabase db){
         Cursor configParamCursor = null;
         try{
@@ -181,6 +268,13 @@ public class PredictionService extends IntentService {
         }
     }
 
+    /**
+     * Calculates the {@link #xPosition}, {@link #yPosition}, {@link #alpha} and {@link #distance}
+     * for the new predicted location of the fixed station
+     * @param mmsi mmsi number of the fixed station
+     * @param latitude predicted latitude value
+     * @param longitude predicted longitude value
+     */
     private void calculateNewParams(int mmsi, double latitude, double longitude ){
         if(mmsi == originMMSI){
             xPosition = 0.0;
@@ -202,6 +296,12 @@ public class PredictionService extends IntentService {
         }
     }
 
+    /**
+     * Function to retrieve the origin fixed station coordinates
+     * @param db SQLiteDatabase object
+     * @return returns <code>true</code>, if retrieval is successful
+     *                 <code>false</code>, otherwise
+     */
     private boolean getOriginCoordinates(SQLiteDatabase db){
         Cursor baseStationCursor = null;
         Cursor betaCursor = null;
@@ -281,6 +381,9 @@ public class PredictionService extends IntentService {
         }
     }
 
+    /**
+     * onDestroy method, part of service lifecycle
+     */
     @Override
     public void onDestroy(){
         super.onDestroy();
