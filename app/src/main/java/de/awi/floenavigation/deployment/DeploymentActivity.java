@@ -80,7 +80,9 @@ public class DeploymentActivity extends FragmentActivity implements FragmentChan
 
 
     /**
+     * Replaces the currently running Fragment with a new fragment using the {@link FragmentManager} and creating a {@link FragmentTransaction}.
      * @inheritDoc
+     * @param fragment The {@link Fragment} to replace the currently running Fragment with.
      */
     @Override
     public void replaceFragment(Fragment fragment){

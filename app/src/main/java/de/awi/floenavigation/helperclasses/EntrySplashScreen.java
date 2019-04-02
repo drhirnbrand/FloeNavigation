@@ -9,8 +9,19 @@ import de.awi.floenavigation.dashboard.MainActivity;
 import de.awi.floenavigation.R;
 import gr.net.maroulis.library.EasySplashScreen;
 
+/**
+ * This {@link Activity} is the first activity to run whenever the App is launched on the tablet. Its a simple activity which just
+ * shows the AWI logo for a specified amount of time and then starts the {@link MainActivity}.
+ *
+ * @see EasySplashScreen
+ */
 public class EntrySplashScreen extends Activity {
 
+    /**
+     * Default {@link Activity#onCreate(Bundle)}. Creates an {@link EasySplashScreen} which shows the AWI logo for a specified amount of
+     * time and then starts the {@link MainActivity}.
+     * @param savedInstanceState
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 

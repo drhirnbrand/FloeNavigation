@@ -36,31 +36,123 @@ import de.awi.floenavigation.services.GPS_Service;
 
 public class DialogActivity extends Activity {
 
+    private static final String TAG = "DialogActivity";
+    /**
+     * The title of the {@link AlertDialog}
+     */
     private String dialogTitle;
+
+    /**
+     * The message to show with in the {@link AlertDialog}
+     */
     private String dialogMsg;
+
+    /**
+     * The icon of the {@link AlertDialog}
+     */
     private int dialogIcon;
+
+    /**
+     * Variable to specify whether to show Options (For example Yes/No buttons) at the bottom of the Dialog Box
+     * If <code>true</code> the buttons will be shown.
+     */
     private boolean showDialogOptions = false;
+
+    /**
+     * <code>true</code> if the current dialog is the TabletID dialog.
+     */
     private boolean tabletIdDialog = false;
+
+    /**
+     * <code>true</code> if the current dialog is the About Us dialog.
+     */
     private boolean aboutUsDialog = false;
+
+    /**
+     * <code>true</code> if the current dialog is the Validation Service dialog.
+     */
     private boolean validationDialog = false;
     //public static boolean servicesStarted = true;
     public static final String DIALOG_BUNDLE = "dialogBundle";
+
+    /**
+     * String specifying the key for getting the {@link #dialogTitle} from the extras of the {@link Bundle} passed.
+     */
     public static final String DIALOG_TITLE = "title";
+
+    /**
+     * String specifying the key for getting the {@link #dialogMsg} from the extras of the {@link Bundle} passed.
+     */
     public static final String DIALOG_MSG = "message";
+
+    /**
+     * String specifying the key for getting the {@link #dialogIcon} from the extras of the {@link Bundle} passed.
+     */
     public static final String DIALOG_ICON = "icon";
+
+    /**
+     * String specifying the key for getting the value of  {@link #showDialogOptions} from the extras of the {@link Bundle} passed.
+     */
     public static final String DIALOG_OPTIONS = "options";
+
+    /**
+     * String specifying the key for getting the value of  {@link #receivedBeta} from the extras of the {@link Bundle} passed.
+     */
     public static final String DIALOG_BETA = "beta";
-    private static final String TAG = "DialogActivity";
+
+    /**
+     * String specifying the key for getting the value of  {@link #tabletIdDialog} from the extras of the {@link Bundle} passed.
+     */
     public static final String DIALOG_TABLETID = "tabletIdDialog";
+
+    /**
+     * String specifying the key for getting the value of  {@link #aboutUsDialog} from the extras of the {@link Bundle} passed.
+     */
     public static final String DIALOG_ABOUTUS = "aboutUsDialog";
+
+    /**
+     * String specifying the key for getting the value of  {@link #validationDialog} from the extras of the {@link Bundle} passed.
+     */
     public static final String DIALOG_VALIDATION = "validationDialog";
+
+    /**
+     * The actual unique ID of the tablet which is set the first time the App is run on a tablet. This is set if the current
+     * Dialog is the Tablet ID dialog when {@link #tabletIdDialog} is <code>true</code>.
+     * @see AdminPageActivity
+     */
     private String tabletId;
+
+    /**
+     * The {@link AlertDialog} object which will be displayed
+     */
     private AlertDialog alertDialog;
+
+    /**
+     * The value of the angle {@link DatabaseHelper#beta} to insert in the Database table {@link DatabaseHelper#betaTable} on the completion
+     * of {@link SetupActivity}. This is used if the current Dialog is the Dialog box shown at the end of the predictions in {@link SetupActivity}.
+     * @see SetupActivity
+     */
     private double receivedBeta = 0.0;
+
+    /**
+     * {@link BroadcastReceiver} for receiving the GPS location broadcast from {@link GPS_Service}
+     */
     private BroadcastReceiver broadcastReceiver;
+
+    /**
+     * The current UTC time in milliseconds as read from the GPS fix available via {@link GPS_Service}
+     */
     private long gpsTime;
+
+    /**
+     * The difference in milliseconds between the current time of the tablet and {@link #gpsTime}
+     */
     private long timeDiff;
 
+    /**
+     *
+     * @param savedInstanceState
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -253,6 +345,10 @@ public class DialogActivity extends Activity {
         }
     }
 
+    /**
+     * An {@link AsyncTask} to insert the tablet ID entered in the Database table {@link DatabaseHelper#configParametersTable}. This
+     * task is run only when {@link #tabletIdDialog} is <code>true</code>.
+     */
     private class SetupTabletID extends AsyncTask<Void,Void,Boolean> {
 
         @Override
@@ -288,6 +384,11 @@ public class DialogActivity extends Activity {
             }
         }
     }
+
+    /**
+     * An {@link AsyncTask} to insert the beta value passed to it ({@link #receivedBeta}) in the Database table
+     * {@link DatabaseHelper#betaTable}. This task is run only when {@link #showDialogOptions} is <code>true</code>.
+     */
     private class InsertBetaOnStartup extends AsyncTask<Void,Void,Boolean> {
 
         @Override
@@ -311,6 +412,12 @@ public class DialogActivity extends Activity {
         }
     }
 
+    /**
+     * Inserts the Beta value passed to it in the Database table {@link DatabaseHelper#betaTable}.
+     * @param recdBeta the value of the angle {@link DatabaseHelper#beta} to insert in the Database.
+     * @param db An instance of the local Database
+     * @return <code>true</code> if the value is inserted successfully.
+     */
     private boolean updateBetaTable(double recdBeta, SQLiteDatabase db){
 
         try {
@@ -331,12 +438,18 @@ public class DialogActivity extends Activity {
 
     }
 
+    /**
+     * Enable the Navigation Bar (back button, home button) at the bottom of the screen.
+     */
     private void showNavigationBar() {
         View decorView = getWindow().getDecorView();
         int uiOptions = View.SYSTEM_UI_FLAG_VISIBLE;
         decorView.setSystemUiVisibility(uiOptions);
     }
 
+    /**
+     * Called when the Dialog box is about to be destroyed. It unregisters the GPS {@link BroadcastReceiver}.
+     */
     @Override
     public void onDestroy(){
         super.onDestroy();

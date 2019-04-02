@@ -50,7 +50,8 @@ import de.awi.floenavigation.services.ValidationService;
  * </p>
  * <p>
  *     After the {@link Timer} object has run for {@link DatabaseHelper#initial_setup_time}, it inserts last updated values for the
- *     predicted coordinates of both station in the Database table {@link DatabaseHelper#fixedStationTable} and start the background
+ *     predicted coordinates of both station in the Database table {@link DatabaseHelper#fixedStationTable}, the last calculated value of
+ *     angle Beta (from the received coordinates) in the Database table {@link DatabaseHelper#betaTable} and start the background
  *     services which then do the same task as this activity in the background.
  * </p>
  * <p>
