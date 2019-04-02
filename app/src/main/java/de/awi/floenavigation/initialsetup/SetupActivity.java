@@ -38,6 +38,29 @@ import de.awi.floenavigation.services.PredictionService;
 import de.awi.floenavigation.R;
 import de.awi.floenavigation.services.ValidationService;
 
+/**
+ * This {@link android.app.Activity} sets up the Coordinate System by calculating the angle {@link DatabaseHelper#beta} by using the
+ * two base stations (origin and x-Axis marker) inserted by the {@link MMSIFragment} and {@link CoordinateFragment}. Before setting
+ * up the coordinate system it runs the predictions for each station for atleast {@link DatabaseHelper#initial_setup_time}.
+ *
+ * <p>
+ *     The Activity runs predictions for each station using {@link Timer} objects. During each prediction it also calculates the difference
+ *     between the prediction and the received values. Additionally it also calculates the Angle beta from the received coordinates and
+ *     the predicted coordinates and calculates the difference between them as well.
+ * </p>
+ * <p>
+ *     After the {@link Timer} object has run for {@link DatabaseHelper#initial_setup_time}, it inserts last updated values for the
+ *     predicted coordinates of both station in the Database table {@link DatabaseHelper#fixedStationTable} and start the background
+ *     services which then do the same task as this activity in the background.
+ * </p>
+ * <p>
+ *     The Activity layout shows the details such as MMSI number, received coordinates, predicted coordinates, and difference between
+ *     the two coordinates for each station on the screen. It also shows the Angle Beta from received and predicted coordinates and its
+ *     difference as well.
+ *     It also show a circular {@link ProgressBar} to show how long the Prediction timer has been running for. Once the prediction timer
+ *     ends it shows a Button
+ * </p>
+ */
 
 public class SetupActivity extends ActionBarActivity {
 
@@ -232,7 +255,28 @@ public class SetupActivity extends ActionBarActivity {
      */
     private boolean isCalledFromCoordinateFragment = false;
 
-
+    /**
+     * Default {@link android.app.Activity#onCreate(Bundle)}.
+     * Runs the Predictions for both base stations and creates the Floe's coordinate system by calculating the Angle {@link DatabaseHelper#beta}.
+     * <p>
+     *     Runs the {@link #timer} which in its every run reads the latest received values from the Database of both base stations, predicts new
+     *     latitude and longitude and calculates the difference in the predicted values with the received values.
+     *     In each {@link #timer} run it also creates the Floe's coordinate system (by calculatinig angle {@link DatabaseHelper#beta})
+     *     from the received coordinates and the predicted coordinates and the difference in the two Betas. It then refreshes the values
+     *     on the screen at the end of each run of the {@link #timer}.
+     * </p>
+     * <p>
+     *     The second timer {@link #parentTimer} starts running after a delay of {@link #PREDICTION_TIME} and it checks the number of times
+     *     {@link #timer} has run. If {@link #timer} has run more than {@link #MAX_TIMER_COUNT}, it cancels both timers, inserts the
+     *     last predicted values in Database and displays the Next button on the screen.
+     * </p>
+     * <p>
+     *     Before running both timers for the first time it calculates the distance between the origin and x-Axis marker and inserts
+     *     it as the {@link DatabaseHelper#xPosition} of the x-Axis marker in the database. It also runs the prediction and beta caclculation
+     *     once outside the timer so that fields on the screen are populated with the inital values.
+     * </p>
+     * @param savedInstanceState
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -360,7 +404,8 @@ public class SetupActivity extends ActionBarActivity {
     }
 
     /**
-     * Inserts the Predicted Latitude and Longitude of both the Origin and x-Axis marker in to the Database table {@link DatabaseHelper#fixedStationTable}
+     * Inserts the Predicted Latitude and Longitude of both the Origin and x-Axis marker in to the Database table {@link DatabaseHelper#fixedStationTable}.
+     * Called at the end of the Predictions to insert the last predicted values in Database.
      * @return <code>true</code> if inserted successfully.
      */
     private boolean insertPredictedValuesInDB(){
@@ -445,6 +490,10 @@ public class SetupActivity extends ActionBarActivity {
         return super.onCreateOptionsMenu(menu, 1);
     }
 
+    /**
+     * Displays a {@link DialogActivity} which gives the User an option to re-run the Setup Activity or accept the current Grid Configuration.
+     * Called on Click of Next button.
+     */
     private void dialogBoxDisplay() {
 
         String popupMsg = "Do you wish to rerun the initial setup?, then press Confirm!";
@@ -460,6 +509,10 @@ public class SetupActivity extends ActionBarActivity {
         startActivity(dialogIntent);
     }
 
+    /**
+     * Starts the background services required for running the App once the Predictions are complete and Grid Configuration is done.
+     * @param mContext the current {@link Context} in which the Services will be started.
+     */
     public static void runServices(Context mContext){
         AngleCalculationService.setStopRunnable(false);
         AlphaCalculationService.stopTimer(false);
@@ -476,6 +529,9 @@ public class SetupActivity extends ActionBarActivity {
         MainActivity.areServicesRunning = true;
     }
 
+    /**
+     * Updates all the Text fields on the screen with new values.
+     */
     private void refreshScreen(){
         final EditText ais1MMSI = findViewById(R.id.first_station_MMSI);
         final EditText ais1UpdateTime = findViewById(R.id.first_station_updateTime);
@@ -601,8 +657,11 @@ public class SetupActivity extends ActionBarActivity {
         });
     }
 
-
-
+    /**
+     * Default Callback for Next Button on the screen, which comes into view only after the Prediction timers end.
+     * Displays a Dialog Box {@link #dialogBoxDisplay()} which gives the User an option to re-run the Prediction or accept current Grid Configuration.
+     * @param view
+     */
     public void onClickNext(View view) {
         //Intent mainIntent = new Intent(this, MainActivity.class);
         //startActivity(mainIntent);
@@ -614,6 +673,10 @@ public class SetupActivity extends ActionBarActivity {
         });
     }
 
+    /**
+     * Checks the variable {@link #backButtonEnabled}, if it is <code>true</code> {@link MainActivity} is started else it displays the
+     * {@link Toast} message {@link #toastMsg}.
+     */
     @Override
     public void onBackPressed(){
 
@@ -631,6 +694,13 @@ public class SetupActivity extends ActionBarActivity {
         }
     }
 
+    /**
+     * Default handler for the Action Bar Option Menu of Change Lat/Lon View format.
+     * It inverts the value of {@link #changeFormat} and updates its value in {@link DatabaseHelper#configParametersTable} so that the
+     * same format is shown throughout the App.
+     * @param menuItem
+     * @return
+     */
     @Override
     public boolean onOptionsItemSelected(MenuItem menuItem){
         switch (menuItem.getItemId()){
@@ -645,8 +715,11 @@ public class SetupActivity extends ActionBarActivity {
         }
     }
 
-
-
+    /**
+     * An {@link AsyncTask} which runs in the background and reads and updates the values of the base stations (origin and x-Axis marker)
+     * from the database tabel {@link DatabaseHelper#fixedStationTable}.
+     * It reads the values for {@link #stationLatitude}, {@link #stationLongitude}, {@link #stationSOG}, {@link #stationCOG} and {@link #stationTime}.
+     */
     private class ReadParamsFromDB extends AsyncTask<Void,Void,Boolean> {
 
         int[] mmsi;
@@ -731,8 +804,10 @@ public class SetupActivity extends ActionBarActivity {
         }
     }
 
-
-
+    /**
+     * An {@link AsyncTask} which is used to insert the distance between the origin and x-Axis marker as x coordinate of the x-Axis marker
+     * base station in the Database table {@link DatabaseHelper#fixedStationTable}.
+     */
     private class InsertXAxisDistance extends AsyncTask<Void,Void,Boolean> {
 
         @Override
