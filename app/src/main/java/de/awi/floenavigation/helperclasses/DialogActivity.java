@@ -34,6 +34,36 @@ import de.awi.floenavigation.admin.AdminPageActivity;
 import de.awi.floenavigation.initialsetup.SetupActivity;
 import de.awi.floenavigation.services.GPS_Service;
 
+/**
+ * This {@link Activity} creates and displays different type of {@link Dialog}s according to the parameters passed to it in its calling
+ * {@link Intent}. Currently it displays four different type of Dialogs
+ * <p>
+ *     The Validation Dialog is created when the {@link de.awi.floenavigation.services.ValidationService} fails for a Fixed Station and
+ *     the Dialog Box contains a simple message and can be canceled by a simple Tap on the screen. When the Dialog is canceled it
+ *     starts the {@link MainActivity}.
+ * </p>
+ * <p>
+ *     The About Us Dialog is created from the {@link MainActivity} and contains info about the App. The Dialog Box contains the info
+ *     in simple text and the Dialog Box can be canceled by a Simple tap on the screen which returns the App to {@link MainActivity}.
+ * </p>
+ * <p>
+ *     The Tablet ID dialog is created only once when the App is used for the first time. It is created when the {@link AdminPageActivity}
+ *     is started. It contains a simple message with an {@link EditText} in which the Tablet ID is entered and an Okay button. On clicking
+ *     the Okay button the text (Tablet ID) in the {@link EditText} is inserted in the Database and it returns to {@link AdminPageActivity}.
+ * </p>
+ * <p>
+ *     The Setup Complete Dialog is created when the Next button is clicked in {@link SetupActivity} at the end of the Predictions. The
+ *     Dialog Box contains a text message with two Buttons (Confirm and Finish). On clicking Confirm the {@link SetupActivity} is restarted
+ *     to re-run the Predictions. On clicking Finish {@link MainActivity} is started and the last calculated Grid Parameters are inserted
+ *     in the Database.
+ * </p>
+ *
+ * @see MainActivity
+ * @see SetupActivity
+ * @see de.awi.floenavigation.services.ValidationService
+ * @see AdminPageActivity
+ */
+
 public class DialogActivity extends Activity {
 
     private static final String TAG = "DialogActivity";
@@ -150,7 +180,9 @@ public class DialogActivity extends Activity {
     private long timeDiff;
 
     /**
-     *
+     * Default {@link Activity#onCreate(Bundle)}. Registers the {@link #broadcastReceiver} and retrieves the values for type of dialog
+     * box to display from the {@link Intent} with which this activity was started. Then depending on the type of Dialog Box to display
+     * it will create and display the Dialog Box.
      * @param savedInstanceState
      */
     @Override
