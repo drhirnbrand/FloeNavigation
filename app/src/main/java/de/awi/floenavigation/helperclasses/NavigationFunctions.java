@@ -15,7 +15,7 @@ public class NavigationFunctions {
      * @param lon Current Longitude of the Station/Ship
      * @param speed Current Speed Over Ground of the Station/Ship
      * @param bearing Current Course Over Ground of the Station/Ship
-     * @return an array of double containing the expected latitude and longitude in 10 seconds time. 
+     * @return an array of double containing the expected latitude and longitude in 10 seconds time.
      */
     public static double[] calculateNewPosition(double lat, double lon, double speed, double bearing){
 
