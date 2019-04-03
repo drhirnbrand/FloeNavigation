@@ -7,6 +7,16 @@ import java.text.DecimalFormat;
 public class NavigationFunctions {
     private static final String TAG = "Navigation Functions";
 
+    /**
+     * Given the current Latitude, Longitude, Speed and Course, this method will calculate and return the expected latitude and longitude
+     * in 10 seconds time using the Haversine formula. Depending on the latitude the Earth's radius may need to be adjusted in the method.
+     * This method assumes a linear and constant speed.
+     * @param lat Current Latitude of the Station/Ship
+     * @param lon Current Longitude of the Station/Ship
+     * @param speed Current Speed Over Ground of the Station/Ship
+     * @param bearing Current Course Over Ground of the Station/Ship
+     * @return an array of double containing the expected latitude and longitude in 10 seconds time. 
+     */
     public static double[] calculateNewPosition(double lat, double lon, double speed, double bearing){
 
         final double r = 6364.348 * 1000; // Earth Radius in m
