@@ -15,44 +15,284 @@ import java.util.List;
 
 public class DatabaseHelper extends SQLiteOpenHelper {
 
+    /**
+     * Name of the local database instance
+     */
     private static final String DB_NAME = "FloeNavigation";
+
+    /**
+     * The current version of this Database. This needs to be updated with every new version of the App which changes the Database
+     * Schema. This is used by the {@link #onUpgrade(SQLiteDatabase, int, int)} function to check if the Database needs to updated
+     * when the App is installed.
+     */
     private static final int DB_VERSION = 2;
     private static final String TAG = "DatabaseHelper";
 
+    /**
+     * A static instance of {@link DatabaseHelper} which is used to provide access to the Database by other activities and classes.
+     */
     private static DatabaseHelper dbInstance;
 
+    /**
+     * Index value for the Origin of Floe's Coordinate System. This index value is used in different classes and activities whenever an
+     * array of Station parameters (such as MMSIs or Latitude/Longitudes) is created this will be the index in the array at which the
+     * values for the Origin station will be found.
+     */
     public static final int firstStationIndex = 0;
+
+    /**
+     * Index value for the x-Axis Marker of Floe's Coordinate System. This index value is used in different classes and activities whenever an
+     * an array of Station parameters (such as MMSIs or Latitude/Longitudes) is created this will be the index in the array at which the
+     * values for the x-Axis Marker station will be found.
+     */
     public static final int secondStationIndex = 1;
+
+    /**
+     * Index value for Latitude in an array of {Latitude, Longitude}. Currently all coordinates in the App are created in an array such
+     * that the Latitude is at this index value.
+     */
     public static final int LATITUDE_INDEX = 0;
+
+    /**
+     * Index value for Longitude in an array of {Latitude, Longitude}. Currently all coordinates in the App are created in an array such
+     * that the Longitude is at this index value.
+     */
     public static final int LONGITUDE_INDEX = 1;
+
+    /**
+     * Specifies the number of base stations which will be used to create the Floe's coordinate system. This is used extensively by
+     * {@link de.awi.floenavigation.initialsetup.SetupActivity} and other activities as well to initialize its arrays to the correct
+     * size.
+     */
     public static final int INITIALIZATION_SIZE = 2;
+
+    /**
+     * Similar to {@link #INITIALIZATION_SIZE}. Specifies the minimum number of base/fixed station which can be used to maintain the
+     * Grid. This is used in {@link de.awi.floenavigation.admin.RecoveryActivity} to check if sufficient number of Fixed/Base Stations
+     * are left. This is also used for updating the ActionBar icon for Grid Setup.
+     */
     public static final int NUM_OF_BASE_STATIONS = 2;
     public static final int NUM_OF_DEVICES = 1234;
+
+    /**
+     * Initial Value which is inserted by default in the column {@link #isLocationReceived} in the Database table {@link #fixedStationTable}.
+     */
     public static final int IS_LOCATION_RECEIVED_INITIAL_VALUE = 0;
+
+    /**
+     * Specifies the value which is inserted in the column {@link #isLocationReceived} in the Database table {@link #fixedStationTable} by the
+     * {@link de.awi.floenavigation.aismessages.AISDecodingService} when a position report is received.
+     */
     public static final int IS_LOCATION_RECEIVED = 1;
+
+    /**
+     * Constant defining the value to insert in the column {@link #distance} in the Database table {@link #fixedStationTable} when Grid Initial
+     * Configuration is done. As it is the origin so its distance from itself should be 0.
+     */
     public static final double ORIGIN_DISTANCE = 0.0;
+
+    /**
+     * Specifies the value which is inserted in the Database table {@link #baseStationTable} if the station is the Origin station.
+     */
     public static final double ORIGIN = 1;
+
+    /**
+     * Name of the Configuration Parameter which defines the maximum correct distance in meters between the predicted coordinates and received coordinates
+     * for a Fixed Station. If the distance between the predicted coordinates and received coordinates is above the value specified by
+     * this Configuration Parameter it will be considered as an incorrect Prediction.
+     */
     public static final String error_threshold = "ERROR_THRESHOLD";
+
+    /**
+     * Name of the Configuration Parameter which defines the minimum time during which if three incorrect prediction occurs for a Fixed
+     * Station it will be considered to be broken from the Floe. Used extensively by
+     * {@link de.awi.floenavigation.services.ValidationService}.
+     */
     public static final String prediction_accuracy_threshold = "PREDICTION_ACCURACY_THRESHOLD";
+
+    /**
+     * Name of the Configuration Parameter which sets the display format for Latitude and Longitude on the App interface. It can either
+     * be only degree with decimal values (Degree.xxxx) or Degrees Minutes Seconds with Direction (Degree° Minutes' Seconds'' Direction).
+     */
     public static final String lat_long_view_format = "LATITUDE_LONGITUDE_VIEW_FORMAT";
+
+    /**
+     * Name of the Configuration Parameter which set the number of significant figures to show for any decimal field to show on the
+     * interface of the App. Please note this only defines it for displaying purposes, the calculations in the App use the complete
+     * {@link Double} data type length.
+     */
     public static final String decimal_number_significant_figures = "DECIMAL_NUMBER_SIGNIFICANT_FIGURES";
+
+    /**
+     * Name of the Configuration Parameter which sets the time for which the Prediction timer in
+     * {@link de.awi.floenavigation.initialsetup.SetupActivity} will run for.
+     */
     public static final String initial_setup_time = "INITIAL_SETUP_TIME";
+
+    /**
+     * Name of the Configuration Parameter which gives the Unique ID of the tablet. The value of this Configuration Parameter
+     * is appended to all {@link de.awi.floenavigation.synchronization.Waypoints} labels created on this tablet.
+     */
     public static final String tabletId = "TABLET_ID";
+
+    /**
+     * Name of the Configuration Parameter whose value gives the IP/Hostname of the Synchronization Server with which the App will try
+     * to synchronize its data with in {@link de.awi.floenavigation.synchronization.SyncActivity}.
+     */
     public static final String sync_server_hostname = "SYNC_SERVER_HOSTNAME";
+
+    /**
+     * Name of the Configuration Parameter whose value gives the Port on the Synchronization Server with which the App will try
+     * to synchronize its data with in {@link de.awi.floenavigation.synchronization.SyncActivity}.
+     */
     public static final String sync_server_port = "SYNC_SERVER_PORT";
 
 
     //Database Tables Names
+    /**
+     * Table which stores the details of every Fixed Station deployed on the Floe. It stores the location parameters of each Fixed Station
+     * and is used to create the Coordinate System of the Floe. It is one of most tables in the Database and should be maintained properly.
+     * For each Fixed Station the details being stored are the distance from origin, the angle Alpha from x-Axis of the Floe's coordinate
+     * system, the x and y coordinates in the Floe's Coordinate system and the received and predicted coordinates in Latitude and Longitude.
+     * This table is also used to predict and validate each Fixed Station and to detect if a station has broken from the Floe.
+     * Data from this table is displayed on the Grid.
+     * <p>
+     *     This table is synchronized with Synchronization Server during {@link de.awi.floenavigation.synchronization.SyncActivity}. This
+     *     table's data pushed to the Sync Server, and its local copy is cleared after which the new data is pulled from the Synchronization
+     *     Server.
+     * </p>
+     * For more details check the Database Schema.
+     */
     public static final String fixedStationTable = "AIS_FIXED_STATION_POSITION";
+
+    /**
+     * Table which stores a list of names and MMSIs of Fixed Stations. The {@link de.awi.floenavigation.aismessages.AISDecodingService} checks
+     * the MMSI for each decoded AIS message in this table and if the MMSI exists in this table that means that the AIS message is from a Fixed
+     * Station and then the actual data received in the AIS message is inserted in the table {@link #fixedStationTable}.
+     * <p>
+     *     This table is synchronized with Synchronization Server during {@link de.awi.floenavigation.synchronization.SyncActivity}. This
+     *     table's data pushed to the Sync Server, and its local copy is cleared after which the new data is pulled from the Synchronization
+     *     Server and populated in this table.
+     * </p>
+     */
     public static final String stationListTable = "AIS_STATION_LIST";
+
+    /**
+     * This table stores the parameters of Mobile Stations. If the {@link de.awi.floenavigation.aismessages.AISDecodingService} does not find
+     * the MMSI from a decoded AIS message in the {@link #stationListTable} it will insert the data received in the AIS message in this table.
+     * The {@link de.awi.floenavigation.services.AlphaCalculationService} then calculates the position of each station in this table with in the
+     * Floe's Coordinate system. Data from this table is displayed on the Grid.
+     * <p>
+     *     This table is not synchronized with Synchronization Server during {@link de.awi.floenavigation.synchronization.SyncActivity}.
+     * </p>
+     */
     public static final String mobileStationTable = "AIS_MOBILE_STATION_POSITION";
+
+    /**
+     * Table name for the Database table which stores a list of Administrative Users of the App and their passwords. Only Users who exist
+     * in this table have access to the Admin activities of the App.
+     * <p>
+     *     This table is synchronized with Synchronization Server during {@link de.awi.floenavigation.synchronization.SyncActivity}. This
+     *     table's data pushed to the Sync Server, and its local copy is cleared after which the new data is pulled from the Synchronization
+     *     Server and populated in this table.
+     * </p>
+     */
     public static final String usersTable = "USERS";
+
+    /**
+     * Table name for the Database table which stores the Sample/Measurements taken from this tablet.
+     * During {@link de.awi.floenavigation.sample_measurement.SampleMeasurementActivity} activity when a new Sample is taken its
+     * location parameters and other important information is stored in this table along with the label of Sample/Measurement which is
+     * then Synchronized with Synchronization Server.
+     * <p>
+     *     This table is synchronized with Synchronization Server during {@link de.awi.floenavigation.synchronization.SyncActivity}. This
+     *     table's data pushed to the Sync Server, and its local copy is cleared. Data from the Synchronization Server is not pulled
+     *     for this table.
+     * </p>
+     */
     public static final String sampleMeasurementTable = "SAMPLE_MEASUREMENT";
+
+    /**
+     * Table name for the Database table which stores the Devices with which Sample/Measurement are taken. This table is empty when
+     * App is used for the first time and it is populated during the Synchronization process with the data imported from the D-Ship Server.
+     * This table contains the name, shortname and unique Device ID of the devices. The data from this table is read and populated in the
+     * fields in the {@link de.awi.floenavigation.sample_measurement.SampleMeasurementActivity}. Data from this table is <b>not</b>
+     * displayed on the Grid.
+     * <p>
+     *     This table is synchronized with Synchronization Server during {@link de.awi.floenavigation.synchronization.SyncActivity}. This
+     *     table's data is not pushed to the Sync Server, however, its local copy is cleared after which the new data is pulled from the Synchronization
+     *     Server and populated in this table.
+     * </p>
+     */
     public static final String deviceListTable = "DEVICE_LIST";
+
+    /**
+     * Table name for the Database table which stores the Waypoints created from this tablet. A waypoint can be any point of interest on
+     * the Ice Floe where a User may want to return to or a User may want to avoid. A series of waypoints can also create a track on the ice.
+     * During {@link de.awi.floenavigation.waypoint.WaypointActivity} activity when a new Waypoint is created its location parameters and
+     * other important information is stored in this table along with the label of the Waypoint which is displayed on the Grid.
+     * Data from this table is displayed on the Grid.
+     * <p>
+     *     This table is synchronized with Synchronization Server during {@link de.awi.floenavigation.synchronization.SyncActivity}. This
+     *     table's data pushed to the Sync Server, and its local copy is cleared after which the new data is pulled from the Synchronization
+     *     Server and populated in this table.
+     * </p>
+     */
     public static final String waypointsTable = "WAYPOINTS";
+
+    /**
+     * Table name for the Database table which stores all the Configuration Parameters names and their values. These Configuration
+     * Parameters are used by different Acitivities and Background Services which define the behavior of the App. Details about each
+     * Configuration Parameter can be found with the parameter name.
+     * <p>
+     *     This table is synchronized with Synchronization Server during {@link de.awi.floenavigation.synchronization.SyncActivity}, however
+     *     only some Configuration Parameters are synchronized. The data from the parameters which are synchronized is pushed to the Sync
+     *     Server, and its local copy is cleared after which the new data is pulled from the Synchronization Server and populated in this
+     *     table.
+     * </p>
+     */
     public static final String configParametersTable = "CONFIGURATION_PARAMETERS";
+
+    /**
+     * Table name for the Database table which stores the name and MMSI numbers of the two Fixed Stations (Origin and x-Axis marker) with
+     * which the Floe's Coordinate System was created during {@link de.awi.floenavigation.initialsetup}. The MMSIs of these two are stored
+     * separately because we can then retrieve the Origin location data from {@link #fixedStationTable} by checking the MMSI from this
+     * table, and it is also used in {@link de.awi.floenavigation.admin.RecoveryActivity} and {@link de.awi.floenavigation.services.ValidationService}
+     * as the rows for the MMSIs stored in this table should not be deleted completely from the {@link #fixedStationTable} else we will
+     * not have an Origin.
+     * <p>
+     *     This table is synchronized with Synchronization Server during {@link de.awi.floenavigation.synchronization.SyncActivity}. This
+     *     table's data pushed to the Sync Server, and its local copy is cleared after which the new data is pulled from the Synchronization
+     *     Server and populated in this table.
+     * </p>
+     */
     public static final String baseStationTable = "BASE_STATIONS";
+
+    /**
+     * Table name for the Database table which stores the latest value for the Angle Beta which defines the Floe's Coordinate System with
+     * in the Geographical Coordinate System of the world. The value of the angle is calculated and inserted in this table by
+     * {@link de.awi.floenavigation.services.AngleCalculationService} at regular intervals. This value is then used extensively
+     * through out the App by different Activities and Background Services.
+     * <p>
+     *     This table is synchronized with Synchronization Server during {@link de.awi.floenavigation.synchronization.SyncActivity}. This
+     *     table's data pushed to the Sync Server, and its local copy is cleared after which the new data is pulled from the Synchronization
+     *     Server and populated in this table.
+     * </p>
+     */
     public static final String betaTable = "BETA_TABLE";
+
+    /**
+     * Table name for the Database table which stores the Static Stations. Static Stations are fixed points on the ice which may be
+     * a tent or a hut or as specified by {@link #stationTypes} like a Fixed Station but these stations do not have an AIS transponder.
+     * This table stores the location parameters such as x,y coordinates of the station with in the Floe's Coordinate System which are
+     * calculated and inserted in the table by {@link de.awi.floenavigation.deployment.StaticStationFragment}.
+     * Data from this table is displayed on the Grid.
+     * <p>
+     *     This table is synchronized with Synchronization Server during {@link de.awi.floenavigation.synchronization.SyncActivity}. This
+     *     table's data pushed to the Sync Server, and its local copy is cleared after which the new data is pulled from the Synchronization
+     *     Server and populated in this table.
+     * </p>
+     */
     public static final String staticStationListTable = "STATION_LIST";
     public static final String stationListDeletedTable = "STATION_LIST_DELETED";
     public static final String fixedStationDeletedTable = "FIXED_STATION_DELETED";

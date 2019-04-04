@@ -4,6 +4,12 @@ import android.content.Context;
 
 import java.text.DecimalFormat;
 
+/**
+ * This Class provides methods to calculate different Navigation parameters used by the App. The methods here are used by the background
+ * services and different activities to calculate parameters of the stations. These methods are based on the Haversine formula.
+ *
+ * @see <a href="https://www.movable-type.co.uk/scripts/latlong.html">Navigation Functions</a>
+ */
 public class NavigationFunctions {
     private static final String TAG = "Navigation Functions";
 
@@ -15,7 +21,7 @@ public class NavigationFunctions {
      * @param lon Current Longitude of the Station/Ship
      * @param speed Current Speed Over Ground of the Station/Ship
      * @param bearing Current Course Over Ground of the Station/Ship
-     * @return an array of double containing the expected latitude and longitude in 10 seconds time.
+     * @return an array of double containing the expected latitude and longitude in 10 seconds time, with the latitude at 0 index.
      */
     public static double[] calculateNewPosition(double lat, double lon, double speed, double bearing){
 
@@ -32,6 +38,15 @@ public class NavigationFunctions {
         return new double[]{lat2, lon2};
     }
 
+    /**
+     * Given two sets of coordinates this method will calculate the distance between the two points in meters using the Haversine formula.
+     * Depending on the latitude the Earth's radius may need to be adjusted in the method.
+     * @param lat1 Latitude of the first point
+     * @param lon1 Longitude of the first point
+     * @param lat2 Latitude of the second point
+     * @param lon2 Longitude of the second point
+     * @return The distance between the two sets of latitude and longitude in meters.
+     */
     public static double calculateDifference(double lat1, double lon1, double lat2, double lon2){
 
         final double R = 6364.348; // Radius of the earth change this
@@ -76,6 +91,14 @@ public class NavigationFunctions {
 
     }
 
+    /**
+     * Given two sets of points this method will calculate the bearing from the first coordinates to the second coordinates.
+     * @param lat1 Latitude of the first point
+     * @param lon1 Longitude of the first point
+     * @param lat2 Latitude of the second point
+     * @param lon2 Longitude of the second point
+     * @return The bearing from the first point to the second point in Degrees
+     */
     public static double calculateBearing(double lat1, double lon1, double lat2, double lon2){
         double y = Math.sin(Math.toRadians(lon2 - lon1)) * Math.cos(Math.toRadians(lat2));
         double x = (Math.cos(Math.toRadians(lat1)) * Math.sin(Math.toRadians(lat2))) -
@@ -83,6 +106,11 @@ public class NavigationFunctions {
         return Math.toDegrees(Math.atan2(y,x));
     }
 
+    /**
+     * Converts the Geographic coordinate (latitude/longitude) passed to it from Decimal form (Degree.xxx) to Degree Minute Second form.
+     * @param decCoord the coordinate to be converted.
+     * @return The Converted coordinate in Degree Minutes Seconds as a String.
+     */
     public static String convertToDegMinSec(double decCoord){
 
         String degMinSec;
@@ -99,6 +127,14 @@ public class NavigationFunctions {
         return degMinSec;
     }
 
+    /**
+     * This method calculates the angle between two points from the longitudinal axis in degrees.
+     * @param lat1 Latitude of the first point
+     * @param lon1 Longitude of the first point
+     * @param lat2 Latitude of the second point
+     * @param lon2 Longitude of the second point
+     * @return The angle between the two points from the longitudinal axis in degrees.
+     */
     public static double calculateAngleBeta(double lat1, double lon1, double lat2, double lon2){
 
         //double fixedLat = lat1;
@@ -131,6 +167,12 @@ public class NavigationFunctions {
         return bearing;
     }
 
+    /**
+     * This method formats a given set of coordinates in decimal form (Degree.xxx) to Degree Minute Second along with Direction.
+     * @param latitude Latitude in Decimal form
+     * @param longitude Longitude in Decimal
+     * @return The formatted coordinates in a String Array with latitude first and longitude second.
+     */
     public static String[] locationInDegrees(double latitude, double longitude){
 
         int MAX_SIZE = 2;
