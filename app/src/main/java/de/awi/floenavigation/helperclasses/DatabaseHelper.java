@@ -215,7 +215,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     /**
      * Table name for the Database table which stores the Devices with which Sample/Measurement are taken. This table is empty when
      * App is used for the first time and it is populated during the Synchronization process with the data imported from the D-Ship Server.
-     * This table contains the name, shortname and unique Device ID of the devices. The data from this table is read and populated in the
+     * This table contains the name, shortname, type and unique Device ID of the devices. The data from this table is read and populated in the
      * fields in the {@link de.awi.floenavigation.sample_measurement.SampleMeasurementActivity}. Data from this table is <b>not</b>
      * displayed on the Grid.
      * <p>
@@ -294,38 +294,350 @@ public class DatabaseHelper extends SQLiteOpenHelper {
      * </p>
      */
     public static final String staticStationListTable = "STATION_LIST";
+
+    /**
+     * Table name for the Database table which stores a list of deleted Fixed Stations. This table contains the MMSIs and deletion time
+     * of each Fixed Station which was deleted from this particular instance of the App whether by Recovery Activity or Validation Service.
+     * Whenever a Fixed Station is recovered it specific row is deleted from the {@link #stationListTable} and its MMSI is added to
+     * this table. When the Synchronization process is run this table is synchronized with the Sync Server which then deletes the
+     * same station from all the other tablets.
+     * <p>
+     *     When a Fixed Station is deleted either by Recovery or by Validation Service its entry has to be deleted from two or three
+     *     different database tables: {@link #stationListTable}, {@link #fixedStationTable} and if it is the origin or x-Axis marker
+     *     then from {@link #baseStationTable}. This means that when a fixed station is deleted its MMSI should be added to two or three
+     *     different tables: {@link #stationListDeletedTable}, {@link #fixedStationDeletedTable} and in case it is the orign or x-Axis
+     *     marker {@link #baseStationDeletedTable}. These deleted tables are then Synchronized with the Sync Server which removes
+     *     the entries in these tables from its tables and pushes those tables to other instance of the App so that when a fixed station
+     *     is removed from one tablet it is removed from all tablet.
+     * </p>
+     * <p>
+     *     This table is synchronized with Synchronization Server during {@link de.awi.floenavigation.synchronization.SyncActivity}. This
+     *     table's data pushed to the Sync Server, and its local copy is cleared. No data is pulled from the Sync Server for this table.
+     * </p>
+     */
     public static final String stationListDeletedTable = "STATION_LIST_DELETED";
+
+    /**
+     * Table name for the Database table which stores a list of deleted Fixed Stations. This table contains the MMSIs and deletion time
+     * of each Fixed Station which was deleted from this particular instance of the App whether by Recovery Activity or Validation Service.
+     * Whenever a Fixed Station is recovered it specific row is deleted from the {@link #fixedStationTable} and its MMSI is added to this table.
+     * When the Synchronization process is run this table is synchronized with the Sync Server which then deletes the same station from
+     * all the other tablets.
+     * <p>
+     *     When a Fixed Station is deleted either by Recovery or by Validation Service its entry has to be deleted from two or three
+     *     different database tables: {@link #stationListTable}, {@link #fixedStationTable} and if it is the origin or x-Axis marker
+     *     then from {@link #baseStationTable}. This means that when a fixed station is deleted its MMSI should be added to two or three
+     *     different tables: {@link #stationListDeletedTable}, {@link #fixedStationDeletedTable} and in case it is the orign or x-Axis
+     *     marker {@link #baseStationDeletedTable}. These deleted tables are then Synchronized with the Sync Server which removes
+     *     the entries in these tables from its tables and pushes those tables to other instance of the App so that when a fixed station
+     *     is removed from one tablet it is removed from all tablet.
+     * </p>
+     * <p>
+     *     This table is synchronized with Synchronization Server during {@link de.awi.floenavigation.synchronization.SyncActivity}. This
+     *     table's data pushed to the Sync Server, and its local copy is cleared. No data is pulled from the Sync Server for this table.
+     * </p>
+     */
     public static final String fixedStationDeletedTable = "FIXED_STATION_DELETED";
+
+    /**
+     * Table name for the Database table which stores a list of deleted Static Stations. This table contains the names and deletion time
+     * of each Static Station which was deleted from this particular instance of the App. Whenever a Static Station is recovered it specific
+     * row is deleted from the {@link #staticStationListTable} and its name is added to this table. When the Synchronization process is run
+     * this table is synchronized with the Sync Server which then deletes the same station from all the other tablets.
+     * <p>
+     *     This table is synchronized with Synchronization Server during {@link de.awi.floenavigation.synchronization.SyncActivity}. This
+     *     table's data pushed to the Sync Server, and its local copy is cleared. No data is pulled from the Sync Server for this table.
+     * </p>
+     */
     public static final String staticStationDeletedTable = "STATIC_STATION_DELETED";
+
+    /**
+     * Table name for the Database table which stores a list of deleted Base Stations (Base Stations are origin and the x-Axis marker).
+     * This table contains the MMSIs and deletion time of each Base Station which was deleted from this particular instance of the App
+     * whether by Recovery Activity or Validation Service. Whenever a Base Station is recovered it specific row is deleted from the
+     * {@link #baseStationTable} and its MMSI is added to this table. When the Synchronization process is run this table is
+     * synchronized with the Sync Server which then deletes the same station from all the other tablets.
+     * <p>
+     *     When a Fixed Station is deleted either by Recovery or by Validation Service its entry has to be deleted from two or three
+     *     different database tables: {@link #stationListTable}, {@link #fixedStationTable} and if it is the origin or x-Axis marker
+     *     then from {@link #baseStationTable}. This means that when a fixed station is deleted its MMSI should be added to two or three
+     *     different tables: {@link #stationListDeletedTable}, {@link #fixedStationDeletedTable} and in case it is the orign or x-Axis
+     *     marker {@link #baseStationDeletedTable}. These deleted tables are then Synchronized with the Sync Server which removes
+     *     the entries in these tables from its tables and pushes those tables to other instance of the App so that when a fixed station
+     *     is removed from one tablet it is removed from all tablet.
+     * </p>
+     * <p>
+     *     This table is synchronized with Synchronization Server during {@link de.awi.floenavigation.synchronization.SyncActivity}. This
+     *     table's data pushed to the Sync Server, and its local copy is cleared. No data is pulled from the Sync Server for this table.
+     * </p>
+     */
     public static final String baseStationDeletedTable = "BASE_STATION_DELETED";
+
+    /**
+     * Table name for the Database table which stores a list of deleted Waypoints. This table contains the names and deletion time
+     * of each Waypoint which was deleted from this particular instance of the App. Whenever a Waypoint is deleted its specific
+     * row is deleted from the {@link #waypointsTable} and its name is added to this table. When the Synchronization process is run
+     * this table is synchronized with the Sync Server which then deletes the same waypoint from all the other tablets.
+     * <p>
+     *     This table is synchronized with Synchronization Server during {@link de.awi.floenavigation.synchronization.SyncActivity}. This
+     *     table's data pushed to the Sync Server, and its local copy is cleared. No data is pulled from the Sync Server for this table.
+     * </p>
+     */
     public static final String waypointDeletedTable = "WAYPOINT_DELETED";
+
+    /**
+     * Table name for the Database table which stores a list of deleted Admin Users. This table contains the names and deletion time
+     * of each Admin User which was deleted from this particular instance of the App. Whenever an Admin User is deleted its specific
+     * row is deleted from the {@link #usersTable} and its name is added to this table. When the Synchronization process is run
+     * this table is synchronized with the Sync Server which then deletes the same User from all the other tablets.
+     * <p>
+     *     This table is synchronized with Synchronization Server during {@link de.awi.floenavigation.synchronization.SyncActivity}. This
+     *     table's data pushed to the Sync Server, and its local copy is cleared. No data is pulled from the Sync Server for this table.
+     * </p>
+     */
     public static final String userDeletedTable = "USERS_DELETED";
 
 
 
     //Database Fields Names
+    /**
+     * Column name for an AIS Station name. This column name is used in all tables which maintain any AIS station data, such as Fixed Stations
+     * or Mobile Stations. This is a TEXT field.
+     * <p>
+     *     A column of this name is present in several database tables such as {@link #stationListTable}, {@link #fixedStationTable},
+     *     {@link #baseStationTable}, {@link #mobileStationTable} and their respective deleted tables if it exists.
+     * </p>
+     */
     public static final String stationName = "AIS_STATION_NAME";
+
+    /**
+     * Column name for storing the Latitude of any point or station. This column name is used in all tables which maintain any geographic data,
+     * such as Fixed Stations or Waypoints etc. The data type for this field REAL.
+     * <p>
+     *     A column of this name is present in several database tables such as {@link #waypointsTable}, {@link #fixedStationTable},
+     *     {@link #mobileStationTable} and {@link #sampleMeasurementTable}.
+     * </p>
+     */
     public static final String latitude = "LATITUDE";
+
+    /**
+     * Column name for storing the Longitude of any point or station. This column name is used in all tables which maintain any geographic data,
+     * such as Fixed Stations or Waypoints etc. The data type for this field REAL.
+     * <p>
+     *     A column of this name is present in several database tables such as {@link #waypointsTable}, {@link #fixedStationTable},
+     *     {@link #mobileStationTable} and {@link #sampleMeasurementTable}.
+     * </p>
+     */
     public static final String longitude = "LONGITUDE";
+
+    /**
+     * Column name for storing the Latitude received from the AIS data of a Fixed Station. This column is used in {@link #fixedStationTable}
+     * where data from this column is compared with data from {@link #latitude} column by the {@link de.awi.floenavigation.services.ValidationService}
+     * to check if the Fixed Station has broken off. The data type for this field REAL.
+     * <p>
+     *     A column of this name is present in the database table {@link #fixedStationTable}.
+     * </p>
+     */
     public static final String recvdLatitude = "RECEIVED_LATITUDE";
+
+    /**
+     * Column name for storing the Longitude received from the AIS data of a Fixed Station. This column is used in {@link #fixedStationTable}
+     * where data from this column is compared with data from {@link #latitude} column by the {@link de.awi.floenavigation.services.ValidationService}
+     * to check if the Fixed Station has broken off. The data type for this field REAL.
+     * <p>
+     *     A column of this name is present in the database table {@link #fixedStationTable}.
+     * </p>
+     */
     public static final String recvdLongitude = "RECEIVED_LONGITUDE";
+
+    /**
+     * Column name for storing the x coordinates of any point or station in the Floe's Coordinate System. This column name is used in all
+     * tables which maintain any location data, such as Fixed Stations or Waypoints etc. Data from this column is used to display
+     * the stations/waypoints on the Grid. The data type for this field REAL.
+     * <p>
+     *     A column of this name is present in several database tables such as {@link #waypointsTable}, {@link #fixedStationTable},
+     *     {@link #mobileStationTable}, {@link #staticStationListTable} and {@link #sampleMeasurementTable}.
+     * </p>
+     */
     public static final String xPosition = "X_POSITION";
+
+    /**
+     * Column name for storing the y coordinates of any point or station in the Floe's Coordinate System. This column name is used in all
+     * tables which maintain any location data, such as Fixed Stations or Waypoints etc. Data from this column is used to display
+     * the stations/waypoints on the Grid. The data type for this field REAL.
+     * <p>
+     *     A column of this name is present in several database tables such as {@link #waypointsTable}, {@link #fixedStationTable},
+     *     {@link #mobileStationTable}, {@link #staticStationListTable} and {@link #sampleMeasurementTable}.
+     * </p>
+     */
     public static final String yPosition = "Y_POSITION";
+
+    /**
+     * Column name for storing the Speed Over Ground of an AIS Station as received by {@link de.awi.floenavigation.aismessages.AISDecodingService}.
+     * This column is used in {@link #fixedStationTable} where data from this column is used by {@link de.awi.floenavigation.services.PredictionService}
+     * to predict the next position of the Fixed Station. The data type for this field REAL.
+     * <p>
+     *     A column of this name is present in the database table {@link #fixedStationTable}.
+     * </p>
+     */
     public static final String sog = "SPEED_OVER_GROUND";
+
+    /**
+     * Column name for storing the Course Over Ground of an AIS Station as received by {@link de.awi.floenavigation.aismessages.AISDecodingService}.
+     * This column is used in {@link #fixedStationTable} where data from this column is used by {@link de.awi.floenavigation.services.PredictionService}
+     * to predict the next position of the Fixed Station. The data type for this field REAL.
+     * <p>
+     *     A column of this name is present in the database table {@link #fixedStationTable}.
+     * </p>
+     */
     public static final String cog = "COURSE_OVER_GROUND";
+
+    /**
+     * Column name storing the Angle Alpha. Alpha is the angle a station/waypoint makes with the x-Axis of the Floe's Coordinate System.
+     * It is used to calculate the {@link #xPosition} and {@link #yPosition} of a Station or Waypoint. This column is used in any table
+     * which maintains any location data. The data type for this field REAL.
+     * <p>
+     *     A column of this name is present in the database table {@link #fixedStationTable}, {@link #mobileStationTable} and
+     *     {@link #staticStationListTable}.
+     * </p>
+     */
     public static final String alpha = "ALPHA";
+
+    /**
+     * Column name storing the Angle Beta. Beta is the angle  the x-Axis of the Floe's Coordinate System makes with longitudinal axis
+     * of the Geographic Coordinate system (The World Coordinate system). This angle defines the Floe's Coordinate System and it is
+     * calculated and updated at regular intervals by {@link de.awi.floenavigation.services.AngleCalculationService}.
+     * The data type for this field REAL.
+     * <p>
+     *     A column of this name is present in the database table {@link #betaTable}.
+     * </p>
+     */
     public static final String beta = "BETA";
+
+    /**
+     * Column name for storing the type of AIS Message received from the AIS Transponder of a Fixed Station. The AIS protocol is made
+     * up of several different types of messages and only certain types of messages are used in this App. The data from this column
+     * tells whether the last received AIS packet was a Position Report or a Static Data Report. The data type for this field INTEGER.
+     * <p>
+     *     A column of this name is present in the database table {@link #fixedStationTable}.
+     * </p>
+     */
     public static final String packetType = "LAST_RECEIVED_PACKET_TYPE";
+
+    /**
+     * Specifies the name for a Column which gives how much accurate the predictions have been for a Fixed Station. This is a
+     * NUMERIC field which is incremented  by the {@link de.awi.floenavigation.services.ValidationService} every time the distance between
+     * the received coordinates ({@link #recvdLatitude}, {@link #recvdLongitude}), and the predicted coordinates
+     * ({@link #latitude}, {@link #longitude}) exceeds the value specified by {@link #error_threshold}. If the value in this field goes
+     * above a certain value specified by a ratio of {@link #prediction_accuracy_threshold} with
+     * {@link de.awi.floenavigation.services.ValidationService#VALIDATION_TIME}, and the value in {@link #incorrectMessageCount} goes
+     * above <b>three</b> then that Fixed Station will considered to be broken from the Floe.
+     * <p>
+     *     A column of this name is present in the database table {@link #fixedStationTable}.
+     * </p>
+     */
     public static final String predictionAccuracy = "PREDICTION_ACCURACY";
+
+    /**
+     * Column name for storing the MMSI of an AIS Station. MMSI is a unique number associated with each AIS Station. This is an INTEGER
+     * field which is used to identify AIS Stations. This column is used in any table which maintains AIS Data.
+     * <p>
+     *     A column of this name is present in the database table {@link #stationListTable}, {@link #fixedStationTable},
+     *     {@link #baseStationTable}, {@link #mobileStationTable}.
+     * </p>
+     */
     public static final String mmsi = "MMSI";
+
+    /**
+     * This column specifies the unique Station name for a Static Station. This is TEXT field which is used to identify
+     * Static Stations.
+     * <p>
+     *     A column of this name is present in the database table {@link #staticStationListTable}.
+     * </p>
+     */
     public static final String staticStationName = "STATION_NAME";
+
+    /**
+     * Specifies the name of a Column which stores the type of a Fixed or Static Station. Fixed and Static Station have a type associated
+     * with them. The different types of stations is specified by {@link #stationTypes}. This is a TEXT field.
+     * <p>
+     *     A column of this name is present in the database table {@link #fixedStationTable}, {@link #staticStationListTable}.
+     * </p>
+     */
     public static final String stationType = "STATION_TYPE";
+
+    /**
+     * Specifies the name of a Column which stores the distance in meters of a station or waypoint from the Origin of the Floe's Coordinate
+     * system. This field along with {@link #alpha} is used to calculate the {@link #xPosition} and {@link #yPosition} of a Station
+     * or Waypoint. This column is used in any table which maintains any location data. The data type for this field REAL.
+     * <p>
+     *     A column of this name is present in the database table {@link #fixedStationTable}, {@link #mobileStationTable} and
+     *     {@link #staticStationListTable}.
+     * </p>
+     */
     public static final String distance = "DISTANCE";
+
+    /**
+     * Specifies the name of a Column which stores the type of Device. Devices are used to take Sample/Measurements in
+     * {@link de.awi.floenavigation.sample_measurement.SampleMeasurementActivity}. This is a TEXT field.
+     * <p>
+     *     A column of this name is present in the database table {@link #deviceListTable} and {@link #sampleMeasurementTable}.
+     * </p>
+     */
     public static final String deviceType = "DEVICE_TYPE";
+
+    /**
+     * Specifies the name of a Column which stores the time when a specific event happened. This field has different meanings in different
+     * tables. The column in {@link #fixedStationTable} and {@link #mobileStationTable} specify the time at which the last AIS packet was
+     * received. The same column in {@link #betaTable} specifies the time at which the current value of {@link #beta} was calculated
+     * and inserted in the table. This field in {@link #sampleMeasurementTable} and {@link #waypointsTable} specify the time at which
+     * the sample was taken and the time at which the Waypoint was created respectively. This is a TEXT field
+     * <p>
+     *     A column of this name is present in the database table {@link #fixedStationTable}, {@link #mobileStationTable},
+     *     {@link #betaTable}, {@link #waypointsTable} and {@link #sampleMeasurementTable}.
+     * </p>
+     */
     public static final String updateTime = "UPDATE_TIME";
+
+    /**
+     * Specifies the name of a Column which tells whether the location parameters of a Mobile Station haven been calculated or not. When
+     * an AIS Packet is received and decoded by {@link de.awi.floenavigation.aismessages.AISDecodingService} it checks for the MMSI in
+     * {@link #stationListTable}, if the MMSI is not there it will insert the AIS Data in {@link #mobileStationTable}. However, the
+     * x, y coordinates of the Mobile Station are not calculated immediately so it cannot be displayed on Grid then.
+     * When the x,y coordinates of the mobile station are calculated by the {@link de.awi.floenavigation.services.AlphaCalculationService}
+     * it sets the value of this field in the {@link #mobileStationTable} and only is it displayed by the Grid. This is a NUMERIC field.
+     * <p>
+     *     A column of this name is present in the database table {@link #mobileStationTable}.
+     * </p>
+     */
     public static final String isCalculated = "IS_COORDINATE_CALCULATED";
+
+    /**
+     * Specifies the name of a Column which tells whether the current values of the Geographic coordinates
+     * ({@link #latitude}, {@link #longitude}) of a Fixed Station are predicted. When a new packet is received by the
+     * {@link de.awi.floenavigation.aismessages.AISDecodingService} it clears this field and when the {@link de.awi.floenavigation.services.PredictionService}
+     * updates these fields it sets this field. The data type of this field is NUMERIC.
+     * <p>
+     *     A column of this name is present in the database table {@link #fixedStationTable}.
+     * </p>
+     */
     public static final String isPredicted = "IS_POSITION_PREDICTED";
+
+    /**
+     * Specifies the name of a Column which gives the count of consecutive incorrect predictions for a Fixed Station. This is an INTEGER
+     * field which is incremented  by the {@link de.awi.floenavigation.services.ValidationService} every time the distance between
+     * the received coordinates ({@link #recvdLatitude}, {@link #recvdLongitude}), and the predicted coordinates
+     * ({@link #latitude}, {@link #longitude}) exceeds the value specified by {@link #error_threshold}. If the value in this field goes
+     * above <b>three</b> and the value in {@link #predictionAccuracy} goes above a specific value then that Fixed Station is considered
+     * to be broken from the Floe.
+     * <p>
+     *     A column of this name is present in the database table {@link #fixedStationTable}.
+     * </p>
+     * @see #predictionAccuracy
+     */
     public static final String incorrectMessageCount = "INCORRECT_MESSAGE_COUNT";
+
+
     public static final String validationCheckTime = "VALIDATION_CHECK_TIME";
     public static final String isLocationReceived = "IS_LOCATION_RECEIVED";
     public static final String userName = "USERNAME";
