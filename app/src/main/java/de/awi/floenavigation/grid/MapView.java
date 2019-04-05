@@ -30,82 +30,224 @@ import java.util.TimerTask;
 import de.awi.floenavigation.helperclasses.DatabaseHelper;
 import de.awi.floenavigation.R;
 
+/**
+ * {@link MapView} is a grid view part of {@link de.awi.floenavigation.R.layout#activity_grid}.
+ * There are several features associated with this grid. The origin fixed station is at location (0, 0) on the grid, which is at the centre of the screen.
+ * The scaling of the grid is done in such a way that it shows all the points of interest at a radius of 100km i.e 100 km to the right and the left of origin
+ * and 100 km to the top and the bottom of the origin.
+ * <p>
+ *     There are several layers on the grid representing fixed stations, mobile stations, static stations and waypoints, which can be selected from the options menu
+ *     if selected, all the stations or the waypoints corresponding to the item selected will only be displayed on the grid.
+ *     Tablet position and the mothership are by default present on the grid, it is not available to be selected, although its entry is present in the options menu.
+ *     After the initial grid setup, only the 2 fixed stations, mothership and the tablet is available on the grid.
+ *     By default, all the layers are selected.
+ * </p>
+ * <p>
+ *     The second feature available on the grid is the focus button, clicking on it, will let the app to display only points in a 1km radius distance around the
+ *     tablet (provided that the tablet location is available), or else the origin fixed station.
+ * </p>
+ * <p>
+ *     The user/admin could also zoom in and out, pan the grid.
+ * </p>
+ * <p>
+ *     Different shape and colors are used to represent fixed station(green circle), mobile station(blue circle),
+ *     static station(yellow circle), waypoints(inverted black triangle), tablet(red triangle) and mothership(red star).
+ *     On clicking any of the point of interest one could get appropriate information of that point,
+ *     namely x, y, name, mmsi(only for fixed and mobile stations) in a dialog box. This helps the user/admin to pinpoint exact location
+ *     of the point on the grid.
+ * </p>
+ */
 public class MapView extends View{
 
-
+    /**
+     * Tablet x position
+     */
     private static double tabletX;
+    /**
+     * tablet y position
+     */
     private static double tabletY;
+    /**
+     * Tablet lat value
+     */
     private static double tabletLat;
+    /**
+     * Tablet lon value
+     */
     private static double tableLon;
+    /**
+     * Origin x value
+     */
     private static double originX;
+    /**
+     * Origin y value
+     */
     private static double originY;
+    /**
+     * X position in the screen where the touch was detected
+     */
     private float xTouch;
+    /**
+     * Y position in the screen where the touch was detected
+     */
     private float yTouch;
+    /**
+     * <code>true</code> to show the bubble
+     * <code>false</code> otherwise
+     */
     private boolean isBubbleShowing;
+    /**
+     * The x value on the grid at the centre of the star symbol used to represent the mothership
+     */
     private double StarMidPointX = 0.0;
+    /**
+     * The y value on the grid at the centre of the star symbol used to represent the mothership
+     */
     private double StarMidPointY = 0.0;
+    /**
+     * Tablet Triangle width
+     */
     private static final int TabTriangleWidth = 15;
+    /**
+     * Tablet Triangle height
+     */
     private static final int TabTriangleHeight = 15;
+    /**
+     * Waypoint triangle width
+     */
     private static final int WayTriangleWidth = 11;
+    /**
+     * Waypoint triangle height
+     */
     private static final int WayTriangleHeight = 11;
-
-    //private double[] mFixedStationXs;
+    /**
+     * Hashmaps to store index and x position of fixed stations in a key-value pair
+     */
     public static HashMap<Integer, Double> mFixedStationXs;
-    //private double[] mFixedStationYs;
+    /**
+     * Hashmaps to store index and y position of fixed stations in a key-value pair
+     */
     public static HashMap<Integer, Double> mFixedStationYs;
-    //private int[] mFixedStationMMSIs;
+    /**
+     * Hashmaps to store index and mmsi's of fixed stations in a key-value pair
+     */
     public static HashMap<Integer, Integer> mFixedStationMMSIs;
+    /**
+     * Hashmaps to store index and fixed station names in a key-value pair
+     */
     public static HashMap<Integer, String> mFixedStationNames;
-    //private double[] mMobileStationXs;
+    /**
+     * Hashmaps to store index and x position of mobile stations in a key-value pair
+     */
     public static HashMap<Integer, Double> mMobileStationXs;
-    //private double[] mMobileStationYs;
+    /**
+     * Hashmaps to store index and y position of mmobile stations in a key-value pair
+     */
     public static HashMap<Integer, Double> mMobileStationYs;
-    //private int[] mMobileStationMMSIs;
+    /*
+     * Hashmaps to store index and mmsi's of mobile stations in a key-value pair
+     */
     public static HashMap<Integer, Integer> mMobileStationMMSIs;
+    /**
+     * Hashmaps to store index and mobile station names in a key-value pair
+     */
     public static HashMap<Integer, String> mMobileStationNames;
-    //private double[] mStaticStationXs;
+    /**
+     * Hashmaps to store index and x position of static stations in a key-value pair
+     */
     public static HashMap<Integer, Double> mStaticStationXs;
-    //private double[] mStaticStationYs;
+    /**
+     * Hashmaps to store index and y position of static stations in a key-value pair
+     */
     public static HashMap<Integer, Double> mStaticStationYs;
-    //private String[] mStaticStationNames;
+    /**
+     * Hashmaps to store index and static station names in a key-value pair
+     */
     public static HashMap<Integer, String> mStaticStationNames;
-    //private double[] mWaypointsXs;
+    /**
+     * Hashmaps to store index and x position of waypoints in a key-value pair
+     */
     public static HashMap<Integer, Double> mWaypointsXs;
-    //private double[] mWaypointsYs;
+    /**
+     * Hashmaps to store index and y position of waypoints in a key-value pair
+     */
     public static HashMap<Integer, Double> mWaypointsYs;
-    //private String[] mWaypointsLabels;
+    /**
+     * Hashmaps to store index and labels of waypoints in a key-value pair
+     */
     public static HashMap<Integer, String> mWaypointsLabels;
 
+    /**
+     * Constant value to verify whether fixed station point was touched on the grid
+     */
     private static final int FIXED_STATION = 0;
+    /**
+     * Constant value to verify whether mobile station point was touched on the grid
+     */
     private static final int MOBILE_STATION = 1;
+    /**
+     * Constant value to verify whether static station point was touched on the grid
+     */
     private static final int STATIC_STATION = 2;
+    /**
+     * Constant value to verify whether waypoint was touched on the grid
+     */
     private static final int WAYPOINT = 3;
+    /**
+     * Constant value to verify whether tablet point was touched on the grid
+     */
     private static final int TABLET_POSITION = 4;
-
+    /**
+     * String for logging purpose
+     */
     private static final String TAG = "MapView";
-    Paint paint = null;
+    /**
+     * Context of the activity
+     */
     private Context context;
 
-
+    /**
+     * Refresh rate of the screen
+     */
     private static final int SCREEN_REFRESH_TIMER_PERIOD = 10 * 1000;
+    /**
+     * Time delay before the start of the timer
+     */
     private static final int SCREEN_REFRESH_TIMER_DELAY = 0;
 
+    /**
+     * Timer for refreshing the grid periodically
+     */
     public static Timer refreshScreenTimer;
 
-
+    /**
+     * Default color for the paint
+     */
     private static final int DEFAULT_PAINT_COLOR = Color.BLACK;
-    private static final int DEFAULT_NUMBER_OF_ROWS = 20;
-    private static final int DEFAULT_NUMBER_OF_COLUMNS = 40;
+    /**
+     * Circle radius
+     */
     private static final int CircleSize = 6;
+    /**
+     * Star size
+     */
     private static final int StarSize = 35;
-
-    private int numRows = DEFAULT_NUMBER_OF_ROWS, numColumns = DEFAULT_NUMBER_OF_COLUMNS;
-    private static final int DEFAULT_ZOOM_LEVEL = 1000; // 1 km zoom radius
-
+    /**
+     * Focus button zoom level, set to 1km radius
+     */
+    private static final int DEFAULT_ZOOM_LEVEL = 1000;
+    /**
+     * Linear layout for the bubble dialog box
+     */
     private static LinearLayout linearLayout;
+    /**
+     * Bubble drawable
+     */
     private static BubbleDrawable drawableBubble;
 
-    //-----------------------------//
+    /**
+     * Rect for the grid
+     */
     private Rect mContentRect = new Rect();
 
     /**
@@ -155,6 +297,9 @@ public class MapView extends View{
     private Paint mAxisPaint;
     private float mDataThickness;
     private int mDataColor;
+    /**
+     * Paint object for drawing on the screen
+     */
     private Paint mDataPaint;
 
     // Buffers for storing current X and Y stops. See the computeAxisStops method for more details.
@@ -177,9 +322,10 @@ public class MapView extends View{
     private RectF mScrollerStartViewport = new RectF(); // Used only for zooms and flings.
 
 
-
-    // Buffers used during drawing. These are defined as fields to avoid allocation during
-    // draw calls.
+    /**
+     * Buffers used during drawing. These are defined as fields to avoid allocation during
+     * draw calls
+     */
     private float[] mAxisXPositionsBuffer = new float[]{};
     private float[] mAxisYPositionsBuffer = new float[]{};
     private float[] mAxisXLinesBuffer = new float[]{};
@@ -262,6 +408,10 @@ public class MapView extends View{
         mEdgeEffectBottom = new EdgeEffectCompat(context);
     }
 
+    /**
+     * Initializes a timer to execute the task
+     * The timer task periodically runs at a rate of {@link #SCREEN_REFRESH_TIMER_PERIOD}
+     */
     public void initRefreshTimer(){
         refreshScreenTimer = new Timer();
         refreshScreenTimer.schedule(new TimerTask() {
@@ -271,12 +421,6 @@ public class MapView extends View{
             }
         }, SCREEN_REFRESH_TIMER_DELAY, SCREEN_REFRESH_TIMER_PERIOD);
 
-    }
-
-
-    private void init() {
-        mDataPaint.setColor(DEFAULT_PAINT_COLOR);
-        //mRectSquare = new Rect();
     }
 
     /**
@@ -308,10 +452,44 @@ public class MapView extends View{
 
     }
 
+    /**
+     * Sets the color for the paint object {@link #mDataPaint}
+     */
     public void setLineColor(int color) {
         mDataPaint.setColor(color);
     }
 
+    /**
+     * onDraw is fdr drawing a custom view
+     * It is a canvas object that the view can use to draw itself.
+     * <p>
+     *     Fixed stations {@link #mFixedStationMMSIs} are iterated over and each fixed station is drawn on the grid using
+     *     green circle at the calculated grid position. The (x, y) position is translated to the screen coordinates using {@link #getDrawX(double)}
+     *     and {@link #getDrawY(double)} functions.
+     *     The fixed stations are only displayed if {@link GridActivity#showFixedStation} is set to true.
+     * </p>
+     * <p>
+     *     Mobile stations {@link #mMobileStationMMSIs} are iterated over and each mobile station is drawn on the grid using
+     *     blue circle at the calculated grid position. The (x, y) position is translated to the screen coordinates using {@link #getDrawX(double)}
+     *     and {@link #getDrawY(double)} functions.
+     *     The mobile stations are only displayed if {@link GridActivity#showMobileStation} is set to true.
+     *     However if the mmsi is of the mothership, a red star is drawn on the grid and there is no requirement of {@link GridActivity#showMobileStation}
+     *     this to be true.
+     * </p>
+     * <p>
+     *     Static stations {@link #mStaticStationNames} are iterated over and each static station is drawn on the grid using
+     *     yellow circle at the calculated grid position. The (x, y) position is translated to the screen coordinates using {@link #getDrawX(double)}
+     *     and {@link #getDrawY(double)} functions.
+     *     The static stations are only displayed if {@link GridActivity#showStaticStation} is set to true.
+     * </p>
+     * <p>
+     *     Waypoints {@link #mWaypointsLabels} are iterated over and each static station is drawn on the grid using
+     *     black inverted triangle at the calculated grid position. The (x, y) position is translated to the screen coordinates using {@link #getDrawX(double)}
+     *     and {@link #getDrawY(double)} functions.
+     *     The waypoints are only displayed if {@link GridActivity#showWaypointStation} is set to true.
+     * </p>
+     * @param canvas canvas object
+     */
     @Override
     protected void onDraw(Canvas canvas) {
 
@@ -409,11 +587,6 @@ public class MapView extends View{
         // Draws chart container
         canvas.drawRect(mContentRect, mAxisPaint);
 
-    }
-
-    private float translateCoord(double coordinate){
-        float result = (float) (coordinate / ((mCurrentViewport.right - mCurrentViewport.left)/(getWidth() / mMaxLabelWidth)));
-        return result;
     }
 
     /**
@@ -671,7 +844,16 @@ public class MapView extends View{
         }
     }
 
-
+    /**
+     * Function to draw triangle on the grid
+     * @param x x position on the grid
+     * @param y y position on the grid
+     * @param width width of the triangle
+     * @param height height of the triangle
+     * @param inverted <code>true</code> triangle is inverted; <code>false</code> otherwise
+     * @param paint paint object
+     * @param canvas canvas
+     */
     private void drawTriangle(float x, float y, int width, int height, boolean inverted, Paint paint, Canvas canvas){
 
         PointF p1 = new PointF(x,y);
@@ -691,7 +873,15 @@ public class MapView extends View{
         canvas.drawPath(path, paint);
     }
 
-
+    /**
+     * Function to draw star on the grid to represent mothership
+     * @param xPos x position on the grid
+     * @param yPos y position on the grid
+     * @param width width of the star
+     * @param height height of the star
+     * @param paint paint object
+     * @param canvas canvas
+     */
     private void drawStar(float xPos, float yPos, int width, int height, Paint paint, Canvas canvas)
     {
         float mid = width / 2;
@@ -1049,11 +1239,30 @@ public class MapView extends View{
         }
     }
 
+    /**
+     * Setting the layout for the bubble
+     * @param layout linear layout
+     * @param bubble drawable object
+     */
     public void setBubbleLayout(LinearLayout layout, BubbleDrawable bubble){
         this.linearLayout = layout;
         this.drawableBubble = bubble;
     }
 
+    /**
+     * OnTouchEvent gets triggered when the user/admin touches anywhere on the grid.
+     * This function handles the functionality of displaying a bubble dialog box providing information of the corresponding
+     * point which was clicked.
+     * <p>
+     *     It checks whether the {@link #isBubbleShowing} is set to true, if then it will close the bubble dialog box.
+     *     It calculates the {@link #xTouch} and {@link #yTouch} and checks whether this position is in the range of the point of interest.
+     *     Depending on the return value of {@link #checkInRange(float, float)}, this function decides the point which was clicked and takes appropriate action.
+     *     It draws a bubble {@link #drawableBubble} at the point where the user/admin touched and displays the corresponding information.
+     *     Different set of information are displayed for each fixed station, mobile station, waypoint, static station and tablet.
+     * </p>
+     * @param event event
+     * @return onTouchEvent
+     */
     @SuppressLint("DefaultLocale")
     @Override
     public boolean onTouchEvent(MotionEvent event) {
@@ -1134,6 +1343,16 @@ public class MapView extends View{
         return retVal || super.onTouchEvent(event);
     }
 
+    /**
+     * Checks the range around the (x, y) position where the touch event happened.
+     * If the distance between the touch position and the tablet/fixed station/mobile station/static station/waypoint position
+     * on the grid is less than a calibrated value of {@value #CircleSize} + 10,
+     * then it means that the point is clicked by the user/admin and returns an array with a corresponding constant value,
+     * which notifies the {@link #onTouchEvent(MotionEvent)} the respective operation to be handled.
+     * @param touchX
+     * @param touchY
+     * @return
+     */
     private int[] checkInRange(float touchX, float touchY){
         int index = -1;
 
@@ -1349,94 +1568,177 @@ public class MapView extends View{
     }
 
 
-
+    /**
+     * Set tablet x
+     * @param x x value
+     */
     public void setTabletX(double x){
         tabletX = x;
         ViewCompat.postInvalidateOnAnimation(MapView.this);
 
     }
 
+    /**
+     * Set tablet y
+     * @param y y value
+     */
     public void setTabletY(double y){
         tabletY = y;
         ViewCompat.postInvalidateOnAnimation(MapView.this);
     }
 
+    /**
+     * Set origin x
+     * @param x x value
+     */
     public void setOriginX(double x){
         originX = x;
         ViewCompat.postInvalidateOnAnimation(MapView.this);
 
     }
 
+    /**
+     * Set origin y
+     * @param y y value
+     */
     public void setOriginY(double y){
         originY = y;
         ViewCompat.postInvalidateOnAnimation(MapView.this);
     }
 
+    /**
+     * set fixed station mmsi's
+     * @param MMSIs mmsi
+     */
     public void setmFixedStationMMSIs(HashMap<Integer, Integer> MMSIs){
         mFixedStationMMSIs = MMSIs;
     }
 
+    /**
+     * Set fixed station X values
+     * @param Xs x position
+     */
     public void setmFixedStationXs(HashMap<Integer, Double> Xs){
         mFixedStationXs = Xs;
     }
 
+    /**
+     * Set fixed station Y values
+     * @param Ys y position
+     */
     public void setmFixedStationYs(HashMap<Integer, Double> Ys){
         mFixedStationYs = Ys;
     }
 
+    /**
+     * Set fixed station names
+     * @param Names names
+     */
     public void setmFixedStationNamess(HashMap<Integer, String> Names){
         mFixedStationNames = Names;
     }
 
+    /**
+     * Set mobile station mmsi's
+     * @param MMSIs mmsi
+     */
     public void setmMobileStationMMSIs(HashMap<Integer, Integer> MMSIs){
         mMobileStationMMSIs = MMSIs;
     }
 
+    /**
+     * Set mobile station Xs
+     * @param Xs X values
+     */
     public void setmMobileStationXs(HashMap<Integer, Double> Xs){
         mMobileStationXs = Xs;
     }
 
+    /**
+     * Set mobile station Ys
+     * @param Ys Y values
+     */
     public void setmMobileStationYs(HashMap<Integer, Double> Ys){
        mMobileStationYs = Ys;
     }
 
+    /**
+     * Set mobile station names
+     * @param Names names
+     */
     public void setmMobileStationNamess(HashMap<Integer, String> Names){
         mMobileStationNames = Names;
     }
 
+    /**
+     * Set static station names
+     * @param Names names
+     */
     public void setmStaticStationNamess(HashMap<Integer, String> Names){
         mStaticStationNames = Names;
     }
 
+    /**
+     * Set static station X values
+     * @param Xs X positions
+     */
     public void setmStaticStationXs(HashMap<Integer, Double> Xs){
         mStaticStationXs = Xs;
     }
 
+    /**
+     * Set Static station Y values
+     * @param Ys Y positions
+     */
     public void setmStaticStationYs(HashMap<Integer, Double> Ys){
         mStaticStationYs = Ys;
     }
 
+    /**
+     * Set waypoint labels
+     * @param Labels labels
+     */
     public void setmWapointLabels(HashMap<Integer, String> Labels){
         mWaypointsLabels = Labels;
     }
 
+    /**
+     * Set Waypoint X values
+     * @param Xs X values
+     */
     public void setmWaypointsXs(HashMap<Integer, Double> Xs){
         mWaypointsXs = Xs;
     }
 
+    /**
+     * Set Waypoint Y values
+     * @param Ys Y values
+     */
     public void setmWapointsYs(HashMap<Integer, Double> Ys){
         mWaypointsYs = Ys;
     }
 
+    /**
+     * Get Tablet X value
+     * @return Tablet X value
+     */
     public double getTabletX(){
         return tabletX;
     }
 
+    /**
+     *
+     * @return Tablet Y value
+     */
     public double getTabletY(){
         return tabletY;
     }
 
 
+    /**
+     *
+     * @return Fixed station mmsi
+     */
     public int getFixedStationSize(){
         if(mFixedStationMMSIs != null) {
             return mFixedStationMMSIs.size();
@@ -1445,6 +1747,11 @@ public class MapView extends View{
         }
     }
 
+    /**
+     *
+     * @param index index of the fixed station in the hashmap to be returned
+     * @return fixed station mmsi
+     */
     public int getFixedStationMMSI(int index){
         if(mFixedStationMMSIs != null) {
             return mFixedStationMMSIs.get(index);
@@ -1453,6 +1760,11 @@ public class MapView extends View{
         }
     }
 
+    /**
+     *
+     * @param index index of the fixed station in the hashmap to be returned
+     * @return fixed station X value
+     */
     public double getFixedStationX(int index){
         if(mFixedStationXs != null) {
             return mFixedStationXs.get(index);
@@ -1461,6 +1773,11 @@ public class MapView extends View{
         }
     }
 
+    /**
+     *
+     * @param index index of the fixed station in the hashmap to be returned
+     * @return fixed station Y value
+     */
     public double getFixedStationY(int index){
         if(mFixedStationYs != null) {
             return mFixedStationYs.get(index);
@@ -1469,6 +1786,11 @@ public class MapView extends View{
         }
     }
 
+    /**
+     *
+     * @param index index of the fixed station in the hashmap to be returned
+     * @return fixed station name
+     */
     public String getFixedStationName(int index){
         if(mFixedStationNames != null) {
             return mFixedStationNames.get(index);
@@ -1477,6 +1799,10 @@ public class MapView extends View{
         }
     }
 
+    /**
+     *
+     * @return number of mobile stations
+     */
     public int getMobileStationSize(){
         if(mMobileStationMMSIs != null){
             return  mMobileStationMMSIs.size();
@@ -1485,6 +1811,11 @@ public class MapView extends View{
         }
     }
 
+    /**
+     *
+     * @param index index of the mobile station in the hashmap to be returned
+     * @return mobile station mmsi
+     */
     public int getMobileStationMMSI(int index){
         if(mMobileStationMMSIs != null) {
             return mMobileStationMMSIs.get(index);
@@ -1493,6 +1824,11 @@ public class MapView extends View{
         }
     }
 
+    /**
+     *
+     * @param index index of the mobile station in the hashmap to be returned
+     * @return mobile station X value
+     */
     public double getMobileXposition(int index){
         if(mMobileStationXs != null) {
             return mMobileStationXs.get(index);
@@ -1501,7 +1837,11 @@ public class MapView extends View{
         }
     }
 
-
+    /**
+     *
+     * @param index index of the mobile station in the hashmap to be returned
+     * @return mobile station Y value
+     */
     public double getMobileYposition(int index){
         if (mMobileStationYs != null) {
             return mMobileStationYs.get(index);
@@ -1510,6 +1850,11 @@ public class MapView extends View{
         }
     }
 
+    /**
+     *
+     * @param index index of the mobile station in the hashmap to be returned
+     * @return name of the mobile station
+     */
     public String getMobileStationName(int index){
         if (mMobileStationNames != null) {
             return mMobileStationNames.get(index);
@@ -1518,6 +1863,10 @@ public class MapView extends View{
         }
     }
 
+    /**
+     *
+     * @return number of static stations
+     */
     public int getStaticStationSize(){
 
         if(mStaticStationNames != null) {
@@ -1528,6 +1877,11 @@ public class MapView extends View{
         }
     }
 
+    /**
+     *
+     * @param index index of the static station in the hashmap to be returned
+     * @return name of the static station
+     */
     public String getStaticStationName(int index){
         if(mStaticStationNames != null) {
             return mStaticStationNames.get(index);
@@ -1536,6 +1890,11 @@ public class MapView extends View{
         }
     }
 
+    /**
+     *
+     * @param index index of the static station in the hashmap to be returned
+     * @return static station X value
+     */
     public double getStaticXposition(int index){
         if(mStaticStationXs != null) {
             return mStaticStationXs.get(index);
@@ -1544,6 +1903,11 @@ public class MapView extends View{
         }
     }
 
+    /**
+     *
+     * @param index index of the static station in the hashmap to be returned
+     * @return static station Y value
+     */
     public double getStaticYposition(int index){
         if(mStaticStationYs != null) {
             return mStaticStationYs.get(index);
@@ -1552,6 +1916,11 @@ public class MapView extends View{
         }
     }
 
+    /**
+     *
+     * @param index index of the waypoint in the hashmap to be returned
+     * @return waypoint label
+     */
     public String getWaypointLabel(int index){
         if(mWaypointsLabels != null) {
             return mWaypointsLabels.get(index);
@@ -1560,6 +1929,10 @@ public class MapView extends View{
         }
     }
 
+    /**
+     *
+     * @return number of waypoints
+     */
     public int getWaypointSize(){
         if(mWaypointsLabels != null) {
             return mWaypointsLabels.size();
@@ -1568,6 +1941,11 @@ public class MapView extends View{
         }
     }
 
+    /**
+     *
+     * @param index index of the waypoint in the hashmap to be returned
+     * @return waypoint X value
+     */
     public double getWaypointXposition(int index){
         if(mWaypointsXs != null) {
             return mWaypointsXs.get(index);
@@ -1576,6 +1954,11 @@ public class MapView extends View{
         }
     }
 
+    /**
+     *
+     * @param index index of the waypoint in the hashmap to be returned
+     * @return waypoint Y value
+     */
     public double getWaypointYposition(int index){
         if (mWaypointsYs != null){
             return  mWaypointsYs.get(index);
@@ -1584,6 +1967,9 @@ public class MapView extends View{
         }
     }
 
+    /**
+     * clear fixed station hash tables
+     */
     public static void clearFixedStationHashTables(){
         if(mFixedStationNames != null) {
             mFixedStationNames.clear();
@@ -1599,6 +1985,9 @@ public class MapView extends View{
         }
     }
 
+    /**
+     * Clear mobile station hash tables
+     */
     public static void clearMobileStationHashTables(){
         if(mMobileStationNames != null) {
             mMobileStationNames.clear();
@@ -1614,6 +2003,9 @@ public class MapView extends View{
         }
     }
 
+    /**
+     * Clear Static station hash tables
+     */
     public static void clearStaticStationHashTables(){
         if(mStaticStationNames != null) {
             mStaticStationNames.clear();
@@ -1626,6 +2018,9 @@ public class MapView extends View{
         }
     }
 
+    /**
+     * Clear waypoint hash tables
+     */
     public static void clearWaypointHashTables(){
         if(mWaypointsLabels != null) {
             mWaypointsLabels.clear();

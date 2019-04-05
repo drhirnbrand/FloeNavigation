@@ -10,6 +10,7 @@ import android.graphics.Rect;
 import android.graphics.RectF;
 import android.graphics.drawable.Drawable;
 import android.util.Log;
+import android.view.MotionEvent;
 
 public class BubbleDrawable extends Drawable {
 
@@ -26,8 +27,17 @@ public class BubbleDrawable extends Drawable {
     private Paint mPaint;
     private int mColor;
 
+    /**
+     * Rectangular object
+     */
     private RectF mBoxRect;
+    /**
+     * Bubble width
+     */
     private int mBoxWidth = 430;
+    /**
+     * Bubble height
+     */
     private int mBoxHeight = 150;
     private float mCornerRad;
     private Rect mBoxPadding = new Rect();
@@ -36,11 +46,26 @@ public class BubbleDrawable extends Drawable {
     private int mPointerWidth;
     private int mPointerHeight;
     private int mPointerAlignment;
+    /**
+     * x position of the point
+     */
     private float xPosition;
+    /**
+     * y position of the point
+     */
     private float yPosition;
     private Paint mTextPaint;
+    /**
+     * first message of the bubble
+     */
     private String firstMsg;
+    /**
+     * second message of the bubble
+     */
     private String secondMsg;
+    /**
+     * third message of the bubble
+     */
     private String thirdMsg;
 
     // Constructors
@@ -112,11 +137,22 @@ public class BubbleDrawable extends Drawable {
         mPointer.close();
     }
 
+    /**
+     *
+     * @param x x coordinate of the point
+     * @param y y coordinate of the point
+     */
     public void setCoordinates(float x, float y){
         this.xPosition = x;
         this.yPosition = y;
     }
 
+    /**
+     * Sets the title, msg and (x,y) position details
+     * @param title mmsi if it is fixed or mobile station, 'current position' if it is tablet
+     * @param msg name
+     * @param postns (x, y) coordinate
+     */
     public void setMessages(String title, String msg, String postns){
         this.firstMsg = title;
         this.secondMsg = msg;
@@ -141,6 +177,12 @@ public class BubbleDrawable extends Drawable {
     // Superclass Override Methods
     ////////////////////////////////////////////////////////////
 
+    /**
+     * Draws bubble display box on the point where it was clicked.
+     * Receives information to be displayed from the {@link GridActivity#onTouchEvent(MotionEvent)} function
+     * depending on the point selected/touched.
+     * @param canvas canvas
+     */
     @Override
     public void draw(Canvas canvas) {
         canvas.translate(xPosition - mBoxWidth / 2, yPosition - mBoxHeight - mPointerHeight);
