@@ -71,7 +71,7 @@ public class PredictionService extends IntentService {
      */
     private double alpha;
     /**
-     * Angle calculated between the origin fixed station and the fixed station
+     * Angle calculated between the axis connecting origin fixed station and the longitudinal axis and the waypoint
      */
     private double theta;
     /**

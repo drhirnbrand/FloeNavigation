@@ -43,43 +43,133 @@ import de.awi.floenavigation.dashboard.MainActivity;
 import de.awi.floenavigation.helperclasses.NavigationFunctions;
 import de.awi.floenavigation.R;
 
+/**
+ * {@link WaypointActivity} activity is used to install the waypoints at specific points of interest on the sea ice.
+ * The app takes into consideration the tablet's current geographic coordinates to record the location of the waypoint.
+ */
 public class WaypointActivity extends Activity implements View.OnClickListener{
 
     private static final String TAG = "WaypointActivity";
 
     private static final String changeText = "Waypoint Installed";
 
+    /**
+     * {@link BroadcastReceiver} is used to receive the latest gps coordinates from the {@link GPS_Service}
+     */
     private BroadcastReceiver broadcastReceiver;
+    /**
+     * Variable used to store the tablet's latitude value
+     */
     private Double tabletLat;
+    /**
+     * Variable used to store the tablet's longitude value
+     */
     private Double tabletLon;
+    /**
+     * Variable stores the latitudinal value of origin fixed station
+     */
     private double originLatitude;
+    /**
+     * Variable stores the longitudinal value of x-axis fixed station
+     */
     private double originLongitude;
+    /**
+     * Variable stores the mmsi value of the origin fixed station
+     */
     private int originMMSI;
+    /**
+     * Variable used to store the value of {@value DatabaseHelper#beta}
+     * It is the angle between the x-axis and the geographic longitudinal axis
+     */
     private double beta;
+
+    /**
+     * distance calculated between the origin fixed station and any waypoint in meters
+     */
     private double distance;
+    /**
+     * Angle calculated between the x-axis and the waypoint
+     */
     private double alpha;
+    /**
+     * Variable used to store the x-axis distance between the origin and the waypoint
+     */
     private double xPosition;
+    /**
+     * Variable used to store the y-axxis distance between the origin and the waypoint
+     */
     private double yPosition;
+    /**
+     * Angle calculated between the axis connecting origin fixed station and the longitudinal axis and the waypoint
+     */
     private double theta;
+    /**
+     * Variable stores the label of the waypoint, formatted in a specific structure
+     */
     private String waypointLabel;
+    /**
+     * Variable used to store the time stamp at which the waypoint was installed
+     */
     private String time;
+    /**
+     * Toggle flag to change the format of geographical coordinates display either in deg.min.sec or in decimal
+     * depending on the selection
+     */
     private boolean changeFormat;
+    /**
+     * reads the admin defined number of significant figures from the {@link DatabaseHelper#decimal_number_significant_figures}, used to
+     * display the number of digits after the decimal point to be displayed
+     */
     private int numOfSignificantFigures;
+    /**
+     * Variable used to store the gps time received from the {@link #broadcastReceiver}
+     */
     private long gpsTime;
+    /**
+     * It stores the time difference between the gps time and the system clock
+     */
     private long timeDiff;
+    /**
+     * Edit text view of the label id
+     */
     private EditText labelId_TV;
+    /**
+     * Stores the label id
+     */
     private String labelId;
+    /**
+     * Stores the tablet id
+     */
     private String tabletID;
 
 
     //Action Bar Updates
+    /**
+     * {@link BroadcastReceiver} to receive {@link GPS_Service#AISPacketStatus}
+     */
     private BroadcastReceiver aisPacketBroadcastReceiver;
+    /**
+     * Stores the gps location status received
+     */
     private boolean locationStatus = false;
+    /**
+     * Stores the packet status received
+     */
     private boolean packetStatus = false;
+    /**
+     * {@link Handler} to run the status bar runnable
+     */
     private final Handler statusHandler = new Handler();
+    /**
+     * Menu Item views for gps icon, ais icon ang grid setup icon
+     */
     private MenuItem gpsIconItem, aisIconItem, gridSetupIconItem;
 
-
+    /**
+     * onCreate method to setup the xml layout and
+     * to setting up the on click listeners
+     * @param savedInstanceState stores the previous instance state
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -98,6 +188,9 @@ public class WaypointActivity extends Activity implements View.OnClickListener{
 
     }
 
+    /**
+     * onStart method to call method {@link #actionBarUpdatesFunction()}
+     */
     @Override
     protected void onStart() {
         super.onStart();
@@ -105,6 +198,12 @@ public class WaypointActivity extends Activity implements View.OnClickListener{
         actionBarUpdatesFunction();
     }
 
+    /**
+     * Function to register the broadcast receivers
+     * and implements onReceiver function of broadcast receiver
+     * {@link Runnable} to update the status bar icons based on the values received
+     * It runs periodically at a rate of {@link ActionBarActivity#UPDATE_TIME}
+     */
     private void actionBarUpdatesFunction() {
 
         /*****************ACTION BAR UPDATES*************************/
@@ -162,6 +261,9 @@ public class WaypointActivity extends Activity implements View.OnClickListener{
         /******************************************/
     }
 
+    /**
+     * Function used to change the display format of the latitude and longitude values in the views
+     */
     private void populateTabLocation(){
 
         TextView latView = findViewById(R.id.waypointTabletLat);
@@ -177,6 +279,11 @@ public class WaypointActivity extends Activity implements View.OnClickListener{
         }
     }
 
+    /**
+     * This function takes care of implementation of status bar icons in the activity
+     * @param menu menu
+     * @return returns menu to parent function
+     */
     @Override
     public boolean onCreateOptionsMenu(Menu menu){
         getMenuInflater().inflate(R.menu.main_menu, menu);
@@ -202,6 +309,11 @@ public class WaypointActivity extends Activity implements View.OnClickListener{
         return super.onCreateOptionsMenu(menu);
     }
 
+    /**
+     * Listener function to handle functions when an item in the menu list is clicked
+     * @param menuItem menu item
+     * @return returns true
+     */
     @Override
     public boolean onOptionsItemSelected(MenuItem menuItem){
         switch (menuItem.getItemId()){
@@ -217,6 +329,9 @@ public class WaypointActivity extends Activity implements View.OnClickListener{
         }
     }
 
+    /**
+     * Handles unregistering of the broadcast receivers
+     */
     @Override
     protected void onStop() {
         super.onStop();
@@ -226,6 +341,10 @@ public class WaypointActivity extends Activity implements View.OnClickListener{
         aisPacketBroadcastReceiver = null;
     }
 
+    /**
+     * OnClick listener to handle view clicks
+     * @param v view which was clicked
+     */
     public void onClick(View v){
 
         switch (v.getId()){
@@ -240,6 +359,13 @@ public class WaypointActivity extends Activity implements View.OnClickListener{
 
     }
 
+    /**
+     * When the confirm button is pressed, the function checks whether there are duplicate waypoints already existing in the local database,
+     * then it checks whether valid and proper gps location is available, if all the conditions are met, it stores the waypoint into the
+     * local database.
+     * Exception handling and error checks are taken care of by displaying proper toast and log messages
+     *
+     */
     private void onClickConfirm(){
 
         TextView wayPointLabel = findViewById(R.id.waypointLabelId);
@@ -282,6 +408,12 @@ public class WaypointActivity extends Activity implements View.OnClickListener{
         }
     }
 
+    /**
+     * Inserts the waypoint with all the required and necessary parameters into the database table {@link DatabaseHelper#waypointsTable}
+     * @param db SQLiteDatabase object
+     * @return <code>true</code> if the data is successfully inserted into the database table
+     *         <code>false</code> otherwise
+     */
     private boolean insertInDatabase(SQLiteDatabase db){
         ContentValues waypoint = new ContentValues();
         waypoint.put(DatabaseHelper.latitude, tabletLat);
@@ -301,12 +433,18 @@ public class WaypointActivity extends Activity implements View.OnClickListener{
         }
     }
 
+    /**
+     * Starts the {@link MainActivity} when the user presses the finish button
+     */
     private void onClickFinish(){
         Log.d(TAG, "Activity Finished");
         Intent mainActivityIntent = new Intent(this, MainActivity.class);
         startActivity(mainActivityIntent);
     }
 
+    /**
+     * calculates waypoint location in the grid
+     */
     private void calculateWaypointParameters(){
         distance = NavigationFunctions.calculateDifference(tabletLat, tabletLon, originLatitude, originLongitude);
         //theta = NavigationFunctions.calculateAngleBeta(tabletLat, tabletLon, originLatitude, originLongitude);
@@ -317,6 +455,9 @@ public class WaypointActivity extends Activity implements View.OnClickListener{
         yPosition = distance * Math.sin(Math.toRadians(alpha));
     }
 
+    /**
+     * Create label in a particular format
+     */
     private void createLabel(){
         Date date = new Date(System.currentTimeMillis() - timeDiff);
         SimpleDateFormat displayFormat = new SimpleDateFormat("yyyyMMdd'D'HHmmss");
@@ -337,6 +478,12 @@ public class WaypointActivity extends Activity implements View.OnClickListener{
         Log.d(TAG, "Label: " + waypointLabel);
     }
 
+    /**
+     * Checks whether there are duplicate waypoints in the database table
+     * based on the label ID
+     * @param db SQLiteDatabase object
+     * @return <code>true</code> if present; <code>false</code> otherwise
+     */
     private boolean checkWaypointInDBTables(SQLiteDatabase db){
         boolean isPresent = false;
         Cursor mWaypointCursor = null;
@@ -359,6 +506,11 @@ public class WaypointActivity extends Activity implements View.OnClickListener{
         return isPresent;
     }
 
+    /**
+     * Get origin geographic coordinates and mmsi from the database tables {@link DatabaseHelper#baseStationTable} and {@link DatabaseHelper#fixedStationTable}
+     * @param db SQLiteDatabase object
+     * @return <code>true</code> if retrieval is successful; <code>false</code> otherwise
+     */
     private boolean getOriginCoordinates(SQLiteDatabase db){
 
         try {
@@ -415,6 +567,11 @@ public class WaypointActivity extends Activity implements View.OnClickListener{
         }
     }
 
+    /**
+     * On pressing the View Waypoints List button, the activity starts a new activity listing all the waypoints currently
+     * stored in the database table
+     * @param view view which was clicked
+     */
     public void onClickViewWaypoints(View view) {
         try {
             SQLiteOpenHelper dbHelper = DatabaseHelper.getDbInstance(this);
@@ -435,6 +592,9 @@ public class WaypointActivity extends Activity implements View.OnClickListener{
 
     }
 
+    /**
+     * On pressing back button, {@link MainActivity} gets started
+     */
     @Override
     public void onBackPressed() {
         super.onBackPressed();
@@ -442,6 +602,9 @@ public class WaypointActivity extends Activity implements View.OnClickListener{
         startActivity(mainActIntent);
     }
 
+    /**
+     * Async task to read tablet id from the database table
+     */
     private class ReadTabletID extends AsyncTask<Void, Void, Boolean>{
 
         @Override

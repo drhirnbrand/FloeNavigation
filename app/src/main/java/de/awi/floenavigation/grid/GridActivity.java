@@ -42,77 +42,216 @@ import de.awi.floenavigation.helperclasses.NavigationFunctions;
 import de.awi.floenavigation.R;
 
 
+/**
+ * {@link GridActivity} class takes care of creating and initializing async tasks to
+ * read {x,y} values from all the database tables of interest.
+ * Separate {@link AsyncTask} tasks are created to handle each database table.
+ * It runs on a background thread.
+ * It periodically runs at a rate of {@value #ASYNC_TASK_TIMER_PERIOD}.
+ * The values extracted from the database tables are stored in the corresponding {@link HashMap}
+ * which are send to {@link MapView} using setters.
+ * It also takes care of handling of status bar icons and tablet location updates.
+ */
 public class GridActivity extends Activity implements View.OnClickListener{
 
+    /**
+     * Time period of the async task
+     */
     private static final int ASYNC_TASK_TIMER_PERIOD = 8 * 1000;
+    /**
+     * Time delay before the start of asyn task
+     */
     private static final int ASYNC_TASK_TIMER_DELAY = 0;
-    private static final int SCREEN_REFRESH_TIMER_PERIOD = 10 * 1000;
-    private static final int SCREEN_REFRESH_TIMER_DELAY = 0;
+
+    /**
+     * Used for logging purpose
+     */
     private static final String TAG = "GridActivity";
 
-
+    /**
+     * {@link BroadcastReceiver} to receive gps coordinates of the tablet
+     */
     private BroadcastReceiver gpsBroadcastReceiver;
+    /**
+     * Variable stores the latitude value of the tablet
+     */
     private double tabletLat;
+    /**
+     * Variable stores the longitude value of the tablet
+     */
     private double tabletLon;
+    /**
+     * Variable stores the origin fixed station latitude value
+     */
     private double originLatitude;
+    /**
+     * Variable stores the origin fixed station longitude value
+     */
     private double originLongitude;
+    /**
+     * Variable stores the origin x value in meters on the sea ice
+     */
     private double originX;
+    /**
+     * Variable stores the origin y value in meters on the sea ice
+     */
     private double originY;
+    /**
+     * Stores the origin fixed station mmsi value
+     */
     private int originMMSI;
+    /**
+     * Variable used to store the value of {@value DatabaseHelper#beta}
+     * It is the angle between the x-axis and the geographic longitudinal axis
+     */
     private double beta;
+    /**
+     * Variable stores the tablet x value in meters on the sea ice w.r.t to the origin fixed station
+     */
     private double tabletX;
+    /**
+     * Variable stores the tablet y value in meters on the sea ice w.r.t to the origin fixed station
+     */
     private double tabletY;
+    /**
+     * Variable stores the tablet distance in meters from the origin
+     */
     private double tabletDistance;
+    /**
+     * Angle between the axis connecting origin along the longitudinal axis and the tablet geographic coordinate
+     */
     private double tabletTheta;
+    /**
+     * Angle between the x-axis and the tablet location
+     */
     private double tabletAlpha;
 
+    /**
+     * if <code>true</code> checks the checkbox on the menubar list and displays the fixed stations on the grid
+     * <code>false</code> otherwise
+     */
     public static boolean showFixedStation = true;
+    /**
+     * if <code>true</code> checks the checkbox on the menubar list and displays the mobile stations on the grid
+     * <code>false</code> otherwise
+     */
     public static boolean showMobileStation = true;
+    /**
+     * if <code>true</code> checks the checkbox on the menubar list and displays the static stations on the grid
+     * <code>false</code> otherwise
+     */
     public static boolean showStaticStation = true;
+    /**
+     * if <code>true</code> checks the checkbox on the menubar list and displays the waypoints on the grid
+     * <code>false</code> otherwise
+     */
     public static boolean showWaypointStation = true;
-    //private double[] mFixedStationXs;
+    /**
+     * Hashmaps to store index and x position of fixed stations in a key-value pair
+     */
     public static HashMap<Integer, Double> mFixedStationXs;
-    //private double[] mFixedStationYs;
+    /**
+     * Hashmaps to store index and y position of fixed stations in a key-value pair
+     */
     public static HashMap<Integer, Double> mFixedStationYs;
-    //private int[] mFixedStationMMSIs;
+    /**
+     * Hashmaps to store index and mmsi's of fixed stations in a key-value pair
+     */
     public static HashMap<Integer, Integer> mFixedStationMMSIs;
+    /**
+     * Hashmaps to store index and fixed station names in a key-value pair
+     */
     public static HashMap<Integer, String> mFixedStationNames;
-    //private double[] mMobileStationXs;
+    /**
+     * Hashmaps to store index and x position of mobile stations in a key-value pair
+     */
     public static HashMap<Integer, Double> mMobileStationXs;
-    //private double[] mMobileStationYs;
+    /**
+     * Hashmaps to store index and y position of mmobile stations in a key-value pair
+     */
     public static HashMap<Integer, Double> mMobileStationYs;
-    //private int[] mMobileStationMMSIs;
+    /*
+     * Hashmaps to store index and mmsi's of mobile stations in a key-value pair
+     */
     public static HashMap<Integer, Integer> mMobileStationMMSIs;
+    /**
+     * Hashmaps to store index and mobile station names in a key-value pair
+     */
     public static HashMap<Integer, String> mMobileStationNames;
-    //private double[] mStaticStationXs;
+    /**
+     * Hashmaps to store index and x position of static stations in a key-value pair
+     */
     public static HashMap<Integer, Double> mStaticStationXs;
-    //private double[] mStaticStationYs;
+    /**
+     * Hashmaps to store index and y position of static stations in a key-value pair
+     */
     public static HashMap<Integer, Double> mStaticStationYs;
-    //private String[] mStaticStationNames;
+    /**
+     * Hashmaps to store index and static station names in a key-value pair
+     */
     public static HashMap<Integer, String> mStaticStationNames;
-    //private double[] mWaypointsXs;
+    /**
+     * Hashmaps to store index and x position of waypoints in a key-value pair
+     */
     public static HashMap<Integer, Double> mWaypointsXs;
-    //private double[] mWaypointsYs;
+    /**
+     * Hashmaps to store index and y position of waypoints in a key-value pair
+     */
     public static HashMap<Integer, Double> mWaypointsYs;
-    //private String[] mWaypointsLabels;
+    /**
+     * Hashmaps to store index and labels of waypoints in a key-value pair
+     */
     public static HashMap<Integer, String> mWaypointsLabels;
 
-    private static final double scale = 500;
+    /**
+     * Used to provide location service
+     */
     private LocationManager locationManager;
+    /**
+     * Timer to run the async task
+     */
     private Timer asyncTaskTimer;
 
 
-    //Action Bar Updates
+    /**
+     * {@link BroadcastReceiver} is used to receive ais status update
+     */
     private BroadcastReceiver aisPacketBroadcastReceiver;
+    /**
+     * <code>true</code> location status is available
+     * <code>false</code> otherwise
+     */
     private boolean locationStatus = false;
+    /**
+     * <code>true</code> ais packets are available from the ais transponder
+     * <code>false</code> otherwise
+     */
     private boolean packetStatus = false;
+    /**
+     * Handler to run the runnable for status updates
+     */
     private final Handler statusHandler = new Handler();
+    /**
+     * Menu items views
+     */
     private MenuItem gpsIconItem, aisIconItem, emptyIcon, gridSetupIconItem;
+    /**
+     * Mapview object
+     */
     private MapView myGridView;
+    /**
+     * view object to store the grid view
+     */
     private View myView;
+    /**
+     * Focus button
+     */
     private ActionButton buttonView;
 
-
+    /**
+     * Initializes the views on the activity
+     * @param savedInstanceState stores the saved instance state
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -132,7 +271,10 @@ public class GridActivity extends Activity implements View.OnClickListener{
 
     }
 
-
+    /**
+     * Initializes the hashmaps
+     * and schedules async tasks
+     */
     @Override
     protected void onStart() {
         super.onStart();
@@ -175,6 +317,11 @@ public class GridActivity extends Activity implements View.OnClickListener{
         }, ASYNC_TASK_TIMER_DELAY, ASYNC_TASK_TIMER_PERIOD);
     }
 
+    /**
+     * OnResume method is called when the app gets back its focus
+     * So it was required to restart the {@link #asyncTaskTimer}
+     * to run the async tasks
+     */
     @Override
     protected void onResume() {
         super.onResume();
@@ -196,6 +343,9 @@ public class GridActivity extends Activity implements View.OnClickListener{
         }, ASYNC_TASK_TIMER_DELAY, ASYNC_TASK_TIMER_PERIOD);
     }
 
+    /**
+     * onPause method
+     */
     @Override
     protected void onPause() {
         super.onPause();
@@ -203,25 +353,18 @@ public class GridActivity extends Activity implements View.OnClickListener{
 
     }
 
-    /*private void initializeArrayList() {
-        DatabaseHelper databaseHelper = DatabaseHelper.getDbInstance(getApplicationContext());
-        SQLiteDatabase db = databaseHelper.getReadableDatabase();
-        long numOfEntries = DatabaseUtils.queryNumEntries(db, DatabaseHelper.fixedStationTable);
-        for(int i = 0; i < (int)numOfEntries; i++){
-            Log.d(TAG, "FixedStnIndex " + String.valueOf(i));
-            mFixedStationMMSIs.add(i, 0);
-            mFixedStationXs.add(i, (float) 0.0);
-            mFixedStationYs.add(i, (float) 0.0);
-        }
-    }*/
-
-
+    /**
+     * onRestart method
+     */
     @Override
     protected void onRestart() {
         super.onRestart();
         Log.d(TAG, "LifeCycle OnRestart");
     }
 
+    /**
+     * onStop method handles the unregistering of the broadcast receivers
+     */
     @Override
     protected void onStop() {
         super.onStop();
@@ -236,6 +379,10 @@ public class GridActivity extends Activity implements View.OnClickListener{
 
     }
 
+    /**
+     * onDestroy handles the cancelling of the
+     * {@link #asyncTaskTimer} timer and refresh timer of the map view
+     */
     @Override
     public void onDestroy(){
         super.onDestroy();
@@ -244,7 +391,12 @@ public class GridActivity extends Activity implements View.OnClickListener{
         MapView.refreshScreenTimer.cancel();
     }
 
-
+    /**
+     * Used to specify the options menu for the activity
+     * and also keeps default checks to the items in the list
+     * @param menu type of the parameter menu
+     * @return <code>true</code> for the menu to be displayed; <code>false</code> otherwise
+     */
     @Override
     public boolean onCreateOptionsMenu(Menu menu){
         getMenuInflater().inflate(R.menu.main_menu, menu);
@@ -281,7 +433,9 @@ public class GridActivity extends Activity implements View.OnClickListener{
         return super.onCreateOptionsMenu(menu);
     }
 
-
+    /**
+     * It starts the {@link MainActivity} when the back button on the screen is pressed
+     */
     @Override
     public void onBackPressed(){
         Log.d(TAG, "BackPressed");
@@ -290,6 +444,16 @@ public class GridActivity extends Activity implements View.OnClickListener{
 
     }
 
+    /**
+     * This function is called whenever an item in the option menu is selected
+     * Whenever the item is selected, the ticks on the checkboxes are toggled
+     * This will result in displaying only the items selected on the grid
+     * For example, if fixed station is selected, only fixed stations will be available on the grid
+     * These selections are not available for tablet position and the position of the mothership
+     * It will be present on the grid by default all the time
+     * @param item The menu item that was selected
+     * @return <code>true</code> to consume it here; <code>false</code> otherwise
+     */
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
        switch (item.getItemId()) {
@@ -332,7 +496,13 @@ public class GridActivity extends Activity implements View.OnClickListener{
     }
 
 
-
+    /**
+     * This function handles the functionality of receiving the tablet coordinates and translating it
+     * to (x, y) coordinates.
+     * If the tablet positions are not available from the {@link GPS_Service}, the last known positions are calculated
+     * and stored in the variables {@link #tabletLat} and {@link #tabletLon}
+     * The calculated parameters are then send to the {@link MapView} for displaying purpose
+     */
     private void calculateTabletGridCoordinates(){
         if (tabletLat == 0.0){
             try {
@@ -371,13 +541,13 @@ public class GridActivity extends Activity implements View.OnClickListener{
         myGridView.setTabletLon(tabletLon);
     }
 
-
-
-    private float translateCoord(double coordinate){
-        float result = (float) (coordinate / scale);
-        return result;
-    }
-
+    /**
+     * Handles the registration of broadcast receiver and implementation of onReceive function of the gps broadcast receiver
+     * Whenever an updated location it available from the {@link GPS_Service}, the onReceive
+     * function gets triggered and the new coordinates are stored in these 2 variables {@link #tabletLat}
+     * and {@link #tabletLon}.
+     * Also, the color of the status bar icons are toggled based on the values received
+     */
     private void actionBarUpdatesFunction() {
 
         ///*****************ACTION BAR UPDATES*************************/
@@ -449,6 +619,10 @@ public class GridActivity extends Activity implements View.OnClickListener{
 
     }
 
+    /**
+     * On pressing on the focus button, the grid size gets changed
+     * @param v view which was clicked
+     */
     @Override
     public void onClick(View v) {
         switch (v.getId()){
@@ -461,6 +635,16 @@ public class GridActivity extends Activity implements View.OnClickListener{
 
     }
 
+    /**
+     * Async task runs in the background thread periodically.
+     * This class handles the retrieval of origin fixed station parameters from the database table. The latest values are available from the database whenever exceuted.
+     * Initially, it obtains the origin mmsi from the {@link DatabaseHelper#baseStationTable},
+     * then it obtains the origin geographic coordinates and the (x, y) positions from the {@link DatabaseHelper#fixedStationTable},
+     * then it obtains the {@link DatabaseHelper#beta} from the {@link DatabaseHelper#betaTable}.
+     * {@link DatabaseHelper#beta} is used to calculate the tablet position {@link #calculateTabletGridCoordinates()}.
+     * Origin coordinates are
+     * After the retrieval the each respective cursors are closed.
+     */
     private class ReadOriginFromDB extends AsyncTask<Void, Void, Boolean>{
 
         @Override
@@ -487,14 +671,6 @@ public class GridActivity extends Activity implements View.OnClickListener{
                     }
                 }
 
-                /*if(baseStationCursor.moveToFirst()) {
-                    do {
-                        int mmsi = baseStationCursor.getInt(baseStationCursor.getColumnIndex(DatabaseHelper.mmsi));
-
-                        Log.d(TA    G, "MMSIs: " + String.valueOf(i) + " " + String.valueOf(mmsi));
-                        i++;
-                    } while (baseStationCursor.moveToNext());
-                }*/
 
                 fixedStationCursor = db.query(DatabaseHelper.fixedStationTable,
                         new String[] {DatabaseHelper.latitude, DatabaseHelper.longitude, DatabaseHelper.xPosition, DatabaseHelper.yPosition},
@@ -555,6 +731,14 @@ public class GridActivity extends Activity implements View.OnClickListener{
 
     }
 
+    /**
+     * Async task runs in the background thread periodically.
+     * MMSIs, X, Y and Names of the fixed stations are obtained from the fixed station database table {@link DatabaseHelper#fixedStationTable}.
+     * The latest values are available from the database whenever exceuted.
+     * One by one these values are stored in the respective hashmaps in a key-value pair format.
+     * These hashmaps are used by the {@link MapView} to display all the fixed stations on the grid.
+     * The onPostExecute method implements the call to setter functions of the {@link MapView}
+     */
     private class ReadFixedStationsFromDB extends AsyncTask<Void, Void, Boolean>{
 
         @Override
@@ -619,6 +803,14 @@ public class GridActivity extends Activity implements View.OnClickListener{
         }
     }
 
+    /**
+     * Async task runs in the background thread periodically.
+     * MMSIs, X, Y and Names of the fixed stations are obtained from the mobile station database table {@link DatabaseHelper#mobileStationTable}.
+     * The latest values are available from the database whenever exceuted.
+     * One by one these values are stored in the respective hashmaps in a key-value pair format.
+     * These hashmaps are used by the {@link MapView} to display all the fixed stations on the grid.
+     * The onPostExecute method implements the call to setter functions of the {@link MapView}
+     */
     private class ReadMobileStationsFromDB extends AsyncTask<Void, Void, Boolean>{
 
         @Override
@@ -683,6 +875,14 @@ public class GridActivity extends Activity implements View.OnClickListener{
         }
     }
 
+    /**
+     * Async task runs in the background thread periodically.
+     * X, Y and Names of the static stations are obtained from the static station database table {@link DatabaseHelper#staticStationListTable}.
+     * The latest values are available from the database whenever exceuted.
+     * One by one these values are stored in the respective hashmaps in a key-value pair format.
+     * These hashmaps are used by the {@link MapView} to display all the fixed stations on the grid.
+     * The onPostExecute method implements the call to setter functions of the {@link MapView}
+     */
     private class ReadStaticStationsFromDB extends AsyncTask<Void, Void, Boolean>{
 
         @Override
@@ -743,6 +943,14 @@ public class GridActivity extends Activity implements View.OnClickListener{
         }
     }
 
+    /**
+     * Async task runs in the background thread periodically.
+     * Labels, X, Y and Names of the waypoints are obtained from the waypoint database table {@link DatabaseHelper#waypointsTable}.
+     * The latest values are available from the database whenever exceuted.
+     * One by one these values are stored in the respective hashmaps in a key-value pair format.
+     * These hashmaps are used by the {@link MapView} to display all the fixed stations on the grid.
+     * The onPostExecute method implements the call to setter functions of the {@link MapView}
+     */
     private class ReadWaypointsFromDB extends AsyncTask<Void, Void, Boolean>{
 
         @Override
@@ -802,7 +1010,10 @@ public class GridActivity extends Activity implements View.OnClickListener{
         }
     }
 
-
+    /**
+     * Intializes the location service and obtains the last known location of the tablet
+     * @return the last location
+     */
     @SuppressLint("MissingPermission")
     private Location getLastKnownLocation() {
         locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
