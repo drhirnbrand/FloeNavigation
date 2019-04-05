@@ -11,16 +11,42 @@ import de.awi.floenavigation.services.GPS_Service;
 import de.awi.floenavigation.aismessages.AISMessageReceiver;
 import de.awi.floenavigation.initialsetup.GridSetupActivity;
 
+/**
+ * {@link NetworkMonitor} runs on a separate thread.
+ * It implements a runnable {@link Runnable} method to periodically execute ping request to the ip address {@link GridSetupActivity#dstAddress} and on
+ * {@link GridSetupActivity#dstPort} number.
+ * On Successful ping request {@link #success}, it starts the {@link AISMessageReceiver} on a separate thread, also sets the {@link GPS_Service#AISPacketStatus}
+ * to true, which is broadcasted to all the activities or fragments which requests it.
+ * On unsuccessful ping request, it sends a disconnect flag set to true to {@link AISMessageReceiver} requesting it to stop the decoding of the AIS packet received.
+ *
+ */
 public class NetworkMonitor implements Runnable {
-    //final static String IPADDRESS = "192.168.0.102";
+    /**
+     * <code>true</code> ping request is successful
+     * <code>false</code> otherwise
+     */
     boolean success = false;
-    boolean prevSuccess = false;
+    /**
+     * Context of the activity from where the service is called
+     */
     Context appContext;
+    /**
+     * {@link AISMessageReceiver} object
+     */
     AISMessageReceiver aisMessage;
+    /**
+     * Thread to run {@link AISMessageReceiver}
+     */
     Thread aisMessageThread;
+    /**
+     * String for logging purpose
+     */
     private static final String TAG = "NetworkMonitor";
-    //public static volatile boolean mdisconnectFlag = false;
 
+    /**
+     * Initializes the thread {@link #aisMessageThread}
+     * @param con
+     */
     public NetworkMonitor(Context con){
         this.appContext = con;
         aisMessage = new AISMessageReceiver(GridSetupActivity.dstAddress,GridSetupActivity.dstPort, con);
@@ -28,6 +54,11 @@ public class NetworkMonitor implements Runnable {
 
     }
 
+    /**
+     * run method to continuously send ping request to the {@link GridSetupActivity#dstAddress} and {@link GridSetupActivity#dstPort}
+     * if {@link #success} is true, it starts the {@link AISMessageReceiver} on {@link #aisMessageThread}.
+     * Separate thread is created on every transition from unsuccessful ping request to a successful ping request
+     */
     public void run(){
 
         while(true) {
@@ -38,17 +69,7 @@ public class NetworkMonitor implements Runnable {
             }
             success = pingRequest("/system/bin/ping -c 1 " + GridSetupActivity.dstAddress);
             boolean mdisconnectFlag = true;
-            /*if(success != prevSuccess){
-                if(!aisMessageThread.isAlive()){
 
-                    aisMessageThread.start();
-                    prevSuccess = true;
-                    mdisconnectFlag = false;
-                }
-            }
-            else if(!success){
-                mdisconnectFlag = true; //to disconnect the client
-            }*/
             Intent intent = new Intent();
             intent.setAction("Reconnect");
             Log.d(TAG, "Success Value: " + String.valueOf(success));
@@ -116,12 +137,14 @@ public class NetworkMonitor implements Runnable {
         }
     }
 
+    /**
+     * Responsible for ping request
+     * @param Instr command
+     * @return <code>true</code> if the {@link GridSetupActivity#dstAddress} is reachable
+     *         <code>false</code> otherwise
+     */
     private boolean pingRequest(String Instr){
 
-        //Runtime runtime = Runtime.getRuntime();
-        //int counter = 0;
-        //int maxCount = 5;
-        //Process  mIpAddrProcess;
         boolean mExitValue = false;
 
 
@@ -132,48 +155,6 @@ public class NetworkMonitor implements Runnable {
         }
 
         return mExitValue;
-        /*
-        try
-        {
-            //do{
-                mIpAddrProcess = runtime.exec(Instr);
-
-                //Log.d(TAG, "ExitValue: " + String.valueOf(mExitValue));
-                //mExitValue = mIpAddrProcess.waitFor();
-              //  ++counter;
-            //}while(counter < maxCount);
-
-            BufferedReader stdInput;
-            stdInput = new BufferedReader(new InputStreamReader(mIpAddrProcess.getInputStream()));
-
-            String s;
-            String res = "";
-            while ((s = stdInput.readLine()) != null) {
-                res += s + "\n";
-            }
-            //Log.d("pingmsg", res);
-
-            mIpAddrProcess.destroy();
-
-            if(mExitValue==0){
-                return true;
-            }else{
-                return false;
-            }
-
-        }
-        catch (InterruptedException e)
-        {
-            e.printStackTrace();
-
-        }
-        catch (IOException e)
-        {
-            e.printStackTrace();
-            return false;
-
-        }*/
-
     }
 
 }
