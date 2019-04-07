@@ -45,41 +45,145 @@ import de.awi.floenavigation.dashboard.MainActivity;
 import de.awi.floenavigation.helperclasses.NavigationFunctions;
 import de.awi.floenavigation.R;
 
+/**
+ * {@link SampleMeasurementActivity} can be used to take sample or measurement on the sea ice.
+ * The devices are available on the view in the form of a drop down list with advanced search feature.
+ * This class handles sample/measurement selection, device selection, subsequent data is automatically populated,
+ * ais and gps status icon updates, view samples feature.
+ */
 public class SampleMeasurementActivity extends Activity {
 
+    /**
+     * For logging purpose
+     */
     private static final String TAG = "SampleMeasureActivity";
+    /**
+     * {@link BroadcastReceiver} used to receive gps location
+     */
     private BroadcastReceiver broadcastReceiver;
+    /**
+     * Stores tablet latitude value
+     */
     private Double tabletLat;
+    /**
+     * Stores tablet longitude value
+     */
     private Double tabletLon;
+    /**
+     * Array list to store device name, device id and device type
+     */
     private ArrayList<String> selectedDeviceAttributes;
+    /**
+     * Selected device name
+     */
     private String deviceSelectedName;
+    /**
+     * Index of the {@link #selectedDeviceAttributes} for device ID
+     */
     private final int deviceIDIndex = 0;
+    /**
+     * Index of the {@link #selectedDeviceAttributes} for device full name
+     */
     private final int deviceFullNameIndex = 1;
+    /**
+     * Index of the {@link #selectedDeviceAttributes} for device type
+     */
     private final int deviceTypeIndex = 2;
+    /**
+     * Stores origin latitude
+     */
     private double originLatitude;
+    /**
+     * Stores origin longitude
+     */
     private double originLongitude;
+    /**
+     * Stores origin mmsi
+     */
     private int originMMSI;
+    /**
+     * Variable used to store the value of {@value DatabaseHelper#beta}
+     * It is the angle between the x-axis and the geographic longitudinal axis
+     */
     private double beta;
+    /**
+     * distance calculated between the origin fixed station and the sample/measurement in meters
+     */
     private double distance;
+    /**
+     * Angle calculated between the x-axis and the sample/measurement
+     */
     private double alpha;
+    /**
+     * X axis value in meters of the sample/measurement
+     */
     private double xPosition;
+    /**
+     * Y axis value in meters of the sample/measurement
+     */
     private double yPosition;
+    /**
+     * Angle calculated between the axis connecting origin fixed station along the longitudinal axis
+     * and the sample/meaurement
+     */
     private double theta;
+    /**
+     * Spinner for listing sample or measurement
+     */
     private Spinner operation;
+    /**
+     * to change the display format of the geographic coordinates
+     */
     private boolean changeFormat;
+    /**
+     * Number of figures to display after the decimal point
+     */
     private int numOfSignificantFigures;
+    /**
+     * stores the label of the sample/measurement
+     */
     private String label;
+    /**
+     * time
+     */
     private String time;
+    /**
+     * gps time
+     */
     private long gpsTime;
+    /**
+     * time difference between the gps time and the system clock
+     */
     private long timeDiff;
+    /**
+     * label id
+     */
     private String labelId;
+    /**
+     * comment for the sample/measurement taken
+     */
     private String comment;
 
     //Action Bar Updates
+    /**
+     * {@link BroadcastReceiver} to receive ais status updates
+     */
     private BroadcastReceiver aisPacketBroadcastReceiver;
+    /**
+     * <code>true</code> when the tablet has a GPS Connection
+     */
     private boolean locationStatus = false;
+    /**
+     * <code>true</code> when the tablet is connected to the WiFi network of an AIS Transponder
+     */
     private boolean packetStatus = false;
+    /**
+     * Handler to run the runnable
+     */
     private final Handler statusHandler = new Handler();
+    /**
+     * Menu items
+     */
     private MenuItem gpsIconItem, aisIconItem, gridSetupIconItem;
 
 
