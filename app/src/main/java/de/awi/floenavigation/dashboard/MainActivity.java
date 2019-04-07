@@ -35,17 +35,47 @@ import de.awi.floenavigation.services.PredictionService;
 import de.awi.floenavigation.services.ValidationService;
 import de.awi.floenavigation.waypoint.WaypointActivity;
 
+/**
+ * {@link MainActivity} represents the main dashboard of the app.
+ * One can navigate to different screens from this dashboard.
+ */
 public class MainActivity extends ActionBarActivity {
 
+    /**
+     * Flag to check whether {@link NetworkService} is enabled
+     * <code>true</code> {@link NetworkService} is running
+     * <code>false</code> otherwise
+     */
     private static boolean networkSetup = false;
-    //private static boolean gpssetup = false;
-    //public static boolean servicesStarted = true;
+    /**
+     * code used for requesting permission
+     */
     public static final int GPS_REQUEST_CODE = 10;
+    /**
+     * Stores the number of base stations
+     */
     public static long numOfBaseStations;
+    /**
+     * Stores the number of devices installed.
+     * This variable is 0 if the devices are not downloaded from the server
+     */
     private static long numOfDeviceList;
+    /**
+     * Variable to check whether services are running
+     * <code>true</code> when the services are enabled it is initialized to true provided the grid initial setup is completed
+     * <code>false</code> otherwise
+     */
     public static boolean areServicesRunning = false;
+    /**
+     * for logging purpose
+     */
     private static final String TAG = "MainActivity";
 
+    /**
+     * {@link NetworkService} and {@link GPS_Service} are started and sets {@link #networkSetup} to true.
+     * Also starts other services when grid initial setup is completed.
+     * @param savedInstanceState stores previous instance state
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -109,6 +139,12 @@ public class MainActivity extends ActionBarActivity {
 
     }
 
+    /**
+     * If an app needs to use resources or information outside of its own sandbox, the app has to request the appropriate
+     * permission. The app needs a permission by listing the permission in the app manifest and then
+     * requesting that the user approve each permission at runtime.
+     * It requests permission using request code {@value #GPS_REQUEST_CODE}
+     */
     private void checkPermission(){
         if(ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
                 && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED){
@@ -125,6 +161,14 @@ public class MainActivity extends ActionBarActivity {
         startService(intent);
     }
 
+    /**
+     * When the user responds to the app's permission request, the system invokes the app's onRequestPermissionsResult() method,
+     * passing it the user response. The app has to override that method to find out whether the permission was granted.
+     * The callback is passed the same request code {@link #GPS_REQUEST_CODE} that was passed to requestPermissions().
+     * @param requestCode request code
+     * @param permissions permission
+     * @param grantResults results
+     */
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults){
         switch (requestCode){
@@ -136,11 +180,22 @@ public class MainActivity extends ActionBarActivity {
         }
     }
 
+    /**
+     * Used for creating menu list
+     * @param menu menu
+     * @return parent
+     */
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         return super.onCreateOptionsMenu(menu, 2);
     }
 
+    /**
+     * About us menu item
+     * Displays the information of the app and the developers
+     * @param menuItem menu item
+     * @return true
+     */
     @Override
     public boolean onOptionsItemSelected(MenuItem menuItem){
         switch (menuItem.getItemId()){
@@ -153,6 +208,10 @@ public class MainActivity extends ActionBarActivity {
         }
     }
 
+    /**
+     * Starts the {@link DialogActivity} to display information of the app and
+     * the developers
+     */
     private void displayDialogBox() {
 
         Intent dialogIntent = new Intent(this, DialogActivity.class);
@@ -160,6 +219,10 @@ public class MainActivity extends ActionBarActivity {
         startActivity(dialogIntent);
     }
 
+    /**
+     * Starts the {@link DeploymentActivity} provided grid initial setup is completed
+     * @param view view which was clicked
+     */
     public void onClickDeploymentBtn(View view){
         if (numOfBaseStations >= DatabaseHelper.NUM_OF_BASE_STATIONS) {
             Intent deploymentIntent = new Intent(this, DeploymentActivity.class);
@@ -170,11 +233,19 @@ public class MainActivity extends ActionBarActivity {
         }
     }
 
+    /**
+     * Starts {@link LoginPage}
+     * @param view view which was clicked
+     */
     public void onClickAdminBtn(View view){
         Intent intent = new Intent(this, LoginPage.class);
         startActivity(intent);
     }
 
+    /**
+     * Starts the {@link SampleMeasurementActivity} provided grid initial setup is completed and devices have been installed {@link #numOfDeviceList}
+     * @param view view which was clicked
+     */
     public void onClickSampleMeasureBtn(View view) {
         if (numOfBaseStations >= DatabaseHelper.NUM_OF_BASE_STATIONS) {
             if (numOfDeviceList != 0) {
@@ -187,6 +258,10 @@ public class MainActivity extends ActionBarActivity {
         }
     }
 
+    /**
+     * Starts the {@link GridActivity} provided grid initial setup is completed
+     * @param view view which was clicked
+     */
     public void onClickGridButton(View view) {
         if (numOfBaseStations >= DatabaseHelper.NUM_OF_BASE_STATIONS) {
             Intent gridActivityIntent = new Intent(this, GridActivity.class);
@@ -196,7 +271,10 @@ public class MainActivity extends ActionBarActivity {
         }
     }
 
-
+    /**
+     * Starts the {@link WaypointActivity} provided grid initial setup is completed
+     * @param view view which was clicked
+     */
     public void onClickWaypointBtn(View view) {
         if (numOfBaseStations >= DatabaseHelper.NUM_OF_BASE_STATIONS) {
             Intent waypointIntent = new Intent(this, WaypointActivity.class);
@@ -206,7 +284,9 @@ public class MainActivity extends ActionBarActivity {
         }
     }
 
-
+    /**
+     * On Back button
+     */
     @Override
     public void onBackPressed() {
         //super.onBackPressed();
