@@ -64,12 +64,13 @@ public class NavigationFunctions {
         return Math.sqrt(distance);
     }
 
+    /*
     public static double[] calculateCoordinatePosition(double lat, double lon, Context context){
         double[] referencePointsCoordinates = new DatabaseHelper(context).readBaseCoordinatePointsLatLon(context);
-        /*referencePointsCoordinates[0] = originLatitutde;
-        referencePointsCoordinates[1] = originLongitude;
-        referencePointsCoordinates[2] = xAxisReferenceLatitude;
-        referencePointsCoordinates[3] = xAxisReferenceLongitude;*/
+        //referencePointsCoordinates[0] = originLatitutde;
+        //referencePointsCoordinates[1] = originLongitude;
+        //referencePointsCoordinates[2] = xAxisReferenceLatitude;
+        //referencePointsCoordinates[3] = xAxisReferenceLongitude;
         double distance1 = calculateDifference(referencePointsCoordinates[0], referencePointsCoordinates[1], lat, lon);
         double distance2 = calculateDifference(referencePointsCoordinates[2], referencePointsCoordinates[3], lat, lon);
         double x = ((distance1 * distance1) - (distance2 * distance2) + (DatabaseHelper.station2InitialX * DatabaseHelper.station2InitialX))
@@ -90,6 +91,7 @@ public class NavigationFunctions {
         return new double[] {x, y};
 
     }
+    */
 
     /**
      * Given two sets of points this method will calculate the bearing from the first coordinates to the second coordinates.

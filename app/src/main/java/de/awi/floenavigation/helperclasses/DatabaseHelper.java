@@ -13,6 +13,14 @@ import android.widget.ArrayAdapter;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * This class provides the methods necessary to Setup and Maintain the {@link SQLiteDatabase} of the App. This is the most important class
+ * in the App. When the App is installed on a tablet this Class creates and sets up the Database schema and inserts default values in
+ * specific tables. The rest of the Activities and Background Services use this class to access the database and update any values if
+ * required.
+ * @see SQLiteDatabase
+ * @see SQLiteOpenHelper
+ */
 public class DatabaseHelper extends SQLiteOpenHelper {
 
     /**
@@ -844,7 +852,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
      * the Origin its x,y are {0,0}
      */
     public static final long station1InitialY = 0;
-    public static final long station2InitialX = 500;
+    //public static final long station2InitialX = 500;
 
     /**
      * Default value of y coordinate to insert in Database when deploying the x-Axis marker during Grid Initial Configuration. As it is
@@ -904,13 +912,38 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public static final int BASESTN2 = 1001;
 
     /**
-     *
+     * {@link List} to hold the {@link #deviceNames} of all the Devices existing in the Database table {@link #deviceListTable}. This list
+     * is used to populate the Device details on the layout of {@link de.awi.floenavigation.sample_measurement.SampleMeasurementActivity},
+     * once a {@link #deviceShortName} has been selected from the {@link android.widget.AutoCompleteTextView}.
      */
     public static List<String> deviceNames;
+
+    /**
+     * {@link List} to hold the {@link #deviceShortName} of all the Devices existing in the Database table {@link #deviceListTable}. This list
+     * is used to provide the drop down list in {@link android.widget.AutoCompleteTextView} on the layout of
+     * {@link de.awi.floenavigation.sample_measurement.SampleMeasurementActivity}.
+     */
     public static List<String> deviceShortNames;
+
+    /**
+     * {@link List} to hold the {@link #deviceID} of all the Devices existing in the Database table {@link #deviceListTable}. This list
+     * is used to populate the Device details on the layout of {@link de.awi.floenavigation.sample_measurement.SampleMeasurementActivity},
+     * once a {@link #deviceShortName} has been selected from the {@link android.widget.AutoCompleteTextView}.
+     */
     public static List<String> deviceIDs;
+
+    /**
+     * {@link List} to hold the {@link #deviceType} of all the Devices existing in the Database table {@link #deviceListTable}. This list
+     * is used to populate the Device details on the layout of {@link de.awi.floenavigation.sample_measurement.SampleMeasurementActivity},
+     * once a {@link #deviceShortName} has been selected from the {@link android.widget.AutoCompleteTextView}.
+     */
     public static List<String> deviceTypes;
 
+    /**
+     * String array which provides the values which can be stored in {@link #stationType}. This array is used to populate the
+     * {@link android.widget.Spinner} in the layout of {@link de.awi.floenavigation.deployment.DeploymentActivity}. The same array is used
+     * for both Static and Fixed Station.
+     */
     public static final String[] stationTypes = {
             "Tent",
             "Hut",
@@ -918,6 +951,11 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             "Fixpoint",
     };
 
+    /**
+     * String array which provides names of the Configuration Parameters to be stored in the Database table {@link #configParametersTable}.
+     * When the App is installed on a tablet for the first time, the {@link #parameterName} column of the {@link #configParametersTable}
+     * is populated with this array and default values..
+     */
     public static final String[] configurationParameters = {
             "ERROR_THRESHOLD",
             "PREDICTION_ACCURACY_THRESHOLD",
@@ -929,19 +967,32 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             "TABLET_ID"
     };
 
+    /**
+     * Constant defining the MMSI of the Mothership which will be shown as a Star on the Mapview. By default this should be the MMSI of
+     * Polarstern.
+     */
     //public static final int MOTHER_SHIP_MMSI = 211202460;
     //For Testing purposes
     public static final int MOTHER_SHIP_MMSI = 211202460;//230070870;
 
 
+    /**
+     * Default Constructor
+     */
     public DatabaseHelper(Context context){
         super(context, DB_NAME, null, DB_VERSION);
     }
 
+    /**
+     * Default {@link SQLiteOpenHelper#onCreate(SQLiteDatabase)}. This method is called when the App is installed on a tablet. It creates
+     * the Database tables, populates the {@link #configParametersTable} with default values of each {@link #parameterName} and creates
+     * a default Admin User.
+     */
     @Override
     public void onCreate(SQLiteDatabase db){
 
         createTables(db, 0, DB_VERSION);
+
         //Default config params
         insertDefaultConfigParams(db, error_threshold, "10");
         insertDefaultConfigParams(db, prediction_accuracy_threshold, String.valueOf(3 * 60 * 1000));
@@ -957,13 +1008,30 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     }
 
+    /**
+     * Default {@link SQLiteOpenHelper#onUpgrade(SQLiteDatabase, int, int)} . This method is called when the App is installed on a tablet
+     * which already has an older version of this App running. It just clears the data from the earlier tables and creates any new columns
+     * or tables which were not a part of the old version of the database.
+     * @param oldVersion The {@link #DB_VERSION} currently running on the App installed.
+     * @param newVersion The {@link #DB_VERSION} of the updated Database.
+     */
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion){
         createTables(db, oldVersion, newVersion);
     }
 
-
-
+    /**
+     * This method sets up the Database schema for the App to run. If this the first installation of the App on a tablet it will create
+     * all the tables and define the columns of each table and set up the complete schema. If there is an older version of the App already
+     * running on the Tablet. It will just clear the data from most of the tables and add the {@link #comment} field to the
+     * {@link #sampleMeasurementTable} as it was part of the previous version of this App.
+     * <p>
+     *     Please note that it will not clear data from {@link #configParametersTable} or {@link #usersTable} but only clear data from
+     *     those tables which are used for creating and maintaining the Coordinate System.
+     * </p>
+     * @param oldVersion The {@link #DB_VERSION} currently running on the App installed.
+     * @param newVersion The {@link #DB_VERSION} of the updated Database.
+     */
     private static void createTables(SQLiteDatabase db, int oldVersion, int newVersion){
         if(oldVersion < 1) {
             //SQLiteDatabase db = this.getWritableDatabase();
@@ -1129,6 +1197,11 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     }
 
+    /**
+     * Inserts a User and its specified Password in the Database table {@link #usersTable}. Used to create a new Admin User.
+     * @param name {@link #userName} of the new User.
+     * @param pass {@link #password} of the new User.
+     */
     public static void insertUser(SQLiteDatabase db, String name, String pass){
         ContentValues defaultUser = new ContentValues();
         defaultUser.put(userName, name);
@@ -1136,6 +1209,12 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         db.insert(usersTable, null, defaultUser);
     }
 
+    /**
+     * Inserts a new Configuration Parameter and its value in the Database table {@link #configParametersTable}. This is used when the
+     * App is installed on the tablet and {@link #configParametersTable} needs to be populated with default values.
+     * @param name {@link #parameterName} of the Configuration Parameter.
+     * @param value {@link #parameterValue} of the Configuration Parameter.
+     */
     private static void insertDefaultConfigParams(SQLiteDatabase db, String name, String value){
         ContentValues defaultConfigParam = new ContentValues();
         defaultConfigParam.put(parameterName, name);
@@ -1161,6 +1240,14 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     }
     /********************************************/
 
+    /**
+     * Given a {@link #userName} this method will search the {@link #usersTable} to check if the user exists and if it exists it will
+     * return the {@link #password} of that User. This is used by {@link de.awi.floenavigation.admin.LoginPage} to validate the Admin User
+     * and this is also used to check for replications when creating a new User.
+     * @param uname {@link #userName} of the User
+     * @param context The {@link Context} in which the App is running.
+     * @return The {@link #password} for the given {@link #userName}.
+     */
     public String searchPassword(String uname, Context context){
         Cursor cursor = null;
         String pwd = "Not Found";
@@ -1195,6 +1282,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return pwd;
     }
 
+    /*
     public  double[] readBaseCoordinatePointsLatLon(Context context){
         double[] coordinates = new double[4];
         Cursor cursor = null;
@@ -1228,7 +1316,14 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         }
         return coordinates;
     }
+    */
 
+    /**
+     * Creates an instance of {@link DatabaseHelper}. This ensures that the only one Activity or Service is accessing the Database at a
+     * time and prevents concurrent read or write operations.
+     * @param context The {@link Context} in which the App is running.
+     * @return A {@link DatabaseHelper} object.
+     */
     public static synchronized DatabaseHelper getDbInstance(Context context){
         if (dbInstance == null){
             dbInstance = new DatabaseHelper(context.getApplicationContext());
@@ -1236,7 +1331,12 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return dbInstance;
     }
 
-
+    /**
+     * Loads the Device data from the Database table {@link #deviceListTable} and populates each column in their respective {@link List}.
+     * This method is called by the {@link de.awi.floenavigation.sample_measurement.SampleMeasurementActivity} to load the Device data
+     * when take a Sample/Measurement
+     * @param mContext The {@link Context} in which the App is running.
+     */
     public static void loadDeviceList(Context mContext){
 
         Cursor mDeviceListCursor = null;
@@ -1269,12 +1369,26 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         }
     }
 
+    /**
+     * Creates an {@link ArrayAdapter} which is attached to the {@link List} of {@link #deviceShortNames}.
+     * @param mContext The {@link Context} in which the App is running.
+     * @return An {@link ArrayAdapter} of type String which is attached to {@link #deviceShortNames}.
+     */
     public static ArrayAdapter<String> advancedSearchTextView(Context mContext){
 
         ArrayAdapter<String> adapter = new ArrayAdapter<String>(mContext, android.R.layout.simple_dropdown_item_1line, deviceShortNames);
         return adapter;
     }
 
+    /**
+     * When a {@link #deviceShortName} is selected by the User in the {@link android.widget.AutoCompleteTextView} on the layout of the
+     * {@link de.awi.floenavigation.sample_measurement.SampleMeasurementActivity}, the other attributes of the same device need to be
+     * Auto filled in the layout. This method returns the rest of the device attributes given its Short name in an {@link ArrayList}
+     * which can then be used to populate the rest of the fields on the Layout.
+     * @param devShortName {@link #deviceShortName} of the Device selected from {@link android.widget.AutoCompleteTextView}.
+     * @return An {@link ArrayList} containing the {@link #deviceID}, {@link #deviceName}, {@link #deviceType} for the given
+     * {@link #deviceShortName}.
+     */
     public static ArrayList<String> getDeviceAttributes(String devShortName){
 
         int arrayIndex;
@@ -1291,6 +1405,12 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return null;
     }
 
+    /**
+     * This method reads the {@link #configParametersTable} to read the current value of the parameter {@link #lat_long_view_format}. The
+     * value stored in the table is either 0 (display format will be Degree° Minutes' Seconds'' Direction) or 1 (Degree.xxx).
+     * @param context The {@link Context} in which the App is running.
+     * @return <code>true</code> if display format is Degree° Minutes' Seconds'' Direction or <code>false</code> if format is Degree.xxx.
+     */
     public static boolean readCoordinateDisplaySetting(Context context){
         boolean changeFormat = false;
         Cursor formatCursor = null;
@@ -1328,6 +1448,11 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         }
     }
 
+    /**
+     * This method reads the {@link #configParametersTable} to read the current value of the parameter {@link #decimal_number_significant_figures}.
+     * @param context The {@link Context} in which the App is running.
+     * @return The number of significant figures to display on the interface of the App.
+     */
     public static int readSiginificantDigitsSetting(Context context){
         int significantFigure = 5;
         Cursor mSignificantFiguresCursor = null;
@@ -1360,6 +1485,13 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return significantFigure;
     }
 
+    /**
+     * This method updates the value of the Configuration Parameter {@link #lat_long_view_format}.
+     * @param context The {@link Context} in which the App is running.
+     * @param changeDegFormat if <code>true</code> the value stored will 0 (display format will be Degree° Minutes' Seconds'' Direction)
+     *                        else the value stored will be 1 (display format will be Degree.xxx).
+     * @return <code>true</code> if the value is updated successfully.
+     */
     public static boolean updateCoordinateDisplaySetting(Context context, boolean changeDegFormat){
         try{
             SQLiteOpenHelper dbHelper = DatabaseHelper.getDbInstance(context);
