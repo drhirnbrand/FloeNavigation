@@ -904,7 +904,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public static final int BASESTN2 = 1001;
 
     /**
-     * 
+     *
      */
     public static List<String> deviceNames;
     public static List<String> deviceShortNames;
