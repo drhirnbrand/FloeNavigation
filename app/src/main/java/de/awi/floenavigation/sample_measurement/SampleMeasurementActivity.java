@@ -186,7 +186,11 @@ public class SampleMeasurementActivity extends Activity {
      */
     private MenuItem gpsIconItem, aisIconItem, gridSetupIconItem;
 
-
+    /**
+     * Intializes all the views
+     * and registers listeners for the corresponding views
+     * @param savedInstanceState stores previous instance state
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -249,6 +253,11 @@ public class SampleMeasurementActivity extends Activity {
         });
     }
 
+    /**
+     * Registers {@link BroadcastReceiver}s for gps location and ais packet status updates.
+     * Handler {@link #statusHandler} to run the runnable, which takes care of changing the color of the icons based
+     * on the received values from the broadcast receivers
+     */
     private void actionBarUpdatesFunction() {
 
         /*****************ACTION BAR UPDATES*************************/
@@ -305,6 +314,10 @@ public class SampleMeasurementActivity extends Activity {
         /******************************************/
     }
 
+    /**
+     * {@link #operation} spinner value shows a drop down list to select between sample
+     * and measurement
+     */
     private void setSpinnerValues(){
         operation = findViewById(R.id.operationspinner);
         String[] contents = new String[]{"Sample", "Measurement"};
@@ -313,6 +326,9 @@ public class SampleMeasurementActivity extends Activity {
         operation.setAdapter(adapter);
     }
 
+    /**
+     * onStart method to call {@link #actionBarUpdatesFunction()}
+     */
     @Override
     protected void onStart() {
         super.onStart();
@@ -321,6 +337,9 @@ public class SampleMeasurementActivity extends Activity {
 
     }
 
+    /**
+     * onStop method unregisters the {@link BroadcastReceiver}s
+     */
     @Override
     protected void onStop() {
         super.onStop();
@@ -330,6 +349,11 @@ public class SampleMeasurementActivity extends Activity {
         aisPacketBroadcastReceiver = null;
     }
 
+    /**
+     * This method initializes and sets the menu list
+     * @param menu menu
+     * @return parent method
+     */
     @Override
     public boolean onCreateOptionsMenu(Menu menu){
         getMenuInflater().inflate(R.menu.main_menu, menu);
@@ -356,6 +380,12 @@ public class SampleMeasurementActivity extends Activity {
         return super.onCreateOptionsMenu(menu);
     }
 
+    /**
+     * Listener for the menu item clicked
+     * Changes the display format of the geographical coordinates in the screen
+     * @param menuItem menu
+     * @return true
+     */
     @Override
     public boolean onOptionsItemSelected(MenuItem menuItem){
         switch (menuItem.getItemId()){
@@ -371,6 +401,11 @@ public class SampleMeasurementActivity extends Activity {
         }
     }
 
+    /**
+     * Invokes {@link ListViewActivity} when the button is pressed, which lists all the samples currently stored in the
+     * database table
+     * @param view view which was clicked
+     */
     public void OnClickViewSamples(View view) {
         try{
             DatabaseHelper dbHelper = DatabaseHelper.getDbInstance(this);
@@ -390,6 +425,9 @@ public class SampleMeasurementActivity extends Activity {
         }
     }
 
+    /**
+     * Populates the views based on the flag {@link #changeFormat} set
+     */
     private void populateTabLocation(){
 
         TextView latView = findViewById(R.id.tabLat);
@@ -407,6 +445,9 @@ public class SampleMeasurementActivity extends Activity {
 
     }
 
+    /**
+     * Populates the views with all the device information based on the device selection
+     */
     private void populateDeviceAttributes(){
 
         TextView deviceFullNameView = findViewById(R.id.devicefullname);
@@ -420,6 +461,11 @@ public class SampleMeasurementActivity extends Activity {
         inputManager.hideSoftInputFromWindow(this.getCurrentFocus().getWindowToken(), InputMethodManager.HIDE_NOT_ALWAYS);
     }
 
+    /**
+     * Called from the listener of the confirm button
+     * If valid gps location is available all the sample/measurement fields are stored into the database table {@link DatabaseHelper#sampleMeasurementTable}
+     * @return
+     */
     private boolean populateDatabaseTable(){
 
         try {
@@ -470,6 +516,10 @@ public class SampleMeasurementActivity extends Activity {
         }
         return false;
     }
+
+    /**
+     * {@link #label} is formed as per a specified format with all the necessary information
+     */
     private void createLabel(){
         Date date = new Date(System.currentTimeMillis() - timeDiff);
         SimpleDateFormat displayFormat = new SimpleDateFormat("yyyyMMdd'D'HHmmss");
@@ -494,6 +544,15 @@ public class SampleMeasurementActivity extends Activity {
 
     }
 
+    /**
+     * Calculates sample/measurement location on the grid
+     * @see #distance
+     * @see #theta
+     * @see #alpha
+     * @see #beta
+     * @see #xPosition
+     * @see #yPosition
+     */
     private void calculateSampledLocationParameters(){
         distance = NavigationFunctions.calculateDifference(tabletLat, tabletLon, originLatitude, originLongitude);
         //theta = NavigationFunctions.calculateAngleBeta(tabletLat, tabletLon, originLatitude, originLongitude);
@@ -504,6 +563,12 @@ public class SampleMeasurementActivity extends Activity {
         yPosition = distance * Math.sin(Math.toRadians(alpha));
     }
 
+    /**
+     * Retrieves origin mmsi/location and beta value from {@link DatabaseHelper#fixedStationTable} and {@link DatabaseHelper#betaTable}
+     * respectively.
+     * It is used to calculate location parameters {@link #calculateSampledLocationParameters()}
+     * @return
+     */
     private boolean getOriginCoordinates(){
         Cursor baseStationCursor = null;
         Cursor fixedStationCursor = null;
