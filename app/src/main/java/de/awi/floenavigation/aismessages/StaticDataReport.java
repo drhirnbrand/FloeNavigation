@@ -262,22 +262,22 @@ public class StaticDataReport {
      */
     public void setData(StringBuilder bin)
     {
-        msgInd = (int)strbuildtodec(0,5,6,bin,int.class);
-        repeatInd = (int)strbuildtodec(6,7,2,bin,int.class);
-        mmsi =  (long)strbuildtodec(8,37,30,bin,long.class);
-        partNum = (int)strbuildtodec(38,39,2,bin,int.class);
+        msgInd = (int)strbuildtodec(0,5,6,bin,int.class,false);
+        repeatInd = (int)strbuildtodec(6,7,2,bin,int.class,false);
+        mmsi =  (long)strbuildtodec(8,37,30,bin,long.class,false);
+        partNum = (int)strbuildtodec(38,39,2,bin,int.class,false);
         vesselName = convertToString(40,159,120,bin);//strbuildtodec(40,159,120,bin,int.class).toString();
         //spare_1 = (int)strbuildtodec(160,167,8,bin,int.class);
-        shipType = (int)strbuildtodec(40,47,8,bin,int.class);
+        shipType = (int)strbuildtodec(40,47,8,bin,int.class,false);
         vendorID = convertToString(48,65,18,bin);//strbuildtodec(48,65,18,bin,int.class).toString();
-        unitModelCode = (int)strbuildtodec(66,69,4,bin,int.class);
-        serialNum = (int)strbuildtodec(70,89,20,bin,int.class);
+        unitModelCode = (int)strbuildtodec(66,69,4,bin,int.class,false);
+        serialNum = (int)strbuildtodec(70,89,20,bin,int.class,false);
         callSign =  convertToString(90,131,42,bin);//strbuildtodec(90,131,42,bin,int.class).toString();
-        dimToBow = (int)strbuildtodec(132,140,9,bin,int.class);
-        dimToStern = (int)strbuildtodec(141,149,9,bin,int.class);
-        dimToPort = (int)strbuildtodec(150,155,6,bin,int.class);
-        dimToStarBoard = (int)strbuildtodec(156,161,6,bin,int.class);
-        mothershipMMSI =  (long)strbuildtodec(132,161,30,bin,long.class);
+        dimToBow = (int)strbuildtodec(132,140,9,bin,int.class,false);
+        dimToStern = (int)strbuildtodec(141,149,9,bin,int.class,false);
+        dimToPort = (int)strbuildtodec(150,155,6,bin,int.class,false);
+        dimToStarBoard = (int)strbuildtodec(156,161,6,bin,int.class,false);
+        mothershipMMSI =  (long)strbuildtodec(132,161,30,bin,long.class,false);
         //spare_2 = (int)strbuildtodec(162,167,6,bin,int.class);
     }
 

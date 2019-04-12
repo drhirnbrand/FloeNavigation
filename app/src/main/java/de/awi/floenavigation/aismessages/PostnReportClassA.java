@@ -242,21 +242,21 @@ public class PostnReportClassA {
      */
     public void setData(StringBuilder bin)
     {
-        msgInd = (int)strbuildtodec(0,5,6,bin,int.class);
-        repeatInd = (int)strbuildtodec(6,7,2,bin,int.class);
-        mmsi =  (long)strbuildtodec(8,37,30,bin,long.class);
-        status = (int)strbuildtodec(38,41,4,bin,int.class);
-        turn = (int)strbuildtodec(42,49,8,bin,int.class);
-        speed = (long)strbuildtodec(50,59,10,bin,long.class)/ 10.0;
-        accuracy = ((int) (strbuildtodec(60, 60, 1, bin, int.class)) > 0 );
-        lon = (long)strbuildtodec(61,88,28,bin,long.class)/600000.0;
-        lat = (long)strbuildtodec(89,115,27,bin,long.class)/600000.0;
-        course = (long)strbuildtodec(116,127,12,bin,long.class)/ 10.0;
-        heading = (int)strbuildtodec(128,136,9,bin,int.class);
-        sec = (int)strbuildtodec(137,142,6,bin,int.class);
-        maneuver = (int)strbuildtodec(143,144,2,bin,int.class);
-        raim = ((int) (strbuildtodec(148,148,1,bin,int.class)) > 0);
-        radio = (long)strbuildtodec(149,167,19,bin,long.class);
+        msgInd = (int)strbuildtodec(0,5,6,bin,int.class,false);
+        repeatInd = (int)strbuildtodec(6,7,2,bin,int.class,false);
+        mmsi =  (long)strbuildtodec(8,37,30,bin,long.class,false);
+        status = (int)strbuildtodec(38,41,4,bin,int.class,false);
+        turn = (int)strbuildtodec(42,49,8,bin,int.class,false);
+        speed = (long)strbuildtodec(50,59,10,bin,long.class,false)/ 10.0;
+        accuracy = ((int) (strbuildtodec(60, 60, 1, bin, int.class,false)) > 0 );
+        lon = (long)strbuildtodec(61,88,28,bin,long.class,true)/600000.0;
+        lat = (long)strbuildtodec(89,115,27,bin,long.class,true)/600000.0;
+        course = (long)strbuildtodec(116,127,12,bin,long.class,false)/ 10.0;
+        heading = (int)strbuildtodec(128,136,9,bin,int.class,false);
+        sec = (int)strbuildtodec(137,142,6,bin,int.class,false);
+        maneuver = (int)strbuildtodec(143,144,2,bin,int.class,false);
+        raim = ((int) (strbuildtodec(148,148,1,bin,int.class,false)) > 0);
+        radio = (long)strbuildtodec(149,167,19,bin,long.class,false);
     }
 
 

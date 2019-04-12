@@ -241,7 +241,7 @@ public class AISDecodingService extends IntentService {
                 String[] dataExtr = packet.split(",");
                 aivdmObj.setData(dataExtr);
                 StringBuilder binary = aivdmObj.decodePayload();
-                msgType = (int) strbuildtodec(0, 5, 6, binary, int.class);
+                msgType = (int) strbuildtodec(0, 5, 6, binary, int.class, false);
                 msgDecoding(msgType, binary);
                 Log.d(TAG, String.valueOf(recvdMMSI));
             }

@@ -183,12 +183,26 @@ public class AIVDM {
      * @param <T> Generic data type (template concept of java)
      * @return returns the decimal equivalent
      */
-    static <T> Object strbuildtodec(int begin, int end, int len, StringBuilder binLocal, Class<?> type)
+    static <T> Object strbuildtodec(int begin, int end, int len, StringBuilder binLocal, Class<?> type, boolean signedNum)
     {
         try{
 
             char[] array = new char[len];
             binLocal.getChars(begin,(end + 1),array,0);
+
+            if(signedNum && array[0] == '1'){
+                String str = new String(array);
+                Long decValue = Long.parseLong(str, 2);
+                char[] invert = new char[len];
+                Arrays.fill(invert, '1');
+                decValue ^= Integer.parseInt(new String(invert), 2);
+                decValue += 1;
+                decValue = -decValue;
+                if(type == int.class)
+                    return (int)(long)decValue;
+                else
+                    return decValue;
+            }
 
             long decimal = 0;
             for(int pow = len; pow > 0; pow--)

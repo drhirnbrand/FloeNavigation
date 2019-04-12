@@ -297,26 +297,26 @@ public class PostnReportClassB {
      */
     public void setData(StringBuilder bin)
     {
-        msgInd = (int)strbuildtodec(0,5,6,bin,int.class);
-        repeatInd = (int)strbuildtodec(6,7,2,bin,int.class);
-        mmsi =  (long)strbuildtodec(8,37,30,bin,long.class);
-        regReserved1 = (int)strbuildtodec(38,45,8,bin,int.class);
-        speed = (long)strbuildtodec(46,55,10,bin,long.class) / 10.0;
-        accuracy = (int)strbuildtodec(56,56,1,bin,int.class) > 0;
-        lon = (long)strbuildtodec(57,84,28,bin,long.class) / 600000.0;
-        lat = (long)strbuildtodec(85,111,27,bin,long.class) / 600000.0;
-        course = (long)strbuildtodec(112,123,12,bin,long.class) / 10.0;
-        heading = (int)strbuildtodec(124,132,9,bin,int.class);
-        sec = (int)strbuildtodec(133,138,6,bin,int.class);
-        regReserved2 = (int)strbuildtodec(139,140,2,bin,int.class);
-        csUnit = (int)strbuildtodec(141,141,1,bin,int.class) > 0;
-        dispFlag = (int)strbuildtodec(142,142,1,bin,int.class) > 0;
-        dscFlag = (int)strbuildtodec(143,143,1,bin,int.class) > 0;
-        bandFlag = (int)strbuildtodec(144,144,1,bin,int.class) > 0;
-        msg22Flag = (int)strbuildtodec(145,145,1,bin,int.class) > 0;
-        assigned = (int)strbuildtodec(146,146,1,bin,int.class) > 0;
-        raim = (int)strbuildtodec(147,147,1,bin,int.class) > 0;
-        radio = (int)strbuildtodec(148,167,20,bin,int.class);
+        msgInd = (int)strbuildtodec(0,5,6,bin,int.class,false);
+        repeatInd = (int)strbuildtodec(6,7,2,bin,int.class,false);
+        mmsi =  (long)strbuildtodec(8,37,30,bin,long.class,false);
+        regReserved1 = (int)strbuildtodec(38,45,8,bin,int.class,false);
+        speed = (long)strbuildtodec(46,55,10,bin,long.class,false) / 10.0;
+        accuracy = (int)strbuildtodec(56,56,1,bin,int.class,false) > 0;
+        lon = (long)strbuildtodec(57,84,28,bin,long.class,true) / 600000.0;
+        lat = (long)strbuildtodec(85,111,27,bin,long.class,true) / 600000.0;
+        course = (long)strbuildtodec(112,123,12,bin,long.class,false) / 10.0;
+        heading = (int)strbuildtodec(124,132,9,bin,int.class,false);
+        sec = (int)strbuildtodec(133,138,6,bin,int.class,false);
+        regReserved2 = (int)strbuildtodec(139,140,2,bin,int.class,false);
+        csUnit = (int)strbuildtodec(141,141,1,bin,int.class,false) > 0;
+        dispFlag = (int)strbuildtodec(142,142,1,bin,int.class,false) > 0;
+        dscFlag = (int)strbuildtodec(143,143,1,bin,int.class,false) > 0;
+        bandFlag = (int)strbuildtodec(144,144,1,bin,int.class,false) > 0;
+        msg22Flag = (int)strbuildtodec(145,145,1,bin,int.class,false) > 0;
+        assigned = (int)strbuildtodec(146,146,1,bin,int.class,false) > 0;
+        raim = (int)strbuildtodec(147,147,1,bin,int.class,false) > 0;
+        radio = (int)strbuildtodec(148,167,20,bin,int.class,false);
     }
 
 };

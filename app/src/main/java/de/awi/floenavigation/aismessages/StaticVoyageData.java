@@ -317,24 +317,24 @@ public class StaticVoyageData {
     public void setData(StringBuilder bin)
     {
 
-        msgInd = (int)strbuildtodec(0,5,6,bin,int.class);
-        repeatInd = (int)strbuildtodec(6,7,2,bin,int.class);
-        mmsi =  (long)strbuildtodec(8,37,30,bin,long.class);
-        aisVersion = (int)strbuildtodec(38,39,2,bin,int.class);
-        imoNumber = (int)strbuildtodec(40,69,30,bin,int.class);
+        msgInd = (int)strbuildtodec(0,5,6,bin,int.class,false);
+        repeatInd = (int)strbuildtodec(6,7,2,bin,int.class,false);
+        mmsi =  (long)strbuildtodec(8,37,30,bin,long.class,false);
+        aisVersion = (int)strbuildtodec(38,39,2,bin,int.class,false);
+        imoNumber = (int)strbuildtodec(40,69,30,bin,int.class,false);
         callSign = convertToString(70,111,42,bin);//strbuildtodec(70,111,42,bin,int.class).toString();
         vesselName = convertToString(112,231,120,bin);//strbuildtodec(112,231,120,bin,int.class).toString();
-        shipType = (int)strbuildtodec(232,239,8,bin,int.class);
-        dimToBow = (int)strbuildtodec(240,248,9,bin,int.class);
-        dimToStern = (int)strbuildtodec(249,257,9,bin,int.class);
-        dimToPort = (int)strbuildtodec(258,263,6,bin,int.class);
-        dimToStarBoard = (int)strbuildtodec(264,269,6,bin,int.class);
-        postnFixType = (int)strbuildtodec(270,273,4,bin,int.class);
-        month = (int)strbuildtodec(274,277,4,bin,int.class);
-        day = (int)strbuildtodec(278,282,5,bin,int.class);
-        hour = (int)strbuildtodec(283,287,5,bin,int.class);
-        minute = (int)strbuildtodec(288,293,6,bin,int.class);
-        draught = (int)strbuildtodec(294,301,8,bin,int.class) / 10;
+        shipType = (int)strbuildtodec(232,239,8,bin,int.class,false);
+        dimToBow = (int)strbuildtodec(240,248,9,bin,int.class,false);
+        dimToStern = (int)strbuildtodec(249,257,9,bin,int.class,false);
+        dimToPort = (int)strbuildtodec(258,263,6,bin,int.class,false);
+        dimToStarBoard = (int)strbuildtodec(264,269,6,bin,int.class,false);
+        postnFixType = (int)strbuildtodec(270,273,4,bin,int.class,false);
+        month = (int)strbuildtodec(274,277,4,bin,int.class,false);
+        day = (int)strbuildtodec(278,282,5,bin,int.class,false);
+        hour = (int)strbuildtodec(283,287,5,bin,int.class,false);
+        minute = (int)strbuildtodec(288,293,6,bin,int.class,false);
+        draught = (int)strbuildtodec(294,301,8,bin,int.class,false) / 10;
        // destn = strbuildtodec(302,421,120,bin,int.class).toString();
         //dte = (int)strbuildtodec(422,422,1,bin,int.class) > 0;
         //reserved = (int)strbuildtodec(423,423,1,bin,int.class);

@@ -284,6 +284,7 @@ public class StaticStationFragment extends Fragment implements View.OnClickListe
         //alpha = Math.abs(theta - beta);
         theta = NavigationFunctions.calculateAngleBeta(originLatitude, originLongitude, tabletLat, tabletLon);
         alpha = theta - beta;
+        Log.d(TAG, "Theta: " + theta + " Alpha: " + alpha);
         Log.d(TAG, "StationDistance: " + String.valueOf(distance));
         Log.d(TAG, "OriginLat: " + String.valueOf(originLatitude) + " OriginLon: " + String.valueOf(originLongitude));
         Log.d(TAG, "TabletLat: " + String.valueOf(tabletLat) + " TabletLon: " + String.valueOf(tabletLon));

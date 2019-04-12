@@ -142,7 +142,7 @@ public class NavigationFunctions {
         //double fixedLat = lat1;
         //double fixedLon = lon2;
 
-        double bearing = calculateBearing(lat1, lon1, lat2, lon2);
+        //double bearing = calculateBearing(lat1, lon1, lat2, lon2);
         //Log.d(TAG, "Bearing: " + String.valueOf(bearing));
 
         /*if(bearing >= 0 && bearing <= 180){
@@ -151,8 +151,12 @@ public class NavigationFunctions {
         else if(bearing > 180 && bearing <= 360){
             bearing -= 270;
         }*/
+        double bearing;
+        double deltaY = lat2 - lat1;
+        double deltaX = lon2 - lon1;
+        bearing = Math.toDegrees(Math.atan2(deltaY, deltaX));
         bearing = (bearing + 360) % 360;
-        bearing = 360 - bearing;
+        //bearing = 360 - bearing;
 
 
         //double hypDistance = calculateDifference(lat1, lon1, lat2, lon2);

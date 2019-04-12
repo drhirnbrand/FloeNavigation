@@ -451,6 +451,7 @@ public class WaypointActivity extends Activity implements View.OnClickListener{
         theta = NavigationFunctions.calculateAngleBeta(originLatitude, originLongitude, tabletLat, tabletLon);
         //alpha = Math.abs(theta - beta);
         alpha = theta - beta;
+        Log.d(TAG, "Theta: " + theta + " Alpha: " + alpha);
         xPosition = distance * Math.cos(Math.toRadians(alpha));
         yPosition = distance * Math.sin(Math.toRadians(alpha));
     }
