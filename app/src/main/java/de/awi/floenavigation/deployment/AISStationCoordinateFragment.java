@@ -63,6 +63,12 @@ public class AISStationCoordinateFragment extends Fragment implements View.OnCli
     private static final String TAG = "AISStationDeployFrag";
 
     /**
+     * Default value to insert in the column {@link DatabaseHelper#predictionTime} when a new {@link DatabaseHelper#fixedStationTable} is
+     * deployed.
+     */
+    private static final double DEFAULT_PREDICTION_TIME = 0.0;
+
+    /**
      * Text which is displayed when a Position report is received, location parameters are calculated and inserted in to the Database successfully.
      */
     private static final String changeText = "AIS Packet Received from the new Station";
@@ -244,6 +250,7 @@ public class AISStationCoordinateFragment extends Fragment implements View.OnCli
                             stationX = distance * Math.cos(Math.toRadians(alpha));
                             stationY = distance * Math.sin(Math.toRadians(alpha));
                             ContentValues stationUpdate = new ContentValues();
+                            stationUpdate.put(DatabaseHelper.predictionTime, DEFAULT_PREDICTION_TIME);
                             stationUpdate.put(DatabaseHelper.alpha, alpha);
                             stationUpdate.put(DatabaseHelper.distance, distance);
                             stationUpdate.put(DatabaseHelper.xPosition, stationX);

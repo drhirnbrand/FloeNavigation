@@ -658,6 +658,15 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public static final String validationCheckTime = "VALIDATION_CHECK_TIME";
 
     /**
+     * Column name for storing the time at which {@link de.awi.floenavigation.services.PredictionService} last predicted the position for
+     * this particular Fixed Station. This is a TEXT field
+     * <p>
+     *     A column of this name is present in the database table {@link #fixedStationTable}.
+     * </p>
+     * @see #predictionAccuracy
+     */
+    public static final String predictionTime = "PREDICTION_TIME";
+    /**
      * Column name for a field which is set when an AIS packet is received from a Fixed Station. This is specially useful in deployment
      * of new station. When a new station is deployed in the first step only the name and MMSI of the station are inserted in the
      * {@link #fixedStationTable} and {@link #stationListTable}. When the {@link de.awi.floenavigation.aismessages.AISDecodingService}
@@ -1059,6 +1068,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                         isPredicted + " NUMERIC, " +
                         incorrectMessageCount + " INTEGER, " +
                         validationCheckTime + " TEXT, " +
+                        predictionTime + " TEXT, " +
                         predictionAccuracy + " NUMERIC, " +
                         isLocationReceived + " NUMERIC, " +
                         mmsi + " INTEGER UNIQUE NOT NULL);");

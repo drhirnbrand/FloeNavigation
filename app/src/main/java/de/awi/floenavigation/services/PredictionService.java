@@ -1,8 +1,11 @@
 package de.awi.floenavigation.services;
 
 import android.app.IntentService;
+import android.content.BroadcastReceiver;
 import android.content.ContentValues;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
@@ -97,6 +100,16 @@ public class PredictionService extends IntentService {
     private double beta;
 
     /**
+     * Time at which the position was last predicted
+     */
+    private double predictionTime;
+
+    /**
+     * Time at which the AIS packet was last received
+     */
+    private double updateTime;
+
+    /**
      * Not used
      */
     private static PredictionService instance = null;
@@ -106,6 +119,18 @@ public class PredictionService extends IntentService {
      * <code>false</code> otherwise
      */
     private static boolean stopRunnable = false;
+    /**
+     * Broadcast receiver to get gps time
+     */
+    private BroadcastReceiver broadcastReceiver;
+    /**
+     * Variable to store the gps time
+     */
+    private long gpsTime;
+    /**
+     * Variable to store the time difference between the system clock and the gps time
+     */
+    private long timeDiff;
 
     /**
      * Default constructor
@@ -120,6 +145,17 @@ public class PredictionService extends IntentService {
     public void onCreate(){
         super.onCreate();
         instance = this;
+        if (broadcastReceiver == null) {
+            broadcastReceiver = new BroadcastReceiver() {
+                @Override
+                public void onReceive(Context context, Intent intent) {
+                    gpsTime = Long.parseLong(intent.getExtras().get(GPS_Service.GPSTime).toString());
+                    timeDiff = System.currentTimeMillis() - gpsTime;
+
+                }
+            };
+        }
+        registerReceiver(broadcastReceiver, new IntentFilter(GPS_Service.GPSBroadcast));
     }
 
     /**
@@ -154,17 +190,27 @@ public class PredictionService extends IntentService {
                                     retrieveConfigurationParametersDatafromDB(db);
 
                                     mFixedStnCursor = db.query(DatabaseHelper.fixedStationTable, new String[]{DatabaseHelper.mmsi, DatabaseHelper.latitude, DatabaseHelper.longitude,
-                                            DatabaseHelper.recvdLatitude, DatabaseHelper.recvdLongitude, DatabaseHelper.sog, DatabaseHelper.cog, DatabaseHelper.predictionAccuracy}, null, null, null, null, null);
+                                            DatabaseHelper.recvdLatitude, DatabaseHelper.recvdLongitude, DatabaseHelper.sog,
+                                            DatabaseHelper.cog, DatabaseHelper.predictionTime, DatabaseHelper.updateTime, DatabaseHelper.predictionAccuracy},
+                                            null,
+                                            null, null, null, null);
                                     if (mFixedStnCursor.moveToFirst()) {
                                         do {
                                             mmsi = mFixedStnCursor.getInt(mFixedStnCursor.getColumnIndex(DatabaseHelper.mmsi));
+                                            updateTime = mFixedStnCursor.getDouble(mFixedStnCursor.getColumnIndexOrThrow(DatabaseHelper.updateTime));
+                                            predictionTime = mFixedStnCursor.getDouble(mFixedStnCursor.getColumnIndexOrThrow(DatabaseHelper.predictionTime));
                                             predictionAccuracy = mFixedStnCursor.getInt(mFixedStnCursor.getColumnIndex(DatabaseHelper.predictionAccuracy));
                                             if (predictionAccuracy >= PREDICTION_ACCURACY_THRESHOLD_VALUE / VALIDATION_TIME) {
                                                 stationLatitude = mFixedStnCursor.getDouble(mFixedStnCursor.getColumnIndex(DatabaseHelper.latitude));
                                                 stationLongitude = mFixedStnCursor.getDouble(mFixedStnCursor.getColumnIndex(DatabaseHelper.longitude));
                                             } else {
-                                                stationLatitude = mFixedStnCursor.getDouble(mFixedStnCursor.getColumnIndex(DatabaseHelper.recvdLatitude));
-                                                stationLongitude = mFixedStnCursor.getDouble(mFixedStnCursor.getColumnIndex(DatabaseHelper.recvdLongitude));
+                                                if (updateTime > predictionTime) {
+                                                    stationLatitude = mFixedStnCursor.getDouble(mFixedStnCursor.getColumnIndex(DatabaseHelper.recvdLatitude));
+                                                    stationLongitude = mFixedStnCursor.getDouble(mFixedStnCursor.getColumnIndex(DatabaseHelper.recvdLongitude));
+                                                } else {
+                                                    stationLatitude = mFixedStnCursor.getDouble(mFixedStnCursor.getColumnIndex(DatabaseHelper.latitude));
+                                                    stationLongitude = mFixedStnCursor.getDouble(mFixedStnCursor.getColumnIndex(DatabaseHelper.longitude));
+                                                }
                                             }
                                             stationSOG = mFixedStnCursor.getDouble(mFixedStnCursor.getColumnIndex(DatabaseHelper.sog));
                                             stationCOG = mFixedStnCursor.getDouble(mFixedStnCursor.getColumnIndex(DatabaseHelper.cog));
@@ -176,6 +222,7 @@ public class PredictionService extends IntentService {
                                             mContentValues.put(DatabaseHelper.xPosition, xPosition);
                                             mContentValues.put(DatabaseHelper.yPosition, yPosition);
                                             mContentValues.put(DatabaseHelper.distance, distance);
+                                            mContentValues.put(DatabaseHelper.predictionTime, System.currentTimeMillis() - timeDiff);
                                             mContentValues.put(DatabaseHelper.alpha, alpha);
                                             mContentValues.put(DatabaseHelper.isPredicted, 1);
                                             db.update(DatabaseHelper.fixedStationTable, mContentValues, DatabaseHelper.mmsi + " = ?", new String[]{String.valueOf(mmsi)});
