@@ -214,8 +214,8 @@ public class PredictionService extends IntentService {
                                             }
                                             stationSOG = mFixedStnCursor.getDouble(mFixedStnCursor.getColumnIndex(DatabaseHelper.sog));
                                             stationCOG = mFixedStnCursor.getDouble(mFixedStnCursor.getColumnIndex(DatabaseHelper.cog));
+                                            calculateNewParams(mmsi, stationLatitude, stationLongitude);
                                             predictedCoordinate = NavigationFunctions.calculateNewPosition(stationLatitude, stationLongitude, stationSOG, stationCOG);
-                                            calculateNewParams(mmsi, predictedCoordinate[DatabaseHelper.LATITUDE_INDEX], predictedCoordinate[DatabaseHelper.LONGITUDE_INDEX]);
                                             ContentValues mContentValues = new ContentValues();
                                             mContentValues.put(DatabaseHelper.latitude, predictedCoordinate[DatabaseHelper.LATITUDE_INDEX]);
                                             mContentValues.put(DatabaseHelper.longitude, predictedCoordinate[DatabaseHelper.LONGITUDE_INDEX]);
@@ -227,7 +227,7 @@ public class PredictionService extends IntentService {
                                             mContentValues.put(DatabaseHelper.isPredicted, 1);
                                             db.update(DatabaseHelper.fixedStationTable, mContentValues, DatabaseHelper.mmsi + " = ?", new String[]{String.valueOf(mmsi)});
                                             Log.d(TAG, "Lat: " + stationLatitude + " Lon: " + stationLongitude);
-                                            Log.d(TAG, "PredLat: " + predictedCoordinate[0] + "PredLon: " + predictedCoordinate[1]);
+                                            Log.d(TAG, "PredLat: " + predictedCoordinate[0] + "PredLon: " + predictedCoordinate[1] + " xPos: " + xPosition);
                                         } while (mFixedStnCursor.moveToNext());
                                         mFixedStnCursor.close();
                                     } else {
@@ -330,6 +330,7 @@ public class PredictionService extends IntentService {
             distance = 0.0;
         } else if(mmsi == xAxisBaseStationMMSI){
             xPosition = NavigationFunctions.calculateDifference(originLatitude, originLongitude, latitude, longitude);
+            Log.d(TAG, "OL: " + originLatitude + ", " + originLongitude + " XL: " + latitude + ", " + longitude);
             yPosition = 0.0;
             alpha = 0.0;
             distance = xPosition;
@@ -435,5 +436,9 @@ public class PredictionService extends IntentService {
     public void onDestroy(){
         super.onDestroy();
         instance = null;
+        if (broadcastReceiver != null) {
+            unregisterReceiver(broadcastReceiver);
+            broadcastReceiver = null;
+        }
     }
 }

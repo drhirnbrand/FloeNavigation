@@ -526,7 +526,7 @@ public class MapView extends View{
                         canvas.drawCircle((float) getDrawX(getFixedStationX(i)), (float) getDrawY(getFixedStationY(i)), CircleSize, mDataPaint);
                         Log.d(TAG, "FixedStationX: " + String.valueOf(getFixedStationX(i)));
                         Log.d(TAG, "FixedStationY: " + String.valueOf(getFixedStationY(i)));
-                        Log.d(TAG, "Loop Counter: " + String.valueOf(i));
+                        //Log.d(TAG, "Loop Counter: " + String.valueOf(i));
                         Log.d(TAG, "Length: " + String.valueOf(getFixedStationSize()));
                         Log.d(TAG, "MMSIs: " + String.valueOf(getFixedStationMMSI(i)));
                         Log.d(TAG, "FixedStation TranslatedX: " + getDrawX(getFixedStationX(i)));

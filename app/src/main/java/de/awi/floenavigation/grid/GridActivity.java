@@ -770,6 +770,7 @@ public class GridActivity extends Activity implements View.OnClickListener{
                         mFixedStationXs.put(i, mFixedStnCursor.getDouble(mFixedStnCursor.getColumnIndex(DatabaseHelper.xPosition)));
                         mFixedStationYs.put(i, mFixedStnCursor.getDouble(mFixedStnCursor.getColumnIndex(DatabaseHelper.yPosition)));
                         mFixedStationNames.put(i, mFixedStnCursor.getString(mFixedStnCursor.getColumnIndex(DatabaseHelper.stationName)));
+                        Log.d(TAG, "Fixed Station MMSI: " + mFixedStationMMSIs.get(i) + " xPos: " + mFixedStationXs.get(i) + " yPos: " + mFixedStationYs.get(i));
                         mFixedStnCursor.moveToNext();
                     }
                     return true;
