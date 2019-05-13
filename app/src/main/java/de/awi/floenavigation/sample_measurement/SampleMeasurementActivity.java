@@ -12,6 +12,7 @@ import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.app.Activity;
 import android.os.Handler;
@@ -130,7 +131,7 @@ public class SampleMeasurementActivity extends Activity {
     /**
      * Spinner for listing sample or measurement
      */
-    private Spinner operation;
+    //private Spinner operation;
     /**
      * to change the display format of the geographic coordinates
      */
@@ -185,6 +186,15 @@ public class SampleMeasurementActivity extends Activity {
      * Menu items
      */
     private MenuItem gpsIconItem, aisIconItem, gridSetupIconItem;
+    /**
+     * Stores the tablet id
+     */
+    private String tabletID;
+
+    /**
+     * Label ID edit text
+     */
+    private EditText labelId_TV;
 
     /**
      * Intializes all the views
@@ -199,11 +209,15 @@ public class SampleMeasurementActivity extends Activity {
         changeFormat = DatabaseHelper.readCoordinateDisplaySetting(this);
         numOfSignificantFigures = DatabaseHelper.readSiginificantDigitsSetting(this);
 
-
+        //Set text for label ID
+        if (getTabletID()) {
+            labelId_TV = findViewById(R.id.sampleMeasurementLabelId);
+            labelId_TV.setText(String.format("%s_%s", tabletID, Integer.toString(DatabaseHelper.SAMPLE_ID_COUNTER)));
+        }
 
         //Advanced Search Feature
         DatabaseHelper.loadDeviceList(getApplicationContext());
-        setSpinnerValues();
+        //setSpinnerValues();
         final AutoCompleteTextView deviceNameTextView = findViewById(R.id.deviceshortname);
         ArrayAdapter<String> adapter = DatabaseHelper.advancedSearchTextView(getApplicationContext());
         deviceNameTextView.setDropDownBackgroundResource(R.color.backgroundGradStart);
@@ -251,6 +265,38 @@ public class SampleMeasurementActivity extends Activity {
                 }
             }
         });
+    }
+
+    /**
+     * Function to read tablet id from the database table
+     */
+    private boolean getTabletID() {
+        boolean success = false;
+        try{
+            DatabaseHelper dbHelper = DatabaseHelper.getDbInstance(getApplicationContext());
+            SQLiteDatabase db = dbHelper.getReadableDatabase();
+            Cursor paramCursor = db.query(DatabaseHelper.configParametersTable,
+                    new String[] {DatabaseHelper.parameterName, DatabaseHelper.parameterValue},
+                    DatabaseHelper.parameterName +" = ?",
+                    new String[] {DatabaseHelper.tabletId},
+                    null, null, null);
+            if (paramCursor.moveToFirst()){
+                String paramValue = paramCursor.getString(paramCursor.getColumnIndexOrThrow(DatabaseHelper.parameterValue));
+                if(!paramValue.isEmpty()){
+                    success = true;
+                    tabletID = paramValue;
+                } else{
+                    Log.d(TAG, "Blank TabletID");
+                }
+            } else{
+                Log.d(TAG, "TabletID not set");
+            }
+            paramCursor.close();
+
+        } catch(SQLiteException e){
+            Log.d(TAG, "Error Reading from Database");
+        }
+        return success;
     }
 
     /**
@@ -318,13 +364,14 @@ public class SampleMeasurementActivity extends Activity {
      * {@link #operation} spinner value shows a drop down list to select between sample
      * and measurement
      */
+    /**
     private void setSpinnerValues(){
         operation = findViewById(R.id.operationspinner);
         String[] contents = new String[]{"Sample", "Measurement"};
         ArrayAdapter<String> adapter = new ArrayAdapter<>(this, R.layout.spinner_item, contents);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         operation.setAdapter(adapter);
-    }
+    }**/
 
     /**
      * onStart method to call {@link #actionBarUpdatesFunction()}
@@ -482,11 +529,12 @@ public class SampleMeasurementActivity extends Activity {
                 Toast.makeText(getApplicationContext(), "Error reading Label ID", Toast.LENGTH_LONG).show();
                 return false;
             }
+            /**
             EditText commentView = findViewById(R.id.sampleMeasurementComment);
             if(TextUtils.isEmpty(commentView.getText().toString())){
                 Toast.makeText(getApplicationContext(), "Error Reading Comment", Toast.LENGTH_SHORT).show();
                 return false;
-            }
+            }**/
 
             if (getOriginCoordinates()) {
                 calculateSampledLocationParameters();
@@ -495,7 +543,7 @@ public class SampleMeasurementActivity extends Activity {
                 mContentValues.put(DatabaseHelper.deviceID, selectedDeviceAttributes.get(deviceIDIndex));
                 mContentValues.put(DatabaseHelper.deviceName, selectedDeviceAttributes.get(deviceFullNameIndex));
                 mContentValues.put(DatabaseHelper.deviceShortName, deviceSelectedName);
-                mContentValues.put(DatabaseHelper.operation, operation.getSelectedItem().toString());
+                //mContentValues.put(DatabaseHelper.operation, operation.getSelectedItem().toString());
                 mContentValues.put(DatabaseHelper.deviceType, selectedDeviceAttributes.get(deviceTypeIndex));
                 mContentValues.put(DatabaseHelper.latitude, tabletLat);
                 mContentValues.put(DatabaseHelper.longitude, tabletLon);
@@ -525,8 +573,9 @@ public class SampleMeasurementActivity extends Activity {
         SimpleDateFormat displayFormat = new SimpleDateFormat("yyyyMMdd'D'HHmmss");
         displayFormat.setTimeZone(TimeZone.getTimeZone("gmt"));
         time = displayFormat.format(date);
-        EditText labelId_TV = findViewById(R.id.sampleMeasurementLabelId);
         labelId = labelId_TV.getText().toString();
+        if (labelId.contains(tabletID))
+            DatabaseHelper.SAMPLE_ID_COUNTER += 1;
         EditText comment_TV = findViewById(R.id.sampleMeasurementComment);
         comment = comment_TV.getText().toString();
         List<String> labelElements = new ArrayList<String>();
@@ -536,7 +585,7 @@ public class SampleMeasurementActivity extends Activity {
         labelElements.add(String.valueOf(xPosition));
         labelElements.add(String.valueOf(yPosition));
         labelElements.add(labelId);
-        labelElements.add(operation.getSelectedItem().toString());
+        //labelElements.add(operation.getSelectedItem().toString());
         labelElements.add(comment);
         labelElements.add(selectedDeviceAttributes.get(deviceIDIndex));
         label = TextUtils.join(",", labelElements);

@@ -69,7 +69,7 @@ public class SampleMeasurementSync {
     private HashMap<Integer, String> deviceIDData = new HashMap<>();
     private HashMap<Integer, String> deviceNameData = new HashMap<>();
     private HashMap<Integer, String> deviceShortNameData = new HashMap<>();
-    private HashMap<Integer, String> operationData = new HashMap<>();
+    //private HashMap<Integer, String> operationData = new HashMap<>();
     private HashMap<Integer, String> deviceTypeData = new HashMap<>();
     private HashMap<Integer, Double> latitudeData = new HashMap<>();
     private HashMap<Integer, Double> longitudeData = new HashMap<>();
@@ -122,7 +122,7 @@ public class SampleMeasurementSync {
                     deviceIDData.put(i, sampleCursor.getString(sampleCursor.getColumnIndexOrThrow(DatabaseHelper.deviceID)));
                     deviceNameData.put(i, sampleCursor.getString(sampleCursor.getColumnIndexOrThrow(DatabaseHelper.deviceName)));
                     deviceShortNameData.put(i, sampleCursor.getString(sampleCursor.getColumnIndexOrThrow(DatabaseHelper.deviceShortName)));
-                    operationData.put(i, sampleCursor.getString(sampleCursor.getColumnIndexOrThrow(DatabaseHelper.operation)));
+                    //operationData.put(i, sampleCursor.getString(sampleCursor.getColumnIndexOrThrow(DatabaseHelper.operation)));
                     deviceTypeData.put(i, sampleCursor.getString(sampleCursor.getColumnIndexOrThrow(DatabaseHelper.deviceType)));
                     latitudeData.put(i, sampleCursor.getDouble(sampleCursor.getColumnIndexOrThrow(DatabaseHelper.latitude)));
                     longitudeData.put(i, sampleCursor.getDouble(sampleCursor.getColumnIndexOrThrow(DatabaseHelper.longitude)));
@@ -193,7 +193,7 @@ public class SampleMeasurementSync {
                     hashMap.put(DatabaseHelper.deviceID, (deviceIDData.get(index) == null) ? "" : deviceIDData.get(index));
                     hashMap.put(DatabaseHelper.deviceName, (deviceNameData.get(index) == null) ? "" : deviceNameData.get(index));
                     hashMap.put(DatabaseHelper.deviceShortName, (deviceShortNameData.get(index) == null) ? "" : deviceShortNameData.get(index));
-                    hashMap.put(DatabaseHelper.operation, (operationData.get(index) == null) ? "" : operationData.get(index));
+                    //hashMap.put(DatabaseHelper.operation, (operationData.get(index) == null) ? "" : operationData.get(index));
                     hashMap.put(DatabaseHelper.deviceType, (deviceTypeData.get(index) == null) ? "" : deviceTypeData.get(index));
                     hashMap.put(DatabaseHelper.latitude, (latitudeData.get(index) == null) ? "" : latitudeData.get(index).toString());
                     hashMap.put(DatabaseHelper.longitude, (longitudeData.get(index) == null) ? "" : longitudeData.get(index).toString());
@@ -237,6 +237,8 @@ public class SampleMeasurementSync {
         db = dbHelper.getReadableDatabase();
         db.execSQL("Delete from " + DatabaseHelper.deviceListTable);
         db.execSQL("Delete from " + DatabaseHelper.sampleMeasurementTable);
+        //Counter reinitialized
+        DatabaseHelper.SAMPLE_ID_COUNTER = 1;
         StringRequest pullRequest = new StringRequest(pullDeviceListURL, new Response.Listener<String>() {
             @Override
             public void onResponse(String response) {

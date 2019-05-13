@@ -105,6 +105,17 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public static final double ORIGIN = 1;
 
     /**
+     * It is a counter which is appended to the {@link #tabletId}, which forms the label id in the sample and measurement
+     * menu.
+     * This counter is automatically incremented whenever the user wishes to add a new sample, thus providing the user with a
+     * default name for the sample. It is incremented until synchronization of the database tables with the server.
+     * This counter is initialized again to '1' after synchronization.
+     * The user can however change the label id if this suggestion is not acceptable and can enter another value.
+     *
+     */
+    public static int SAMPLE_ID_COUNTER = 1;
+
+    /**
      * Name of the Configuration Parameter which defines the maximum correct distance in meters between the predicted coordinates and received coordinates
      * for a Fixed Station. If the distance between the predicted coordinates and received coordinates is above the value specified by
      * this Configuration Parameter it will be considered as an incorrect Prediction.
@@ -985,6 +996,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public static final int MOTHER_SHIP_MMSI = 211202460;//230070870;
 
 
+
     /**
      * Default Constructor
      */
@@ -1127,7 +1139,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                         deviceID + " TEXT," +
                         deviceName + " TEXT, " +
                         deviceShortName + " TEXT, " +
-                        operation + " TEXT, " +
+                        //operation + " TEXT, " +
                         deviceType + " TEXT, " +
                         comment + " TEXT, " +
                         latitude + " REAL, " +

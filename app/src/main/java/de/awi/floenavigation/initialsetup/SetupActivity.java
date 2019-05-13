@@ -497,7 +497,7 @@ public class SetupActivity extends ActionBarActivity {
      */
     private void dialogBoxDisplay() {
 
-        String popupMsg = "Do you wish to rerun the initial setup?, then press Confirm!";
+        String popupMsg = "Do you wish to rerun the initial setup?";
         String title = "Initial Setup Completed";
         Intent dialogIntent = new Intent(this, DialogActivity.class);
         dialogIntent.putExtra(DialogActivity.DIALOG_TITLE, title);

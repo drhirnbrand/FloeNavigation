@@ -9,6 +9,7 @@
     android:background="@drawable/background_bg"
     tools:context=".sample_measurement.SampleMeasurementActivity">
 
+    <!--
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -33,7 +34,7 @@
             android:layout_height="wrap_content"
             android:popupBackground="@color/white"
             android:spinnerMode="dropdown"/>
-    </LinearLayout>
+    </LinearLayout> -->
 
     <LinearLayout
         android:layout_width="match_parent"

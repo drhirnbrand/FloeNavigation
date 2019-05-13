@@ -26,7 +26,7 @@ public class SampleMeasurement {
     private String deviceID;
     private String deviceName;
     private String deviceShortName;
-    private String operation;
+    //private String operation;
     private String deviceType;
     private double latitude;
     private double longitude;
@@ -63,7 +63,7 @@ public class SampleMeasurement {
         sample.put(DatabaseHelper.deviceID, this.deviceID);
         sample.put(DatabaseHelper.deviceName, this.deviceName);
         sample.put(DatabaseHelper.deviceShortName, this.deviceShortName);
-        sample.put(DatabaseHelper.operation, this.operation);
+        //sample.put(DatabaseHelper.operation, this.operation);
         sample.put(DatabaseHelper.deviceType, this.deviceType);
         sample.put(DatabaseHelper.latitude, this.latitude);
         sample.put(DatabaseHelper.longitude, this.longitude);
@@ -114,14 +114,14 @@ public class SampleMeasurement {
     public void setDeviceShortName(String deviceShortName) {
         this.deviceShortName = deviceShortName;
     }
-
+    /**
     public String getOperation() {
         return operation;
     }
 
     public void setOperation(String operation) {
         this.operation = operation;
-    }
+    }**/
 
     public String getDeviceType() {
         return deviceType;

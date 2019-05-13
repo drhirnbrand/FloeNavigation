@@ -2,7 +2,7 @@
     <string name="app_name">FloeNavigation</string>
 
     <!--Dashboard Buttons Names -->
-    <string name="deploymentButton">Deployment</string>
+    <string name="deploymentButton">Static Station</string>
     <string name="recoveryButton">Recovery</string>
     <string name="redeploymentButton">Redeployment</string>
     <string name="sampleMeasurementButton">Sample/\nMeasurement</string>

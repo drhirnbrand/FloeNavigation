@@ -146,6 +146,8 @@ public class StationInstallFragment extends Fragment implements View.OnClickList
         if (stationTypeAIS) {
             layout.findViewById(R.id.stationMMSI).setVisibility(View.VISIBLE);
             layout.findViewById(R.id.station_mmsi).setEnabled(true);
+            layout.findViewById(R.id.station_type).setVisibility(View.VISIBLE);
+            layout.findViewById(R.id.station_type).setEnabled(true);
             layout.findViewById(R.id.staticStationTabletLat).setVisibility(View.GONE);
             layout.findViewById(R.id.staticStationTabletLon).setVisibility(View.GONE);
             layout.findViewById(R.id.station_confirm).setClickable(true);
@@ -155,6 +157,7 @@ public class StationInstallFragment extends Fragment implements View.OnClickList
             layout.findViewById(R.id.staticStationTabletLat).setVisibility(View.VISIBLE);
             layout.findViewById(R.id.staticStationTabletLon).setVisibility(View.VISIBLE);
             layout.findViewById(R.id.stationMMSI).setVisibility(View.GONE);
+            layout.findViewById(R.id.station_type).setVisibility(View.GONE);
             layout.findViewById(R.id.station_confirm).setClickable(true);
             layout.findViewById(R.id.station_confirm).setEnabled(true);
             changeFormat = DatabaseHelper.readCoordinateDisplaySetting(getActivity());

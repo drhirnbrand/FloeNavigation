@@ -279,7 +279,7 @@ public class DialogActivity extends Activity {
 
             if (showDialogOptions) {
 
-                alertBuilder.setPositiveButton("Confirm", new DialogInterface.OnClickListener() {
+                alertBuilder.setPositiveButton("Rerun", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         //clearDatabase();
