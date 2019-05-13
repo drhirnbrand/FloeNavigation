@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/background_bg"
+    tools:context=".synchronization.SyncActivity">
+
+    <RelativeLayout
+        android:id="@+id/syncWelcomeScreen"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <TextView
+            android:id="@+id/welcomeScreen"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@color/white"
+            android:textSize="40sp"
+            android:textStyle="bold"
+            android:text="@string/syncWelcomeMsg"
+            android:layout_alignParentStart="true"
+            android:layout_centerHorizontal="true" />
+
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/linear"
+            android:text="@string/syncActivityStartSync"
+            android:background="@drawable/btn_bg"
+            android:textColor="@color/white"
+            android:textSize="15sp"
+            android:paddingLeft="50dp"
+            android:paddingRight="50dp"
+            android:layout_margin="20dp"
+            android:layout_gravity="right"
+            android:layout_marginTop="80dp"
+            android:layout_alignParentRight="true"
+            android:layout_alignParentBottom="true"
+            android:clickable="true"
+            android:focusable="true"
+            android:onClick="onClickStartSync"
+            android:foreground="?android:attr/selectableItemBackground"/>
+
+    </RelativeLayout>
+
+    <LinearLayout
+        android:id="@+id/syncWaitingView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="gone"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/syncWaitingMsg"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:text=""
+            android:textColor="@color/darkBrown"
+            android:textSize="25sp"
+            android:textStyle="bold"
+            android:paddingTop="150dp"/>
+
+        <ProgressBar
+            android:id="@+id/syncProgressBar"
+            style="@style/Base.Widget.AppCompat.ProgressBar.Horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:layout_gravity="center"
+            android:foregroundGravity="center"
+            android:indeterminate="true"
+            android:theme="@style/ProgressBarTheme" />
+
+        <Button
+            android:id="@+id/syncFinishBtn"
+            android:layout_marginTop="320dp"
+            android:layout_marginStart="770dp"
+            android:layout_width="500dp"
+            android:elevation="5dp"
+            android:textStyle="bold"
+            android:visibility="gone"
+            android:layout_height="wrap_content"
+            android:text="@string/syncPull"
+            android:background="@color/white"
+            android:onClick="onClickProgressBarButton"
+            android:textSize="30sp"
+            android:textAllCaps="true"
+            android:enabled="false"
+            android:clickable="false"
+            android:layout_gravity="bottom"
+            android:focusable="true" />
+    </LinearLayout>
+
+
+</LinearLayout>

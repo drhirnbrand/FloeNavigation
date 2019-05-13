@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/item"
+    android:layout_width="fill_parent"
+    android:layout_height="wrap_content"
+    android:padding="5dp">
+
+
+    <TextView
+        android:id="@+id/labelIDView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentStart="true"
+        android:layout_toStartOf="@+id/column2"
+        android:padding="10dp"
+        android:paddingLeft="5dp"
+        android:text="LabelID"
+        android:textAppearance="@android:style/TextAppearance.Material.Large"
+        android:textSize="20sp"/>
+
+    <LinearLayout
+        android:id="@+id/posLay"
+        android:layout_width="wrap_content"
+        android:layout_height="50dp"
+        android:layout_below="@+id/labelIDView">
+
+        <TextView
+            android:id="@+id/xPosLabel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:padding="10dp"
+            android:text="xPosition"
+            android:textAppearance="@android:style/TextAppearance.Material.Large"
+            android:textSize="20sp" />
+
+        <TextView
+            android:id="@+id/xPosView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:padding="10dp"
+            android:text="xPosition"
+            android:textAppearance="@android:style/TextAppearance.Material.Large"
+            android:textSize="20sp" />
+
+        <View
+            android:layout_width="1dp"
+            android:layout_height="wrap_content"
+            android:layout_margin="5dp" />
+
+        <TextView
+            android:id="@+id/yPosLabel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:padding="10dp"
+            android:text="yPosition"
+            android:textAppearance="@android:style/TextAppearance.Material.Large"
+            android:textSize="20sp" />
+
+        <TextView
+            android:id="@+id/yPosView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:padding="10dp"
+            android:text="yPosition"
+            android:textAppearance="@android:style/TextAppearance.Material.Large"
+            android:textSize="20sp" />
+    </LinearLayout>
+
+    <View
+        android:layout_below="@+id/posLay"
+        android:layout_width="match_parent"
+        android:layout_height="2dp"
+        android:background="@color/backgroundGradStop"/>
+
+</RelativeLayout>

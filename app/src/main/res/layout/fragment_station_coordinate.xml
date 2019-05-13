@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools = "http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@drawable/background_bg"
+    android:padding="20dp">
+
+    <LinearLayout
+        android:id="@+id/stationWaitingView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/aisStationFragMsg"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:text="@string/stationWaitingMsg"
+            android:textColor="@color/darkBrown"
+            android:textSize="25sp"
+            android:textStyle="bold"
+            android:paddingTop="150dp"/>
+
+        <ProgressBar
+            android:id="@+id/aisStationProgress"
+            style="@style/Base.Widget.AppCompat.ProgressBar.Horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:layout_gravity="center"
+            android:foregroundGravity="center"
+            android:indeterminate="true"
+            android:theme="@style/ProgressBarTheme" />
+
+        <Button
+            android:id="@+id/station_finish"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/stationFinishBtn"
+            android:enabled="true"
+            android:background="@drawable/btn_bg"
+            android:textColor="@color/white"
+            android:layout_gravity="right"
+            android:focusable="true"
+            android:foreground="?android:attr/selectableItemBackground"/>
+
+    </LinearLayout>
+
+
+
+</LinearLayout>
