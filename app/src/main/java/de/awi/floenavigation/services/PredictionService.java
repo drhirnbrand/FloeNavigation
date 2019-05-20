@@ -204,7 +204,7 @@ public class PredictionService extends IntentService {
                                                 stationLatitude = mFixedStnCursor.getDouble(mFixedStnCursor.getColumnIndex(DatabaseHelper.latitude));
                                                 stationLongitude = mFixedStnCursor.getDouble(mFixedStnCursor.getColumnIndex(DatabaseHelper.longitude));
                                             } else {
-                                                if (updateTime > predictionTime) {
+                                                if (updateTime >= predictionTime) {
                                                     stationLatitude = mFixedStnCursor.getDouble(mFixedStnCursor.getColumnIndex(DatabaseHelper.recvdLatitude));
                                                     stationLongitude = mFixedStnCursor.getDouble(mFixedStnCursor.getColumnIndex(DatabaseHelper.recvdLongitude));
                                                 } else {
@@ -214,16 +214,16 @@ public class PredictionService extends IntentService {
                                             }
                                             stationSOG = mFixedStnCursor.getDouble(mFixedStnCursor.getColumnIndex(DatabaseHelper.sog));
                                             stationCOG = mFixedStnCursor.getDouble(mFixedStnCursor.getColumnIndex(DatabaseHelper.cog));
-                                            calculateNewParams(mmsi, stationLatitude, stationLongitude);
+                                            //calculateNewParams(mmsi, stationLatitude, stationLongitude);
                                             predictedCoordinate = NavigationFunctions.calculateNewPosition(stationLatitude, stationLongitude, stationSOG, stationCOG);
                                             ContentValues mContentValues = new ContentValues();
                                             mContentValues.put(DatabaseHelper.latitude, predictedCoordinate[DatabaseHelper.LATITUDE_INDEX]);
                                             mContentValues.put(DatabaseHelper.longitude, predictedCoordinate[DatabaseHelper.LONGITUDE_INDEX]);
-                                            mContentValues.put(DatabaseHelper.xPosition, xPosition);
-                                            mContentValues.put(DatabaseHelper.yPosition, yPosition);
-                                            mContentValues.put(DatabaseHelper.distance, distance);
+                                            //mContentValues.put(DatabaseHelper.xPosition, xPosition);
+                                            //mContentValues.put(DatabaseHelper.yPosition, yPosition);
+                                            //mContentValues.put(DatabaseHelper.distance, distance);
                                             mContentValues.put(DatabaseHelper.predictionTime, System.currentTimeMillis() - timeDiff);
-                                            mContentValues.put(DatabaseHelper.alpha, alpha);
+                                            //mContentValues.put(DatabaseHelper.alpha, alpha);
                                             mContentValues.put(DatabaseHelper.isPredicted, 1);
                                             db.update(DatabaseHelper.fixedStationTable, mContentValues, DatabaseHelper.mmsi + " = ?", new String[]{String.valueOf(mmsi)});
                                             Log.d(TAG, "Lat: " + stationLatitude + " Lon: " + stationLongitude);
@@ -330,7 +330,7 @@ public class PredictionService extends IntentService {
             distance = 0.0;
         } else if(mmsi == xAxisBaseStationMMSI){
             xPosition = NavigationFunctions.calculateDifference(originLatitude, originLongitude, latitude, longitude);
-            Log.d(TAG, "OL: " + originLatitude + ", " + originLongitude + " XL: " + latitude + ", " + longitude);
+            //Log.d(TAG, "OL: " + originLatitude + ", " + originLongitude + " XL: " + latitude + ", " + longitude);
             yPosition = 0.0;
             alpha = 0.0;
             distance = xPosition;
@@ -381,7 +381,8 @@ public class PredictionService extends IntentService {
                 }
             }
             fixedStationCursor = db.query(DatabaseHelper.fixedStationTable,
-                    new String[] {DatabaseHelper.latitude, DatabaseHelper.longitude},
+                    new String[] {DatabaseHelper.latitude, DatabaseHelper.longitude, DatabaseHelper.recvdLatitude, DatabaseHelper.recvdLongitude,
+                            DatabaseHelper.predictionTime, DatabaseHelper.updateTime},
                     DatabaseHelper.mmsi +" = ?",
                     new String[] {String.valueOf(originMMSI)},
                     null, null, null);
@@ -390,8 +391,15 @@ public class PredictionService extends IntentService {
                 return false;
             } else{
                 if(fixedStationCursor.moveToFirst()){
-                    originLatitude = fixedStationCursor.getDouble(fixedStationCursor.getColumnIndex(DatabaseHelper.latitude));
-                    originLongitude = fixedStationCursor.getDouble(fixedStationCursor.getColumnIndex(DatabaseHelper.longitude));
+                    updateTime = fixedStationCursor.getDouble(fixedStationCursor.getColumnIndexOrThrow(DatabaseHelper.updateTime));
+                    predictionTime = fixedStationCursor.getDouble(fixedStationCursor.getColumnIndexOrThrow(DatabaseHelper.predictionTime));
+                    if (updateTime >= predictionTime) {
+                        originLatitude = fixedStationCursor.getDouble(fixedStationCursor.getColumnIndex(DatabaseHelper.recvdLatitude));
+                        originLongitude = fixedStationCursor.getDouble(fixedStationCursor.getColumnIndex(DatabaseHelper.recvdLongitude));
+                    }else{
+                        originLatitude = fixedStationCursor.getDouble(fixedStationCursor.getColumnIndex(DatabaseHelper.latitude));
+                        originLongitude = fixedStationCursor.getDouble(fixedStationCursor.getColumnIndex(DatabaseHelper.longitude));
+                    }
                 }
             }
 

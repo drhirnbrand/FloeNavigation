@@ -197,6 +197,16 @@ public class AISStationCoordinateFragment extends Fragment implements View.OnCli
     private BroadcastReceiver broadcastReceiver;
 
     /**
+     * Time at which the position was last predicted
+     */
+    private double predictionTime;
+
+    /**
+     * Time at which the AIS packet was last received
+     */
+    private double updateTime;
+
+    /**
      * Default empty constructor
      */
     public AISStationCoordinateFragment() {
@@ -404,15 +414,23 @@ public class AISStationCoordinateFragment extends Fragment implements View.OnCli
         try{
 
             cursor = db.query(DatabaseHelper.fixedStationTable,
-                    new String[]{DatabaseHelper.mmsi, DatabaseHelper.latitude, DatabaseHelper.longitude, DatabaseHelper.isLocationReceived},
+                    new String[]{DatabaseHelper.mmsi, DatabaseHelper.latitude, DatabaseHelper.longitude, DatabaseHelper.isLocationReceived,
+                            DatabaseHelper.recvdLatitude, DatabaseHelper.recvdLongitude, DatabaseHelper.predictionTime, DatabaseHelper.updateTime},
                     DatabaseHelper.mmsi + " = ? AND (" + DatabaseHelper.packetType + " = ? OR " + DatabaseHelper.packetType + " = ? )",
                     new String[] {Integer.toString(MMSINumber), Integer.toString(AISDecodingService.POSITION_REPORT_CLASSA_TYPE_1), Integer.toString(AISDecodingService.POSITION_REPORT_CLASSB)},
                     null, null, null);
             if(cursor.moveToFirst()){
                 locationReceived = cursor.getInt(cursor.getColumnIndexOrThrow(DatabaseHelper.isLocationReceived));
                 if(locationReceived == DatabaseHelper.IS_LOCATION_RECEIVED) {
-                    stationLatitude = cursor.getDouble(cursor.getColumnIndexOrThrow(DatabaseHelper.latitude));
-                    stationLongitude = cursor.getDouble(cursor.getColumnIndexOrThrow(DatabaseHelper.longitude));
+                    updateTime = cursor.getDouble(cursor.getColumnIndexOrThrow(DatabaseHelper.updateTime));
+                    predictionTime = cursor.getDouble(cursor.getColumnIndexOrThrow(DatabaseHelper.predictionTime));
+                    if (updateTime >= predictionTime) {
+                        stationLatitude = cursor.getDouble(cursor.getColumnIndexOrThrow(DatabaseHelper.recvdLatitude));
+                        stationLongitude = cursor.getDouble(cursor.getColumnIndexOrThrow(DatabaseHelper.recvdLongitude));
+                    } else {
+                        stationLatitude = cursor.getDouble(cursor.getColumnIndexOrThrow(DatabaseHelper.latitude));
+                        stationLongitude = cursor.getDouble(cursor.getColumnIndexOrThrow(DatabaseHelper.longitude));
+                    }
                     success = true;
                     //Toast.makeText(getActivity(), "Success True", Toast.LENGTH_LONG).show();
                     Log.d(TAG, "Packet Recieved from AIS Station");
@@ -481,7 +499,8 @@ public class AISStationCoordinateFragment extends Fragment implements View.OnCli
                 }
             }
             fixedStationCursor = db.query(DatabaseHelper.fixedStationTable,
-                    new String[] {DatabaseHelper.latitude, DatabaseHelper.longitude},
+                    new String[] {DatabaseHelper.latitude, DatabaseHelper.longitude, DatabaseHelper.recvdLatitude, DatabaseHelper.recvdLongitude,
+                            DatabaseHelper.predictionTime, DatabaseHelper.updateTime},
                     DatabaseHelper.mmsi +" = ?",
                     new String[] {String.valueOf(originMMSI)},
                     null, null, null);
@@ -490,8 +509,15 @@ public class AISStationCoordinateFragment extends Fragment implements View.OnCli
                 return false;
             } else{
                 if(fixedStationCursor.moveToFirst()){
-                    originLatitude = fixedStationCursor.getDouble(fixedStationCursor.getColumnIndex(DatabaseHelper.latitude));
-                    originLongitude = fixedStationCursor.getDouble(fixedStationCursor.getColumnIndex(DatabaseHelper.longitude));
+                    updateTime = fixedStationCursor.getDouble(fixedStationCursor.getColumnIndexOrThrow(DatabaseHelper.updateTime));
+                    predictionTime = fixedStationCursor.getDouble(fixedStationCursor.getColumnIndexOrThrow(DatabaseHelper.predictionTime));
+                    if (updateTime >= predictionTime) {
+                        originLatitude = fixedStationCursor.getDouble(fixedStationCursor.getColumnIndex(DatabaseHelper.recvdLatitude));
+                        originLongitude = fixedStationCursor.getDouble(fixedStationCursor.getColumnIndex(DatabaseHelper.recvdLongitude));
+                    }else {
+                        originLatitude = fixedStationCursor.getDouble(fixedStationCursor.getColumnIndex(DatabaseHelper.latitude));
+                        originLongitude = fixedStationCursor.getDouble(fixedStationCursor.getColumnIndex(DatabaseHelper.longitude));
+                    }
                 }
             }
             betaCursor = db.query(DatabaseHelper.betaTable,

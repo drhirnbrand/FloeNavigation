@@ -249,6 +249,16 @@ public class GridActivity extends Activity implements View.OnClickListener{
     private ActionButton buttonView;
 
     /**
+     * Time at which the position was last predicted
+     */
+    private double predictionTime;
+
+    /**
+     * Time at which the AIS packet was last received
+     */
+    private double updateTime;
+
+    /**
      * Initializes the views on the activity
      * @param savedInstanceState stores the saved instance state
      */
@@ -524,7 +534,7 @@ public class GridActivity extends Activity implements View.OnClickListener{
                 e.printStackTrace();
             }
         }
-        tabletDistance = NavigationFunctions.calculateDifference(tabletLat, tabletLon, originLatitude, originLongitude);
+        tabletDistance = NavigationFunctions.calculateDifference(originLatitude, originLongitude, tabletLat, tabletLon);
         //Log.d(TAG + "TabletParam", "TabletLat: " + String.valueOf(tabletLat)+ " TabletLon: "+ String.valueOf(tabletLon));
         //Log.d(TAG + "TabletParam", "OriginLat: " + String.valueOf(originLatitude)+ " OriginLon: " + String.valueOf(originLongitude));
         //tabletTheta = NavigationFunctions.calculateAngleBeta(tabletLat, tabletLon, originLatitude, originLongitude);
@@ -647,6 +657,7 @@ public class GridActivity extends Activity implements View.OnClickListener{
      */
     private class ReadOriginFromDB extends AsyncTask<Void, Void, Boolean>{
 
+        @SuppressLint("WrongThread")
         @Override
         protected Boolean doInBackground(Void... voids) {
             Cursor baseStationCursor = null;
@@ -673,7 +684,8 @@ public class GridActivity extends Activity implements View.OnClickListener{
 
 
                 fixedStationCursor = db.query(DatabaseHelper.fixedStationTable,
-                        new String[] {DatabaseHelper.latitude, DatabaseHelper.longitude, DatabaseHelper.xPosition, DatabaseHelper.yPosition},
+                        new String[] {DatabaseHelper.latitude, DatabaseHelper.longitude, DatabaseHelper.xPosition, DatabaseHelper.yPosition,
+                                DatabaseHelper.recvdLatitude, DatabaseHelper.recvdLongitude, DatabaseHelper.predictionTime, DatabaseHelper.updateTime},
                         DatabaseHelper.mmsi +" = ?",
                         new String[] {String.valueOf(originMMSI)},
                         null, null, null);
@@ -682,8 +694,15 @@ public class GridActivity extends Activity implements View.OnClickListener{
                     return false;
                 } else{
                     if(fixedStationCursor.moveToFirst()){
-                        originLatitude = fixedStationCursor.getDouble(fixedStationCursor.getColumnIndex(DatabaseHelper.latitude));
-                        originLongitude = fixedStationCursor.getDouble(fixedStationCursor.getColumnIndex(DatabaseHelper.longitude));
+                        updateTime = fixedStationCursor.getDouble(fixedStationCursor.getColumnIndexOrThrow(DatabaseHelper.updateTime));
+                        predictionTime = fixedStationCursor.getDouble(fixedStationCursor.getColumnIndexOrThrow(DatabaseHelper.predictionTime));
+                        if (updateTime >= predictionTime) {
+                            originLatitude = fixedStationCursor.getDouble(fixedStationCursor.getColumnIndex(DatabaseHelper.recvdLatitude));
+                            originLongitude = fixedStationCursor.getDouble(fixedStationCursor.getColumnIndex(DatabaseHelper.recvdLongitude));
+                        }else {
+                            originLatitude = fixedStationCursor.getDouble(fixedStationCursor.getColumnIndex(DatabaseHelper.latitude));
+                            originLongitude = fixedStationCursor.getDouble(fixedStationCursor.getColumnIndex(DatabaseHelper.longitude));
+                        }
                         originX = fixedStationCursor.getDouble(fixedStationCursor.getColumnIndex(DatabaseHelper.xPosition));
                         originY = fixedStationCursor.getDouble(fixedStationCursor.getColumnIndex(DatabaseHelper.yPosition));
                         myGridView.setOriginX(originX);

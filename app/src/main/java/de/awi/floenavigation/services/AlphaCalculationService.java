@@ -129,6 +129,15 @@ public class AlphaCalculationService extends IntentService {
      */
     private static AlphaCalculationService instance = null;
 
+    /**
+     * Time at which the position was last predicted
+     */
+    private double predictionTime;
+
+    /**
+     * Time at which the AIS packet was last received
+     */
+    private double updateTime;
 
     /**
      * Default constructor
@@ -284,7 +293,8 @@ public class AlphaCalculationService extends IntentService {
                 }
             }
             fixedStationCursor = db.query(DatabaseHelper.fixedStationTable,
-                    new String[] {DatabaseHelper.latitude, DatabaseHelper.longitude},
+                    new String[] {DatabaseHelper.latitude, DatabaseHelper.longitude,
+                            DatabaseHelper.recvdLatitude, DatabaseHelper.recvdLongitude, DatabaseHelper.predictionTime, DatabaseHelper.updateTime},
                     DatabaseHelper.mmsi +" = ?",
                     new String[] {String.valueOf(originMMSI)},
                     null, null, null);
@@ -293,8 +303,15 @@ public class AlphaCalculationService extends IntentService {
                 return false;
             } else{
                 if(fixedStationCursor.moveToFirst()){
-                    originLatitude = fixedStationCursor.getDouble(fixedStationCursor.getColumnIndex(DatabaseHelper.latitude));
-                    originLongitude = fixedStationCursor.getDouble(fixedStationCursor.getColumnIndex(DatabaseHelper.longitude));
+                    updateTime = fixedStationCursor.getDouble(fixedStationCursor.getColumnIndexOrThrow(DatabaseHelper.updateTime));
+                    predictionTime = fixedStationCursor.getDouble(fixedStationCursor.getColumnIndexOrThrow(DatabaseHelper.predictionTime));
+                    if (updateTime >= predictionTime) {
+                        originLatitude = fixedStationCursor.getDouble(fixedStationCursor.getColumnIndex(DatabaseHelper.recvdLatitude));
+                        originLongitude = fixedStationCursor.getDouble(fixedStationCursor.getColumnIndex(DatabaseHelper.recvdLongitude));
+                    }else {
+                        originLatitude = fixedStationCursor.getDouble(fixedStationCursor.getColumnIndex(DatabaseHelper.latitude));
+                        originLongitude = fixedStationCursor.getDouble(fixedStationCursor.getColumnIndex(DatabaseHelper.longitude));
+                    }
                 }
             }
             betaCursor = db.query(DatabaseHelper.betaTable,

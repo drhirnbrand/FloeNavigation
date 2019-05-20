@@ -88,7 +88,7 @@
     <string name="waypointTabletLon">Current Longitude</string>
     <string name="waypointConfirmBtn">Confirm</string>
     <string name="waypointFinishBtn">Finish</string>
-    <string name="waypointWaitingMsg">Inserting new Waypoint. Do not close the App</string>
+    <string name="waypointWaitingMsg">Waypoint Installed</string>
 
     <!--Waypoint Screens -->
     <string name="validationFailedMsg">Validation Failed for %1$d minutes for %2$s Station</string>

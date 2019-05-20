@@ -35,6 +35,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.TimeZone;
 
+import de.awi.floenavigation.grid.GridActivity;
 import de.awi.floenavigation.helperclasses.ActionBarActivity;
 import de.awi.floenavigation.helperclasses.DatabaseHelper;
 import de.awi.floenavigation.services.GPS_Service;
@@ -166,6 +167,31 @@ public class WaypointActivity extends Activity implements View.OnClickListener{
     private MenuItem gpsIconItem, aisIconItem, gridSetupIconItem;
 
     /**
+     * Time at which the position was last predicted
+     */
+    private double predictionTime;
+
+    /**
+     * Time at which the AIS packet was last received
+     */
+    private double updateTime;
+
+    /**
+     * interval
+     */
+    private static final int waitInterval = 1000;
+    /**
+     * A {@link Handler} which is runs the {@link Runnable} {@link #waitRunnable} which periodically checks for the Position Report.
+     */
+    private final Handler handler = new Handler();
+    /**
+     * {@link Runnable} which checks periodically (as specified by {@link #waitInterval})
+     */
+    private Runnable waitRunnable;
+    private static final int WAIT_COUNTER = 3;
+    private int autoCancelTimer = 0;
+
+    /**
      * onCreate method to setup the xml layout and
      * to setting up the on click listeners
      * @param savedInstanceState stores the previous instance state
@@ -184,7 +210,7 @@ public class WaypointActivity extends Activity implements View.OnClickListener{
         changeFormat = DatabaseHelper.readCoordinateDisplaySetting(this);
         numOfSignificantFigures = DatabaseHelper.readSiginificantDigitsSetting(this);
         findViewById(R.id.waypoint_confirm).setOnClickListener(this);
-        findViewById(R.id.waypoint_finish).setOnClickListener(this);
+        //findViewById(R.id.waypoint_finish).setOnClickListener(this);
 
     }
 
@@ -352,9 +378,11 @@ public class WaypointActivity extends Activity implements View.OnClickListener{
                 onClickConfirm();
                 break;
 
+            /*
             case R.id.waypoint_finish:
                 onClickFinish();
                 break;
+            */
         }
 
     }
@@ -379,20 +407,33 @@ public class WaypointActivity extends Activity implements View.OnClickListener{
             tabletLat = (tabletLat == null) ? 0.0 : tabletLat;
             tabletLon = (tabletLon == null) ? 0.0 : tabletLon;
             if (tabletLat != 0.0 && tabletLon != 0.0) {
-                findViewById(R.id.waypointCoordinateView).setVisibility(View.GONE);
-                findViewById(R.id.waypointWaitingView).setVisibility(View.VISIBLE);
                 if (getOriginCoordinates(db)) {
                     calculateWaypointParameters();
                     createLabel();
                     if (insertInDatabase(db)) {
                         Log.d(TAG, "Waypoint Inserted");
-                        ProgressBar progress = findViewById(R.id.waypointProgress);
-                        progress.stopNestedScroll();
-                        progress.setVisibility(View.GONE);
-                        findViewById(R.id.waypoint_finish).setClickable(true);
-                        findViewById(R.id.waypoint_finish).setEnabled(true);
-                        TextView waitingMsg = findViewById(R.id.waypointWaitingMsg);
-                        waitingMsg.setText(changeText);
+                        findViewById(R.id.waypointCoordinateView).setVisibility(View.GONE);
+                        findViewById(R.id.waypointWaitingView).setVisibility(View.VISIBLE);
+                        waitRunnable = new Runnable() {
+                            @Override
+                            public void run() {
+                                handler.postDelayed(this, waitInterval);
+                                autoCancelTimer++;
+                                if (autoCancelTimer >= WAIT_COUNTER){
+                                    handler.removeCallbacks(this);
+                                    onClickFinish();
+                                }
+                            }
+                        };
+                        handler.post(waitRunnable);
+                        //TextView waitingMsg = findViewById(R.id.waypointWaitingMsg);
+                        //waitingMsg.setText(changeText);
+                        //ProgressBar progress = findViewById(R.id.waypointProgress);
+                        //progress.stopNestedScroll();
+                        //progress.setVisibility(View.GONE);
+                        //findViewById(R.id.waypoint_finish).setClickable(true);
+                        //findViewById(R.id.waypoint_finish).setEnabled(true);
+
                     } else {
                         Log.d(TAG, "Error inserting new Waypoint");
                     }
@@ -438,8 +479,8 @@ public class WaypointActivity extends Activity implements View.OnClickListener{
      */
     private void onClickFinish(){
         Log.d(TAG, "Activity Finished");
-        Intent mainActivityIntent = new Intent(this, MainActivity.class);
-        startActivity(mainActivityIntent);
+        Intent gridActivityIntent = new Intent(this, GridActivity.class);
+        startActivity(gridActivityIntent);
     }
 
     /**
@@ -530,7 +571,8 @@ public class WaypointActivity extends Activity implements View.OnClickListener{
                 }
             }
             Cursor fixedStationCursor = db.query(DatabaseHelper.fixedStationTable,
-                    new String[] {DatabaseHelper.latitude, DatabaseHelper.longitude},
+                    new String[] {DatabaseHelper.latitude, DatabaseHelper.longitude,
+                            DatabaseHelper.recvdLatitude, DatabaseHelper.recvdLongitude, DatabaseHelper.predictionTime, DatabaseHelper.updateTime},
                     DatabaseHelper.mmsi +" = ?",
                     new String[] {String.valueOf(originMMSI)},
                     null, null, null);
@@ -539,8 +581,15 @@ public class WaypointActivity extends Activity implements View.OnClickListener{
                 return false;
             } else{
                 if(fixedStationCursor.moveToFirst()){
-                    originLatitude = fixedStationCursor.getDouble(fixedStationCursor.getColumnIndex(DatabaseHelper.latitude));
-                    originLongitude = fixedStationCursor.getDouble(fixedStationCursor.getColumnIndex(DatabaseHelper.longitude));
+                    updateTime = fixedStationCursor.getDouble(fixedStationCursor.getColumnIndexOrThrow(DatabaseHelper.updateTime));
+                    predictionTime = fixedStationCursor.getDouble(fixedStationCursor.getColumnIndexOrThrow(DatabaseHelper.predictionTime));
+                    if (updateTime >= predictionTime) {
+                        originLatitude = fixedStationCursor.getDouble(fixedStationCursor.getColumnIndex(DatabaseHelper.recvdLatitude));
+                        originLongitude = fixedStationCursor.getDouble(fixedStationCursor.getColumnIndex(DatabaseHelper.recvdLongitude));
+                    }else {
+                        originLatitude = fixedStationCursor.getDouble(fixedStationCursor.getColumnIndex(DatabaseHelper.latitude));
+                        originLongitude = fixedStationCursor.getDouble(fixedStationCursor.getColumnIndex(DatabaseHelper.longitude));
+                    }
                 }
             }
 
