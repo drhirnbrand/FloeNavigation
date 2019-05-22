@@ -207,6 +207,21 @@ public class SampleMeasurementActivity extends Activity {
     private EditText labelId_TV;
 
     /**
+     * interval
+     */
+    private static final int waitInterval = 1000;
+    /**
+     * A {@link Handler} which is runs the {@link Runnable} {@link #waitRunnable} which periodically checks for the Position Report.
+     */
+    private final Handler handler = new Handler();
+    /**
+     * {@link Runnable} which checks periodically (as specified by {@link #waitInterval})
+     */
+    private Runnable waitRunnable;
+    private static final int WAIT_COUNTER = 3;
+    private int autoCancelTimer = 0;
+
+    /**
      * Intializes all the views
      * and registers listeners for the corresponding views
      * @param savedInstanceState stores previous instance state
@@ -266,15 +281,36 @@ public class SampleMeasurementActivity extends Activity {
             @Override
             public void onClick(View v) {
                 if (populateDatabaseTable()) {
-                    Toast.makeText(getApplicationContext(), "Data Sample Confirmed", Toast.LENGTH_LONG).show();
+                    findViewById(R.id.sampleCoordinateView).setVisibility(View.GONE);
+                    findViewById(R.id.sampleWaitingView).setVisibility(View.VISIBLE);
+                    //Toast.makeText(getApplicationContext(), "Data Sample Confirmed", Toast.LENGTH_LONG).show();
                     Log.d(TAG, "Data Sample Confirmed");
+                    waitRunnable = new Runnable() {
+                        @Override
+                        public void run() {
+                            handler.postDelayed(this, waitInterval);
+                            autoCancelTimer++;
+                            if (autoCancelTimer >= WAIT_COUNTER){
+                                handler.removeCallbacks(this);
+                                onClickFinish();
+                            }
+                        }
+                    };
+                    handler.post(waitRunnable);
 
 
-                    Intent mainActivityIntent = new Intent(getApplicationContext(), MainActivity.class);
-                    startActivity(mainActivityIntent);
                 }
             }
         });
+    }
+
+    /**
+     * Starts the {@link MainActivity} when the user presses the finish button
+     */
+    private void onClickFinish(){
+        Log.d(TAG, "Activity Finished");
+        Intent sampleActivityIntent = new Intent(getApplicationContext(), SampleMeasurementActivity.class);
+        startActivity(sampleActivityIntent);
     }
 
     /**

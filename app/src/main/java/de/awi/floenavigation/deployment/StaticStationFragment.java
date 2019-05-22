@@ -25,6 +25,7 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import de.awi.floenavigation.grid.GridActivity;
 import de.awi.floenavigation.helperclasses.ActionBarActivity;
 import de.awi.floenavigation.helperclasses.DatabaseHelper;
 import de.awi.floenavigation.services.GPS_Service;
@@ -160,6 +161,21 @@ public class StaticStationFragment extends Fragment implements View.OnClickListe
     private double updateTime;
 
     /**
+     * interval
+     */
+    private static final int waitInterval = 1000;
+    /**
+     * A {@link Handler} which is runs the {@link Runnable} {@link #waitRunnable} which periodically checks for the Position Report.
+     */
+    private final Handler handler = new Handler();
+    /**
+     * {@link Runnable} which checks periodically (as specified by {@link #waitInterval})
+     */
+    private Runnable waitRunnable;
+    private static final int WAIT_COUNTER = 3;
+    private int autoCancelTimer = 0;
+
+    /**
      * Default empty constructor
      */
     public StaticStationFragment() {
@@ -185,9 +201,9 @@ public class StaticStationFragment extends Fragment implements View.OnClickListe
         // Inflate the layout for this fragment
         View layout =  inflater.inflate(R.layout.fragment_static_station, container, false);
 
-        layout.findViewById(R.id.static_station_finish).setOnClickListener(this);
-        layout.findViewById(R.id.static_station_finish).setEnabled(false);
-        layout.findViewById(R.id.static_station_finish).setClickable(false);
+        //layout.findViewById(R.id.static_station_finish).setOnClickListener(this);
+        //layout.findViewById(R.id.static_station_finish).setEnabled(false);
+        //layout.findViewById(R.id.static_station_finish).setClickable(false);
         stationName = getArguments().getString(DatabaseHelper.staticStationName);
         stationType = getArguments().getString(DatabaseHelper.stationType);
         tabletLat = getArguments().getDouble(GPS_Service.latitude);
@@ -195,15 +211,27 @@ public class StaticStationFragment extends Fragment implements View.OnClickListe
         if(getOriginCoordinates()) {
             calculateStaticStationParameters();
             insertStaticStation();
-            ProgressBar progress = layout.findViewById(R.id.staticStationProgress);
-            progress.stopNestedScroll();
-            progress.setVisibility(View.GONE);
-            TextView msg = layout.findViewById(R.id.staticStationFragMsg);
-            msg.setText(changeText);
-            layout.findViewById(R.id.static_station_finish).setEnabled(true);
-            layout.findViewById(R.id.static_station_finish).setClickable(true);
+            //ProgressBar progress = layout.findViewById(R.id.staticStationProgress);
+            //progress.stopNestedScroll();
+            //progress.setVisibility(View.GONE);
+            //TextView msg = layout.findViewById(R.id.staticStationFragMsg);
+            //msg.setText(changeText);
+            //layout.findViewById(R.id.static_station_finish).setEnabled(true);
+            //layout.findViewById(R.id.static_station_finish).setClickable(true);
             Log.d(TAG, "Station Installed");
-            Toast.makeText(getContext(), "Station Installed", Toast.LENGTH_LONG).show();
+            //Toast.makeText(getContext(), "Station Installed", Toast.LENGTH_LONG).show();
+            waitRunnable = new Runnable() {
+                @Override
+                public void run() {
+                    handler.postDelayed(this, waitInterval);
+                    autoCancelTimer++;
+                    if (autoCancelTimer >= WAIT_COUNTER){
+                        handler.removeCallbacks(this);
+                        onClickFinish();
+                    }
+                }
+            };
+            handler.post(waitRunnable);
 
         } else{
             Log.d(TAG, "Error Inserting new Station");
@@ -212,6 +240,7 @@ public class StaticStationFragment extends Fragment implements View.OnClickListe
         return layout;
     }
 
+
     /**
      * Default Handler for the Finish button on the Screen. {@link MainActivity} is started when deployment is complete.
      * @param v
@@ -219,11 +248,21 @@ public class StaticStationFragment extends Fragment implements View.OnClickListe
     @Override
     public void onClick(View v){
         switch (v.getId()){
+            /*
             case R.id.static_station_finish:
                 Intent mainIntent = new Intent(getActivity(), MainActivity.class);
                 getActivity().startActivity(mainIntent);
-
+            */
         }
+    }
+
+    /**
+     * Starts the {@link MainActivity} when the user presses the finish button
+     */
+    private void onClickFinish(){
+        Log.d(TAG, "Activity Finished");
+        Intent gridActivityIntent = new Intent(getActivity(), GridActivity.class);
+        getActivity().startActivity(gridActivityIntent);
     }
 
     /**
@@ -289,7 +328,7 @@ public class StaticStationFragment extends Fragment implements View.OnClickListe
      * Calculates the location parameters of the Static Station. It calculates and sets {@link #distance}, {@link #theta}, {@link #alpha}, {@link #xPosition}, {@link #yPosition}.
      */
     private void calculateStaticStationParameters(){
-        distance = NavigationFunctions.calculateDifference(tabletLat, tabletLon, originLatitude, originLongitude);
+        distance = NavigationFunctions.calculateDifference(originLatitude, originLongitude, tabletLat, tabletLon);
         //theta = NavigationFunctions.calculateAngleBeta(tabletLat, tabletLon, originLatitude, originLongitude);
         //alpha = Math.abs(theta - beta);
         theta = NavigationFunctions.calculateAngleBeta(originLatitude, originLongitude, tabletLat, tabletLon);

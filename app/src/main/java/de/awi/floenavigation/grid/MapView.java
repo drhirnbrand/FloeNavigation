@@ -279,8 +279,8 @@ public class MapView extends View{
      *
      * @see #mContentRect
      */
-    private RectF mCurrentViewport = new RectF(AXIS_X_MIN, AXIS_Y_MIN, AXIS_X_MAX, AXIS_Y_MAX);
-
+    private static RectF mCurrentViewport = null;// = new RectF(AXIS_X_MIN, AXIS_Y_MIN, AXIS_X_MAX, AXIS_Y_MAX);
+    private static RectF previousViewPort;
     private int mMaxLabelWidth;
     private int mLabelHeight;
 
@@ -346,7 +346,6 @@ public class MapView extends View{
         this(context, null, 0);
         this.context = context;
 
-
     }
 
 
@@ -356,6 +355,7 @@ public class MapView extends View{
 
     public MapView(Context context, AttributeSet attrs, int defStyle) {
          super(context, attrs, defStyle);
+         mCurrentViewport = (mCurrentViewport != null)? previousViewPort : new RectF(AXIS_X_MIN, AXIS_Y_MIN, AXIS_X_MAX, AXIS_Y_MAX);
 
          gridActivity = new GridActivity();
          isBubbleShowing = false;
@@ -1477,6 +1477,14 @@ public class MapView extends View{
 
     public void setTabletLat(double tabletLat) {
         tabletLat = tabletLat;
+    }
+
+    public RectF getZoomParameters() {
+        return mCurrentViewport;
+    }
+
+    public void setZoomParameters() {
+        previousViewPort = mCurrentViewport;
     }
 
     /**

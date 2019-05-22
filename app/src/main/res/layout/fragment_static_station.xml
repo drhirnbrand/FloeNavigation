@@ -25,6 +25,7 @@
             android:textStyle="bold"
             android:paddingTop="150dp"/>
 
+        <!--
         <ProgressBar
             android:id="@+id/staticStationProgress"
             style="@style/Base.Widget.AppCompat.ProgressBar.Horizontal"
@@ -47,7 +48,7 @@
             android:textSize="15sp"
             android:clickable="true"
             android:focusable="true"
-            android:foreground="?android:attr/selectableItemBackground"/>
+            android:foreground="?android:attr/selectableItemBackground"/> -->
 
     </LinearLayout>
 

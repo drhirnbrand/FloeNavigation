@@ -12,6 +12,7 @@ import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
+import android.graphics.RectF;
 import android.location.Location;
 import android.location.LocationManager;
 import android.os.AsyncTask;
@@ -258,6 +259,8 @@ public class GridActivity extends Activity implements View.OnClickListener{
      */
     private double updateTime;
 
+
+
     /**
      * Initializes the views on the activity
      * @param savedInstanceState stores the saved instance state
@@ -278,6 +281,7 @@ public class GridActivity extends Activity implements View.OnClickListener{
         myBubble.setPointerAlignment(BubbleDrawable.CENTER);
         myBubble.setPadding(25, 25, 25, 25);
         myGridView.setBubbleLayout(linearLayout, myBubble);
+
 
     }
 
@@ -449,6 +453,7 @@ public class GridActivity extends Activity implements View.OnClickListener{
     @Override
     public void onBackPressed(){
         Log.d(TAG, "BackPressed");
+        myGridView.setZoomParameters();
         Intent mainActivityIntent = new Intent(this, MainActivity.class);
         startActivity(mainActivityIntent);
 

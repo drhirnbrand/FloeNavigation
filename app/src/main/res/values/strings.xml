@@ -77,7 +77,7 @@
     <string name="stationFinishBtn">Finish</string>
     <string name="stationPrompt">Choose Station Type</string>
     <string name="stationWaitingMsg" formatted="true">Waiting for an AIS Packet with MMSI %1$d. Do not close the App</string>
-    <string name="staticStationWaitingMsg">Inserting new Station. Do not close the App</string>
+    <string name="staticStationWaitingMsg">Station Installed</string>
     <string name="yesChoice">Yes</string>
     <string name="noChoice">No</string>
     <string name="staticStationCurrentLatitude">Current Latitude</string>
@@ -135,7 +135,7 @@
     <string name="next">Next</string>
     <string name="location_available">Location Available</string>
 
-
+    <string name="sampleConfirmMsg">Data Sample Confirmed</string>
     <string name="label_parameter_view_activity">System Parameters</string>
     <string name="ais_data_available">AIS Data Available</string>
     <string name="aisStationCancel">Cancel</string>
