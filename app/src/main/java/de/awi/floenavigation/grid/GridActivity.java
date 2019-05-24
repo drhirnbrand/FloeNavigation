@@ -540,13 +540,15 @@ public class GridActivity extends Activity implements View.OnClickListener{
             }
         }
         tabletDistance = NavigationFunctions.calculateDifference(originLatitude, originLongitude, tabletLat, tabletLon);
-        //Log.d(TAG + "TabletParam", "TabletLat: " + String.valueOf(tabletLat)+ " TabletLon: "+ String.valueOf(tabletLon));
-        //Log.d(TAG + "TabletParam", "OriginLat: " + String.valueOf(originLatitude)+ " OriginLon: " + String.valueOf(originLongitude));
+        Log.d(TAG + "TabletParam", "TabletLat: " + String.valueOf(tabletLat)+ " TabletLon: "+ String.valueOf(tabletLon));
+        Log.d(TAG + "TabletParam", "OriginLat: " + String.valueOf(originLatitude)+ " OriginLon: " + String.valueOf(originLongitude));
         //tabletTheta = NavigationFunctions.calculateAngleBeta(tabletLat, tabletLon, originLatitude, originLongitude);
         tabletTheta = NavigationFunctions.calculateAngleBeta(originLatitude, originLongitude, tabletLat, tabletLon);
-        //Log.d(TAG + "TabletParam", "TabletDistance: " + String.valueOf(tabletDistance));
+        Log.d(TAG + "TabletParam", "TabletDistance: " + String.valueOf(tabletDistance));
+
         //tabletAlpha = Math.abs(tabletTheta - beta);
         tabletAlpha = tabletTheta - beta;
+        Log.d(TAG,"TabletTheta: " + String.valueOf(tabletTheta) + "Beta " + String.valueOf(beta) + "Alpha " + String.valueOf(tabletAlpha));
         tabletX = tabletDistance * Math.cos(Math.toRadians(tabletAlpha));
         tabletY = tabletDistance * Math.sin(Math.toRadians(tabletAlpha));
         Log.d(TAG, "tabletX " + tabletX);

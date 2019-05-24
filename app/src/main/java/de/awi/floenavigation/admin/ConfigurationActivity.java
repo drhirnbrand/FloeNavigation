@@ -170,16 +170,16 @@ public class ConfigurationActivity extends ActionBarActivity {
                     units = "meters";
                     progressBarValue.setText(String.valueOf(DISTANCE_MIN_VALUE) + " " + units);
 
-                } else if(position == 1 || position == 4){
+                } else if(position == 1 || position == 4 || position == 8){
                     findViewById(R.id.normalParam).setVisibility(View.GONE);
                     findViewById(R.id.normalInitialRangeParam).setVisibility(View.VISIBLE);
                     findViewById(R.id.latLonViewParam).setVisibility(View.GONE);
                     isTimeRangeParam = true;
                     isNormalParam = false;
-                    MIN_VALUE = TIME_MIN_VALUE;
+                    MIN_VALUE = (position == 8)? TIME_MIN_VALUE / 2 : TIME_MIN_VALUE;
                     initialTimeRange.setMax(TIME_MAX_VALUE);
                     units = "minutes";
-                    progressBarValue.setText(String.valueOf(TIME_MIN_VALUE) + " " + units);
+                    progressBarValue.setText(String.valueOf(MIN_VALUE) + " " + units);
                 } else if (position == 2){
                     findViewById(R.id.normalParam).setVisibility(View.GONE);
                     findViewById(R.id.latLonViewParam).setVisibility(View.VISIBLE);

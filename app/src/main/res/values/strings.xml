@@ -91,7 +91,8 @@
     <string name="waypointWaitingMsg">Waypoint Installed</string>
 
     <!--Waypoint Screens -->
-    <string name="validationFailedMsg">Validation Failed for %1$d minutes for %2$s Station</string>
+    <string name="validationFailedMsg">Validation Failed for %2$s Station for %1$d minutes</string>
+    <string name="packetReceptionFailedMsg">Base Station %2$s is not reporting since %1$d minutes</string>
     <string name="stationRemovedMsg">The Station has been removed</string>
     <string name="dialogOK">OK</string>
 

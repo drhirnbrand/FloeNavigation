@@ -167,6 +167,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public static final String sync_server_port = "SYNC_SERVER_PORT";
 
 
+    public static final String packet_threshold_time = "PACKET_THRESHOLD_TIME";
+
     //Database Tables Names
     /**
      * Table which stores the details of every Fixed Station deployed on the Floe. It stores the location parameters of each Fixed Station
@@ -984,7 +986,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             "INITIAL_SETUP_TIME",
             "SYNC_SERVER_HOSTNAME",
             "SYNC_SERVER_PORT",
-            "TABLET_ID"
+            "TABLET_ID",
+            "PACKET_THRESHOLD_TIME"
     };
 
     /**
@@ -1022,6 +1025,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         insertDefaultConfigParams(db, initial_setup_time, String.valueOf(3 * 60 * 1000));
         insertDefaultConfigParams(db, sync_server_hostname, "192.168.137.1");
         insertDefaultConfigParams(db, sync_server_port, String.valueOf(80));
+        insertDefaultConfigParams(db, packet_threshold_time, String.valueOf(5 * 60 * 1000));
 
         //Create a Default User
         insertUser(db, "awi", "awi");

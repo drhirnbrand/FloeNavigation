@@ -67,6 +67,7 @@ public class ValidationService extends IntentService {
      */
     public static int PREDICTION_ACCURACY_THRESHOLD_VALUE;
 
+    public static int PACKET_THRESHOLD_VALUE;
     /**
      * handler to display dialog box
      */
@@ -190,7 +191,25 @@ public class ValidationService extends IntentService {
                                     //stationName = mFixedStnCursor.getString(mFixedStnCursor.getColumnIndex(DatabaseHelper.stationName));
                                     updateTime = mFixedStnCursor.getDouble(mFixedStnCursor.getColumnIndex(DatabaseHelper.updateTime));
                                     validationCheckTime = mFixedStnCursor.getDouble(mFixedStnCursor.getColumnIndexOrThrow(DatabaseHelper.validationCheckTime));
-                                    if (predictionAccuracy > PREDICTION_ACCURACY_THRESHOLD_VALUE / VALIDATION_TIME) {
+                                    if (updateTime - System.currentTimeMillis() - timeDiff > PACKET_THRESHOLD_VALUE) {
+                                        final int timeSinceLastPacket = (int)((updateTime - System.currentTimeMillis() - timeDiff) / (60 * 1000));
+                                        final String MMSI = String.valueOf(mmsi);
+                                        runOnUiThread(new Runnable() {
+                                            @Override
+                                            public void run() {
+                                                dialogBoxDisplay(timeSinceLastPacket, MMSI, R.string.packetReceptionFailedMsg);
+                                            }
+                                        });
+
+                                        if (mmsi == baseStnMMSI[DatabaseHelper.firstStationIndex] || mmsi == baseStnMMSI[DatabaseHelper.secondStationIndex]) {
+                                            deleteEntryfromStationListTableinDB(mmsi, db);
+                                            updataMMSIInDBTables(mmsi, db, (mmsi == baseStnMMSI[DatabaseHelper.firstStationIndex]));
+                                        } else {
+                                            deleteEntryfromStationListTableinDB(mmsi, db);
+                                            deleteEntryfromFixedStationTableinDB(mmsi, db);
+                                        }
+
+                                    } else if (predictionAccuracy > PREDICTION_ACCURACY_THRESHOLD_VALUE / VALIDATION_TIME) {
                                         Log.d(TAG, "Packets = " + stationMessageCount);
 
                                         if (stationMessageCount >= MAX_NUM_OF_VALID_PACKETS) {
@@ -200,7 +219,7 @@ public class ValidationService extends IntentService {
                                             runOnUiThread(new Runnable() {
                                                 @Override
                                                 public void run() {
-                                                    dialogBoxDisplay(faildPredictionTime, MMSI);
+                                                    dialogBoxDisplay(faildPredictionTime, MMSI, R.string.validationFailedMsg);
                                                 }
                                             });
 
@@ -303,10 +322,10 @@ public class ValidationService extends IntentService {
      * @param failedAttempts minutes
      * @param mmsi mmsi value
      */
-    private void dialogBoxDisplay(int failedAttempts, String mmsi) {
-        String validationMsg = getResources().getString(R.string.validationFailedMsg, failedAttempts, mmsi);
+    private void dialogBoxDisplay(int failedAttempts, String mmsi, int stringId) {
+        String validationMsg = getResources().getString(stringId, mmsi, failedAttempts);
         String popupMsg = validationMsg + "\n" + getResources().getString(R.string.stationRemovedMsg);
-        String title = "Validation Failed";
+        String title = "Failure Message";
         Intent dialogIntent = new Intent(this, DialogActivity.class);
         dialogIntent.putExtra(DialogActivity.DIALOG_TITLE, title);
         dialogIntent.putExtra(DialogActivity.DIALOG_MSG, popupMsg);
@@ -415,6 +434,9 @@ public class ValidationService extends IntentService {
                             break;
                         case DatabaseHelper.prediction_accuracy_threshold:
                             PREDICTION_ACCURACY_THRESHOLD_VALUE = parameterValue;
+                            break;
+                        case DatabaseHelper.packet_threshold_time:
+                            PACKET_THRESHOLD_VALUE = parameterValue;
                             break;
                     }
                 } while (configParamCursor.moveToNext());

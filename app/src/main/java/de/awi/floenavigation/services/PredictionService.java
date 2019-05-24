@@ -207,6 +207,10 @@ public class PredictionService extends IntentService {
                                                 if (updateTime >= predictionTime) {
                                                     stationLatitude = mFixedStnCursor.getDouble(mFixedStnCursor.getColumnIndex(DatabaseHelper.recvdLatitude));
                                                     stationLongitude = mFixedStnCursor.getDouble(mFixedStnCursor.getColumnIndex(DatabaseHelper.recvdLongitude));
+                                                    double latTemp = mFixedStnCursor.getDouble(mFixedStnCursor.getColumnIndex(DatabaseHelper.latitude));
+                                                    double lonTemp = mFixedStnCursor.getDouble(mFixedStnCursor.getColumnIndex(DatabaseHelper.longitude));
+                                                    double diff = NavigationFunctions.calculateDifference(stationLatitude, stationLongitude, latTemp, lonTemp);
+                                                    Log.d(TAG, "MMSI " + String.valueOf(mmsi) + " Difference recd and pred " + String.valueOf(diff));
                                                 } else {
                                                     stationLatitude = mFixedStnCursor.getDouble(mFixedStnCursor.getColumnIndex(DatabaseHelper.latitude));
                                                     stationLongitude = mFixedStnCursor.getDouble(mFixedStnCursor.getColumnIndex(DatabaseHelper.longitude));
