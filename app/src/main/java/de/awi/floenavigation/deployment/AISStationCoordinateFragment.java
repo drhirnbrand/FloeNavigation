@@ -257,6 +257,8 @@ public class AISStationCoordinateFragment extends Fragment implements View.OnCli
                             theta = NavigationFunctions.calculateAngleBeta(originLatitude, originLongitude, stationLatitude, stationLongitude);
                             //alpha = Math.abs(theta - beta);
                             alpha = theta - beta;
+                            Log.d(TAG, "Base Stn Theta: " + String.valueOf(theta) + " beta: " + String.valueOf(beta)
+                            + " alpha: " + String.valueOf(alpha));
                             stationX = distance * Math.cos(Math.toRadians(alpha));
                             stationY = distance * Math.sin(Math.toRadians(alpha));
                             ContentValues stationUpdate = new ContentValues();
@@ -422,15 +424,10 @@ public class AISStationCoordinateFragment extends Fragment implements View.OnCli
             if(cursor.moveToFirst()){
                 locationReceived = cursor.getInt(cursor.getColumnIndexOrThrow(DatabaseHelper.isLocationReceived));
                 if(locationReceived == DatabaseHelper.IS_LOCATION_RECEIVED) {
-                    updateTime = cursor.getDouble(cursor.getColumnIndexOrThrow(DatabaseHelper.updateTime));
-                    predictionTime = cursor.getDouble(cursor.getColumnIndexOrThrow(DatabaseHelper.predictionTime));
-                    if (updateTime >= predictionTime) {
-                        stationLatitude = cursor.getDouble(cursor.getColumnIndexOrThrow(DatabaseHelper.recvdLatitude));
-                        stationLongitude = cursor.getDouble(cursor.getColumnIndexOrThrow(DatabaseHelper.recvdLongitude));
-                    } else {
-                        stationLatitude = cursor.getDouble(cursor.getColumnIndexOrThrow(DatabaseHelper.latitude));
-                        stationLongitude = cursor.getDouble(cursor.getColumnIndexOrThrow(DatabaseHelper.longitude));
-                    }
+                    //updateTime = cursor.getDouble(cursor.getColumnIndexOrThrow(DatabaseHelper.updateTime));
+                    //predictionTime = cursor.getDouble(cursor.getColumnIndexOrThrow(DatabaseHelper.predictionTime));
+                    stationLatitude = cursor.getDouble(cursor.getColumnIndexOrThrow(DatabaseHelper.recvdLatitude));
+                    stationLongitude = cursor.getDouble(cursor.getColumnIndexOrThrow(DatabaseHelper.recvdLongitude));
                     success = true;
                     //Toast.makeText(getActivity(), "Success True", Toast.LENGTH_LONG).show();
                     Log.d(TAG, "Packet Recieved from AIS Station");
@@ -501,8 +498,8 @@ public class AISStationCoordinateFragment extends Fragment implements View.OnCli
             fixedStationCursor = db.query(DatabaseHelper.fixedStationTable,
                     new String[] {DatabaseHelper.latitude, DatabaseHelper.longitude, DatabaseHelper.recvdLatitude, DatabaseHelper.recvdLongitude,
                             DatabaseHelper.predictionTime, DatabaseHelper.updateTime},
-                    DatabaseHelper.mmsi +" = ?",
-                    new String[] {String.valueOf(originMMSI)},
+                    DatabaseHelper.mmsi +" = ? AND " + DatabaseHelper.isLocationReceived + " = ?",
+                    new String[] {String.valueOf(originMMSI), String.valueOf(DatabaseHelper.LOCATIONRECEIVED)},
                     null, null, null);
             if (fixedStationCursor.getCount() != 1){
                 Log.d(TAG, "Error Reading Origin Latitude Longtidue");
@@ -529,7 +526,7 @@ public class AISStationCoordinateFragment extends Fragment implements View.OnCli
                 if (betaCursor.moveToFirst()) {
 
                     beta = betaCursor.getDouble(betaCursor.getColumnIndex(DatabaseHelper.beta));
-                    //Log.d(TAG, String.valueOf(beta));
+                    Log.d(TAG, String.valueOf(beta));
                 } else{
                     Log.d(TAG, "Beta Table Move to first failed");
                 }

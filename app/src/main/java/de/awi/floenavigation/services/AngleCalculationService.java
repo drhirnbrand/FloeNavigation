@@ -247,9 +247,9 @@ public class AngleCalculationService extends IntentService {
 
             mFixedStnCursor = db.query(DatabaseHelper.fixedStationTable,
                     new String[]{DatabaseHelper.mmsi, DatabaseHelper.latitude, DatabaseHelper.longitude, DatabaseHelper.alpha, DatabaseHelper.recvdLatitude, DatabaseHelper.recvdLongitude,
-                            DatabaseHelper.predictionTime, DatabaseHelper.updateTime}, null,
-                    null, null, null, null);
-            long numOfStations = DatabaseUtils.queryNumEntries(db, DatabaseHelper.fixedStationTable);
+                            DatabaseHelper.predictionTime, DatabaseHelper.updateTime, DatabaseHelper.isLocationReceived}, DatabaseHelper.isLocationReceived + " = ?",
+                    new String[]{String.valueOf(DatabaseHelper.LOCATIONRECEIVED)}, null, null, null);
+            long numOfStations = mFixedStnCursor.getCount();
             stationLatitude = new double[(int) numOfStations];
             stationLongitude = new double[(int) numOfStations];
             beta = new double[(int) numOfStations - 1];
@@ -269,7 +269,7 @@ public class AngleCalculationService extends IntentService {
                             stationLatitude[DatabaseHelper.firstStationIndex] = mFixedStnCursor.getDouble(mFixedStnCursor.getColumnIndex(DatabaseHelper.latitude));
                             stationLongitude[DatabaseHelper.firstStationIndex] = mFixedStnCursor.getDouble(mFixedStnCursor.getColumnIndex(DatabaseHelper.longitude));
                         }
-                        Log.d(TAG, "Here: Lat1: " + stationLatitude[0] + " Lon1: " + stationLongitude[0]);
+                        Log.d(TAG, "Origin Coord: " + stationLatitude[0] + "," + stationLongitude[0]);
                     } else if (mmsiInDBTable == mmsi[DatabaseHelper.secondStationIndex]) {
                         if (updateTime >= predictionTime) {
                             stationLatitude[DatabaseHelper.secondStationIndex] = mFixedStnCursor.getDouble(mFixedStnCursor.getColumnIndex(DatabaseHelper.recvdLatitude));
@@ -278,10 +278,11 @@ public class AngleCalculationService extends IntentService {
                             stationLatitude[DatabaseHelper.secondStationIndex] = mFixedStnCursor.getDouble(mFixedStnCursor.getColumnIndex(DatabaseHelper.latitude));
                             stationLongitude[DatabaseHelper.secondStationIndex] = mFixedStnCursor.getDouble(mFixedStnCursor.getColumnIndex(DatabaseHelper.longitude));
                         }
-                        beta[betaIndex] = NavigationFunctions.calculateAngleBeta(stationLatitude[0], stationLongitude[0], stationLatitude[1], stationLongitude[1]);
-                        Log.d(TAG, "Lat1: " + stationLatitude[0] + " Lon1: " + stationLongitude[0]);
-                        Log.d(TAG, "Lat2: " + stationLatitude[1] + " Lon2: " + stationLongitude[1]);
-                        Log.d(TAG, "Beta[" + String.valueOf(betaIndex) + "]" + String.valueOf(beta[betaIndex]));
+                        beta[betaIndex] = NavigationFunctions.calculateAngleBeta(stationLatitude[DatabaseHelper.firstStationIndex], stationLongitude[DatabaseHelper.firstStationIndex],
+                                stationLatitude[DatabaseHelper.secondStationIndex], stationLongitude[DatabaseHelper.secondStationIndex]);
+                        Log.d(TAG, "X Origin Coord: " + stationLatitude[0] + "," + stationLongitude[0]);
+                        Log.d(TAG, "X marker Coord: " + stationLatitude[1] + "," + stationLongitude[1]);
+                        Log.d(TAG, "X Axis Beta[" + String.valueOf(betaIndex) + "]" + String.valueOf(beta[betaIndex]));
                         betaIndex++;
                     } else {
                         if (updateTime >= predictionTime) {
@@ -294,11 +295,12 @@ public class AngleCalculationService extends IntentService {
                         alpha = mFixedStnCursor.getDouble(mFixedStnCursor.getColumnIndex(DatabaseHelper.alpha));
                         double theta = NavigationFunctions.calculateAngleBeta(stationLatitude[0], stationLongitude[0], stationLatitude[index], stationLongitude[index]);
                         //beta[betaIndex] = Math.abs(theta - alpha);
-                        Log.d(TAG, "Theta " + betaIndex + ": " + theta);
+                        Log.d(TAG, "Base Station Theta " + betaIndex + ": " + theta);
                         beta[betaIndex] = theta - alpha;
-                        Log.d(TAG, "Lat1: " + stationLatitude[0] + " Lon1: " + stationLongitude[0] + " alpha: " + alpha);
-                        Log.d(TAG, "Lat2: " + stationLatitude[index] + " Lon2: " + stationLongitude[index] + " alpha: " + alpha);
-                        Log.d(TAG, "Beta[" + String.valueOf(betaIndex) + "]" + String.valueOf(beta[betaIndex]));
+                        //Log.d(TAG, "Lat1: " + stationLatitude[0] + " Lon1: " + stationLongitude[0] + " alpha: " + alpha);
+                        Log.d(TAG, "B Origin Coord: " + stationLatitude[0] + "," + stationLongitude[0]);
+                        Log.d(TAG, "B Base Statn Coord: " + stationLatitude[index] + "," + stationLongitude[index] + " alpha: " + alpha + " Beta[" + String.valueOf(betaIndex) + "]" + String.valueOf(beta[betaIndex]));
+                        //Log.d(TAG, "Beta[" + String.valueOf(betaIndex) + "]" + String.valueOf(beta[betaIndex]));
                         betaIndex++;
                     }
                     index++;

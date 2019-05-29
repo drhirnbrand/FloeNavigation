@@ -104,6 +104,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
      */
     public static final double ORIGIN = 1;
 
+    public static final double LOCATIONRECEIVED = 1;
     /**
      * It is a counter which is appended to the {@link #tabletId}, which forms the label id in the sample and measurement
      * menu.
@@ -1022,7 +1023,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         insertDefaultConfigParams(db, prediction_accuracy_threshold, String.valueOf(3 * 60 * 1000));
         insertDefaultConfigParams(db, lat_long_view_format, "1");
         insertDefaultConfigParams(db, decimal_number_significant_figures, "5");
-        insertDefaultConfigParams(db, initial_setup_time, String.valueOf(3 * 60 * 1000));
+        insertDefaultConfigParams(db, initial_setup_time, String.valueOf(60 * 1000));
         insertDefaultConfigParams(db, sync_server_hostname, "192.168.137.1");
         insertDefaultConfigParams(db, sync_server_port, String.valueOf(80));
         insertDefaultConfigParams(db, packet_threshold_time, String.valueOf(5 * 60 * 1000));

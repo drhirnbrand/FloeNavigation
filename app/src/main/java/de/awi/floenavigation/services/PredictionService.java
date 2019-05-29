@@ -192,8 +192,8 @@ public class PredictionService extends IntentService {
                                     mFixedStnCursor = db.query(DatabaseHelper.fixedStationTable, new String[]{DatabaseHelper.mmsi, DatabaseHelper.latitude, DatabaseHelper.longitude,
                                             DatabaseHelper.recvdLatitude, DatabaseHelper.recvdLongitude, DatabaseHelper.sog,
                                             DatabaseHelper.cog, DatabaseHelper.predictionTime, DatabaseHelper.updateTime, DatabaseHelper.predictionAccuracy},
-                                            null,
-                                            null, null, null, null);
+                                            DatabaseHelper.isLocationReceived + " = ?",
+                                            new String[]{String.valueOf(DatabaseHelper.LOCATIONRECEIVED)}, null, null, null);
                                     if (mFixedStnCursor.moveToFirst()) {
                                         do {
                                             mmsi = mFixedStnCursor.getInt(mFixedStnCursor.getColumnIndex(DatabaseHelper.mmsi));
@@ -230,8 +230,8 @@ public class PredictionService extends IntentService {
                                             //mContentValues.put(DatabaseHelper.alpha, alpha);
                                             mContentValues.put(DatabaseHelper.isPredicted, 1);
                                             db.update(DatabaseHelper.fixedStationTable, mContentValues, DatabaseHelper.mmsi + " = ?", new String[]{String.valueOf(mmsi)});
-                                            Log.d(TAG, "Lat: " + stationLatitude + " Lon: " + stationLongitude);
-                                            Log.d(TAG, "PredLat: " + predictedCoordinate[0] + "PredLon: " + predictedCoordinate[1] + " xPos: " + xPosition);
+                                            Log.d(TAG, "MMSI: " + mmsi + " Coord: " + stationLatitude + "," + stationLongitude);
+                                            Log.d(TAG, "MMSI: " + mmsi + " PredCoord: " + predictedCoordinate[0] + "," + predictedCoordinate[1]);
                                         } while (mFixedStnCursor.moveToNext());
                                         mFixedStnCursor.close();
                                     } else {
@@ -387,8 +387,8 @@ public class PredictionService extends IntentService {
             fixedStationCursor = db.query(DatabaseHelper.fixedStationTable,
                     new String[] {DatabaseHelper.latitude, DatabaseHelper.longitude, DatabaseHelper.recvdLatitude, DatabaseHelper.recvdLongitude,
                             DatabaseHelper.predictionTime, DatabaseHelper.updateTime},
-                    DatabaseHelper.mmsi +" = ?",
-                    new String[] {String.valueOf(originMMSI)},
+                    DatabaseHelper.mmsi +" = ? AND " + DatabaseHelper.isLocationReceived + " = ?",
+                    new String[] {String.valueOf(originMMSI), String.valueOf(DatabaseHelper.LOCATIONRECEIVED)},
                     null, null, null);
             if (fixedStationCursor.getCount() != 1){
                 Log.d(TAG, "Error Reading Origin Latitude Longitude");

@@ -191,8 +191,11 @@ public class ValidationService extends IntentService {
                                     //stationName = mFixedStnCursor.getString(mFixedStnCursor.getColumnIndex(DatabaseHelper.stationName));
                                     updateTime = mFixedStnCursor.getDouble(mFixedStnCursor.getColumnIndex(DatabaseHelper.updateTime));
                                     validationCheckTime = mFixedStnCursor.getDouble(mFixedStnCursor.getColumnIndexOrThrow(DatabaseHelper.validationCheckTime));
-                                    if (updateTime - System.currentTimeMillis() - timeDiff > PACKET_THRESHOLD_VALUE) {
-                                        final int timeSinceLastPacket = (int)((updateTime - System.currentTimeMillis() - timeDiff) / (60 * 1000));
+                                    Log.d(TAG, "Time:  " + String.valueOf(System.currentTimeMillis() - timeDiff - updateTime)
+                                    + " Threshold time: " + PACKET_THRESHOLD_VALUE);
+                                    if (System.currentTimeMillis() - timeDiff - updateTime >= PACKET_THRESHOLD_VALUE) {
+
+                                        final int timeSinceLastPacket = (int)((System.currentTimeMillis() - timeDiff - updateTime) / (60 * 1000));
                                         final String MMSI = String.valueOf(mmsi);
                                         runOnUiThread(new Runnable() {
                                             @Override

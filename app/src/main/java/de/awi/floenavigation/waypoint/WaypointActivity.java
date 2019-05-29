@@ -573,8 +573,8 @@ public class WaypointActivity extends Activity implements View.OnClickListener{
             Cursor fixedStationCursor = db.query(DatabaseHelper.fixedStationTable,
                     new String[] {DatabaseHelper.latitude, DatabaseHelper.longitude,
                             DatabaseHelper.recvdLatitude, DatabaseHelper.recvdLongitude, DatabaseHelper.predictionTime, DatabaseHelper.updateTime},
-                    DatabaseHelper.mmsi +" = ?",
-                    new String[] {String.valueOf(originMMSI)},
+                    DatabaseHelper.mmsi +" = ? AND " + DatabaseHelper.isLocationReceived + " = ?",
+                    new String[] {String.valueOf(originMMSI), String.valueOf(DatabaseHelper.LOCATIONRECEIVED)},
                     null, null, null);
             if (fixedStationCursor.getCount() != 1){
                 Log.d(TAG, "Error Reading Origin Latitude Longitude");

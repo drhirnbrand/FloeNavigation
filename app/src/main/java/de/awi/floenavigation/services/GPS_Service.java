@@ -4,6 +4,7 @@ import android.annotation.SuppressLint;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
+import android.location.Criteria;
 import android.location.GnssStatus;
 import android.location.GpsStatus;
 import android.location.Location;
@@ -137,6 +138,20 @@ public class GPS_Service extends Service {
         listener =  new Listener(LocationManager.GPS_PROVIDER);
         gpsListener = new GPSListener();
         locationManager = (LocationManager)getApplicationContext().getSystemService(Context.LOCATION_SERVICE);
+        Criteria criteria = new Criteria();
+        criteria.setAccuracy(Criteria.ACCURACY_FINE);
+        criteria.setPowerRequirement(Criteria.POWER_LOW);
+        criteria.setAltitudeRequired(true);
+        criteria.setSpeedRequired(true);
+        criteria.setCostAllowed(true);
+        criteria.setBearingRequired(true);
+
+        //API level 9 and up
+        criteria.setHorizontalAccuracy(Criteria.ACCURACY_HIGH);
+        criteria.setVerticalAccuracy(Criteria.ACCURACY_HIGH);
+        criteria.setBearingAccuracy(Criteria.ACCURACY_LOW);
+        criteria.setSpeedAccuracy(Criteria.ACCURACY_HIGH);
+        locationManager.getBestProvider(criteria, true);
         //locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, listener);
         try {
             locationManager.addGpsStatusListener(gpsListener);

@@ -206,6 +206,7 @@ public class AlphaCalculationService extends IntentService {
                                     do {
                                         stationLatitude = mobileStationCursor.getDouble(mobileStationCursor.getColumnIndex(DatabaseHelper.latitude));
                                         stationLongitude = mobileStationCursor.getDouble(mobileStationCursor.getColumnIndex(DatabaseHelper.longitude));
+                                        Log.d(TAG, "MMSI: " + String.valueOf(stationMMSI) + " Mobile Coord: " + String.valueOf(stationLatitude) + "," + String.valueOf(stationLongitude));
                                         stationMMSI = mobileStationCursor.getInt(mobileStationCursor.getColumnIndex(DatabaseHelper.mmsi));
                                         theta = NavigationFunctions.calculateAngleBeta(originLatitude, originLongitude, stationLatitude, stationLongitude);
                                         //alpha = Math.abs(theta - beta);
@@ -296,8 +297,8 @@ public class AlphaCalculationService extends IntentService {
             fixedStationCursor = db.query(DatabaseHelper.fixedStationTable,
                     new String[] {DatabaseHelper.latitude, DatabaseHelper.longitude,
                             DatabaseHelper.recvdLatitude, DatabaseHelper.recvdLongitude, DatabaseHelper.predictionTime, DatabaseHelper.updateTime},
-                    DatabaseHelper.mmsi +" = ?",
-                    new String[] {String.valueOf(originMMSI)},
+                    DatabaseHelper.mmsi +" = ? AND " + DatabaseHelper.isLocationReceived + " = ?",
+                    new String[] {String.valueOf(originMMSI), String.valueOf(DatabaseHelper.LOCATIONRECEIVED)},
                     null, null, null);
             if (fixedStationCursor.getCount() != 1){
                 Log.d(TAG, "Error Reading Origin Latitude Longtidue");
