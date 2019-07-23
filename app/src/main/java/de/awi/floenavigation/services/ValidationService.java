@@ -193,7 +193,8 @@ public class ValidationService extends IntentService {
                                     validationCheckTime = mFixedStnCursor.getDouble(mFixedStnCursor.getColumnIndexOrThrow(DatabaseHelper.validationCheckTime));
                                     Log.d(TAG, "Time:  " + String.valueOf(System.currentTimeMillis() - timeDiff - updateTime)
                                     + " Threshold time: " + PACKET_THRESHOLD_VALUE);
-                                    if (System.currentTimeMillis() - timeDiff - updateTime >= PACKET_THRESHOLD_VALUE) {
+                                    if (System.currentTimeMillis() - timeDiff - updateTime >= PACKET_THRESHOLD_VALUE
+                                    && mmsi != DatabaseHelper.BASESTN1 && mmsi != DatabaseHelper.BASESTN2) {
 
                                         final int timeSinceLastPacket = (int)((System.currentTimeMillis() - timeDiff - updateTime) / (60 * 1000));
                                         final String MMSI = String.valueOf(mmsi);
@@ -212,7 +213,8 @@ public class ValidationService extends IntentService {
                                             deleteEntryfromFixedStationTableinDB(mmsi, db);
                                         }
 
-                                    } else if (predictionAccuracy > PREDICTION_ACCURACY_THRESHOLD_VALUE / VALIDATION_TIME) {
+                                    } else if (predictionAccuracy > PREDICTION_ACCURACY_THRESHOLD_VALUE / VALIDATION_TIME
+                                            && mmsi != DatabaseHelper.BASESTN1 && mmsi != DatabaseHelper.BASESTN2) {
                                         Log.d(TAG, "Packets = " + stationMessageCount);
 
                                         if (stationMessageCount >= MAX_NUM_OF_VALID_PACKETS) {
