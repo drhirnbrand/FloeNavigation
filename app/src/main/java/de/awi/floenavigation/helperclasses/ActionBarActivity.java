@@ -27,7 +27,7 @@ import de.awi.floenavigation.services.GPS_Service;
  *     It also populates the MenuItems Change Lat/Lon format and About Us according to the parameters passed to it.
  * </p>
  */
-public class ActionBarActivity extends Activity {
+public abstract class ActionBarActivity extends Activity {
 
     private static final String TAG = "ActionBarActivity";
 
