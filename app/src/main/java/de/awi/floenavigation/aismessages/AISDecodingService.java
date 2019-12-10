@@ -12,6 +12,7 @@ import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.os.Handler;
+import android.provider.ContactsContract;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -268,10 +269,14 @@ public class AISDecodingService extends IntentService {
                     decodedValues.put(DatabaseHelper.sog, recvdSpeed);
                     decodedValues.put(DatabaseHelper.cog, recvdCourse);
                     decodedValues.put(DatabaseHelper.updateTime, recvdTimeStamp);
+                    decodedValues.put(DatabaseHelper.predictionAccuracy, 0);
                     decodedValues.put(DatabaseHelper.isPredicted, 0);
                 }
                 Log.d(TAG, "Updated DB " + String.valueOf(recvdMMSI));
-                int a = db.update(DatabaseHelper.fixedStationTable, decodedValues, DatabaseHelper.mmsi + " = ?", new String[]{String.valueOf(recvdMMSI)});
+                int affectedRows = db.update(DatabaseHelper.fixedStationTable, decodedValues, DatabaseHelper.mmsi + " = ?", new String[]{String.valueOf(recvdMMSI)});
+                if (affectedRows != 1) {
+                    Log.e(TAG, "Database was not updated!");
+                }
                 //Log.d(TAG, "Update Result: " + recvdTimeStamp);
 
 
@@ -292,6 +297,9 @@ public class AISDecodingService extends IntentService {
                     decodedValues.put(DatabaseHelper.updateTime, recvdTimeStamp);
                 }
                 int result = db.update(DatabaseHelper.mobileStationTable, decodedValues, DatabaseHelper.mmsi + " = ?", new String[]{String.valueOf(recvdMMSI)});
+                if (result != 1) {
+                    Log.e(TAG, "Database was not updated!");
+                }
                 //Log.d(TAG, "Mobile Station Update Result: " + String.valueOf(result));
                 //Log.d(TAG, "Mobile Station MMSI: " + String.valueOf(recvdMMSI));
 

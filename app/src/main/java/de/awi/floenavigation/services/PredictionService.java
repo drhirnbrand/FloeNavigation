@@ -328,12 +328,14 @@ public class PredictionService extends IntentService {
             yPosition = 0.0;
             alpha = 0.0;
             distance = 0.0;
+            Log.d(TAG, String.format("Origin %s %.5f/%.5f a=%.2f d=%.2f",originMMSI, latitude, longitude, alpha, distance));
         } else if(mmsi == xAxisBaseStationMMSI){
             xPosition = NavigationFunctions.calculateDifference(originLatitude, originLongitude, latitude, longitude);
             Log.d(TAG, "OL: " + originLatitude + ", " + originLongitude + " XL: " + latitude + ", " + longitude);
             yPosition = 0.0;
             alpha = 0.0;
             distance = xPosition;
+            Log.d(TAG, String.format("Axis %s %.5f/%.5f a=%.2f d=%.2f",xAxisBaseStationMMSI, latitude, longitude, alpha, distance));
         } else {
             distance = NavigationFunctions.calculateDifference(originLatitude, originLongitude, latitude, longitude);
             theta = NavigationFunctions.calculateAngleBeta(originLatitude, originLongitude, latitude, longitude);

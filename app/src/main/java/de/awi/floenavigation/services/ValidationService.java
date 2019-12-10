@@ -225,6 +225,7 @@ public class ValidationService extends IntentService {
                                                 validationCheckTime = System.currentTimeMillis() - timeDiff;
                                             }
                                             ContentValues mContentValues = new ContentValues();
+                                            mContentValues.put(DatabaseHelper.predictionAccuracy, predictionAccuracy);
                                             mContentValues.put(DatabaseHelper.predictionAccuracy, ++predictionAccuracy);
                                             mContentValues.put(DatabaseHelper.incorrectMessageCount, stationMessageCount);
                                             mContentValues.put(DatabaseHelper.validationCheckTime, validationCheckTime);

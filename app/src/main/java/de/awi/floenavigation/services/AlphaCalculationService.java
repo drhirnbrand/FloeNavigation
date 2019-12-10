@@ -204,6 +204,11 @@ public class AlphaCalculationService extends IntentService {
                                         distance = NavigationFunctions.calculateDifference(originLatitude, originLongitude, stationLatitude, stationLongitude);
                                         stationX = distance * Math.cos(Math.toRadians(alpha));
                                         stationY = distance * Math.sin(Math.toRadians(alpha));
+
+                                        Log.i(TAG, String.format("Station %s, %5f,%5f", stationMMSI, stationLatitude, stationLongitude));
+                                        Log.i(TAG, String.format("Station %s with Origin %s %5f,%5f that is d=%2f, a=%2f", stationMMSI, originMMSI, originLatitude, originLongitude, distance, alpha));
+                                        Log.i(TAG, String.format("Station %s on grid %2f, %2f", stationMMSI, stationX, stationY));
+
                                         ContentValues alphaUpdate = new ContentValues();
                                         alphaUpdate.put(DatabaseHelper.alpha, alpha);
                                         alphaUpdate.put(DatabaseHelper.distance, distance);
