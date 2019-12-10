@@ -1,7 +1,6 @@
 package de.awi.floenavigation.admin;
 
 import android.content.ContentValues;
-import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.database.DatabaseUtils;
@@ -16,10 +15,10 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.RectF;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
-import android.support.v7.widget.GridLayoutManager;
-import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.helper.ItemTouchHelper;
+import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.GridLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+import androidx.recyclerview.widget.ItemTouchHelper;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
@@ -31,7 +30,6 @@ import android.widget.Toast;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.TimeZone;
 
 import de.awi.floenavigation.helperclasses.ActionBarActivity;
@@ -141,7 +139,7 @@ public class ListViewActivity extends ActionBarActivity {
     }
 
     /**
-     * This method is called from {@link android.support.v7.widget.helper.ItemTouchHelper} callback in {@link #onCreate(Bundle)}
+     * This method is called from {@link androidx.recyclerview.widget.ItemTouchHelper} callback in {@link #onCreate(Bundle)}
      * The Listener is called when the admin or the user swipes the element in the list
      * Depending on the calling activity, the local variable flag isRemoved is initialized
      * If the flag is set to true, the entry is removed from the list
@@ -896,8 +894,8 @@ class ParameterListObject{
 }
 
 /**
- * Class to generate the {@link android.support.v7.widget.RecyclerView.Adapter}
- * which will be used as an input to {@link android.support.v7.widget.RecyclerView} to initialize the layout
+ * Class to generate the {@link RecyclerView.Adapter}
+ * which will be used as an input to {@link RecyclerView} to initialize the layout
  */
 class ListViewAdapter extends RecyclerView.Adapter<ListViewAdapter.ViewHolder> {
 

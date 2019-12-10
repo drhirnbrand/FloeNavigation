@@ -1,7 +1,7 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 27
+    compileSdkVersion 29
     lintOptions {
 
         checkReleaseBuilds false
@@ -10,42 +10,75 @@ android {
     defaultConfig {
         applicationId "de.awi.floenavigation"
         minSdkVersion 23
-        targetSdkVersion 27
-        versionCode 2
-        versionName "1.1.0"
-        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        targetSdkVersion 29
+        versionCode 3
+        versionName "1.1.1"
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
+        multiDexEnabled true
+        vectorDrawables.useSupportLibrary = true
     }
     buildTypes {
         release {
-            minifyEnabled false
+            minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            debuggable = false
+            jniDebuggable = false
+            renderscriptDebuggable = false
+        }
+        debug {
+            applicationIdSuffix ".debug"
+            debuggable = true
         }
     }
-    buildToolsVersion '28.0.3'
+    buildToolsVersion '29.0.2'
+
+    compileOptions {
+        sourceCompatibility = 1.8
+        targetCompatibility = 1.8
+    }
+
+    lintOptions {
+        // Returns whether lint should be quiet (for example, not write informational messages such as paths to report files written)
+        quiet false
+
+        // Whether lint should set the exit code of the process if errors are found
+        abortOnError false
+
+        // Returns whether lint will only check for errors (ignoring warnings)
+        ignoreWarnings true
+
+        // Returns whether lint should check for fatal errors during release builds. Default is true.
+        // If issues with severity "fatal" are found, the release build is aborted.
+        checkReleaseBuilds true
+    }
 }
 
 dependencies {
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
 
     api 'io.github.yavski:fab-speed-dial:1.0.6'
-    implementation 'com.scalified:fab:1.1.3'
-    implementation fileTree(include: ['*.jar'], dir: 'libs')
-    implementation 'com.android.support.constraint:constraint-layout:1.1.2'
+    implementation 'io.github.yavski:fab-speed-dial:1.0.6'
+
     testImplementation 'junit:junit:4.12'
-    androidTestImplementation 'com.android.support.test:runner:1.0.2'
-    androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
+
+    implementation 'com.scalified:fab:1.1.3'
+    implementation 'androidx.constraintlayout:constraintlayout:1.1.3'
+    androidTestImplementation 'androidx.test.ext:junit:1.1.1'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
     //Added Libraries
     implementation 'gr.pantrif:easy-android-splash-screen:0.0.1'
-    implementation 'com.android.support:recyclerview-v7:27.1.1'
-    implementation 'com.android.support:cardview-v7:27.1.1'
-    implementation 'com.android.support:design:27.1.1'
-    implementation 'com.android.support:appcompat-v7:27.1.1'
+    implementation 'androidx.recyclerview:recyclerview:1.1.0'
+    implementation 'androidx.cardview:cardview:1.0.0'
+
+    implementation 'com.android.volley:volley:1.1.1'
+
+//    implementation 'com.google.android.material:material:1.0.0'
+    implementation 'androidx.appcompat:appcompat:1.1.0'
     //Custom Libraries
-    implementation 'com.mcxiaoke.volley:library:1.0.19'
-    implementation 'io.github.yavski:fab-speed-dial:1.0.6'
-    implementation 'org.apache.directory.studio:org.apache.commons.io:2.4'
+//    implementation 'org.apache.directory.studio:org.apache.commons.io:2.4'
     implementation 'org.kie.modules:org-apache-commons-net:6.5.0.Final'
-    implementation 'com.google.android.gms:play-services-maps:15.0.1'
-    implementation 'com.google.android.gms:play-services-location:15.0.1'
-    implementation 'com.android.support:design:27.1.1'
+//    implementation 'com.google.android.gms:play-services-maps:15.0.1'
+//    implementation 'com.google.android.gms:play-services-location:15.0.1'
+//    implementation 'com.google.android.material:material:1.0.0'
 }

@@ -1,6 +1,6 @@
 package de.awi.floenavigation.helperclasses;
 
-import android.support.v4.app.Fragment;
+import androidx.fragment.app.Fragment;
 
 /**
  * This Interface provides Activities and {@link Fragment}s with a method to replace the currently running fragment with another {@link Fragment}.

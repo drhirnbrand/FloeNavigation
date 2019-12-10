@@ -2,10 +2,10 @@ package de.awi.floenavigation.deployment;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentActivity;
-import android.support.v4.app.FragmentTransaction;
-import android.support.v4.app.FragmentManager;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentActivity;
+import androidx.fragment.app.FragmentTransaction;
+import androidx.fragment.app.FragmentManager;
 import android.view.MenuItem;
 import android.view.WindowManager;
 import android.widget.Toast;

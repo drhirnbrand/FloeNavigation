@@ -17,7 +17,7 @@
         android:layout_marginTop="50dp"
         android:orientation="horizontal">
 
-        <android.support.v7.widget.CardView
+        <androidx.cardview.widget.CardView
             android:id="@+id/deploymentIcon"
             android:layout_width="180dp"
             android:layout_height="210dp"
@@ -56,7 +56,7 @@
 
             </LinearLayout>
 
-        </android.support.v7.widget.CardView>
+        </androidx.cardview.widget.CardView>
 
         <!--<android.support.v7.widget.CardView
             android:id="@+id/recoveryIcon"
@@ -139,7 +139,7 @@
 
         </android.support.v7.widget.CardView> -->
 
-        <android.support.v7.widget.CardView
+        <androidx.cardview.widget.CardView
             android:id="@+id/sampleMeasurementIcon"
             android:layout_width="180dp"
             android:layout_height="210dp"
@@ -179,9 +179,9 @@
                     android:textStyle="bold" />
             </LinearLayout>
 
-        </android.support.v7.widget.CardView>
+        </androidx.cardview.widget.CardView>
 
-        <android.support.v7.widget.CardView
+        <androidx.cardview.widget.CardView
             android:id="@+id/waypointIcon"
             android:layout_width="180dp"
             android:layout_height="210dp"
@@ -220,7 +220,7 @@
                     android:textStyle="bold" />
             </LinearLayout>
 
-        </android.support.v7.widget.CardView>
+        </androidx.cardview.widget.CardView>
 
     </LinearLayout>
 
@@ -233,7 +233,7 @@
         android:orientation="horizontal">
 
 
-        <android.support.v7.widget.CardView
+        <androidx.cardview.widget.CardView
             android:id="@+id/gridIcon"
             android:layout_width="180dp"
             android:layout_height="210dp"
@@ -272,9 +272,9 @@
                     android:textStyle="bold" />
             </LinearLayout>
 
-        </android.support.v7.widget.CardView>
+        </androidx.cardview.widget.CardView>
 
-        <android.support.v7.widget.CardView
+        <androidx.cardview.widget.CardView
             android:layout_width="180dp"
             android:layout_height="210dp"
             android:layout_margin="50dp"
@@ -312,7 +312,7 @@
                     android:textStyle="bold" />
             </LinearLayout>
 
-        </android.support.v7.widget.CardView>
+        </androidx.cardview.widget.CardView>
     </LinearLayout>
 
 </LinearLayout>

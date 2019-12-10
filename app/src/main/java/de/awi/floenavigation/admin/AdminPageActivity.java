@@ -6,7 +6,7 @@ import android.database.DatabaseUtils;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.os.Bundle;
 import android.os.Handler;
-import android.support.v7.widget.CardView;
+import androidx.cardview.widget.CardView;
 import android.util.Log;
 import android.view.View;
 import android.database.sqlite.SQLiteDatabase;

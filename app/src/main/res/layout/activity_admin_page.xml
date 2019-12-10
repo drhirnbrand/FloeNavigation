@@ -17,7 +17,7 @@
          android:rowCount="3"
          android:columnCount="2">
 
-        <android.support.v7.widget.CardView
+        <androidx.cardview.widget.CardView
             android:id="@+id/gridconfigcardView"
             android:visibility="gone"
             android:layout_row="0"
@@ -52,9 +52,9 @@
                     android:textStyle="bold" />
             </LinearLayout>
 
-        </android.support.v7.widget.CardView>
+        </androidx.cardview.widget.CardView>
 
-        <android.support.v7.widget.CardView
+        <androidx.cardview.widget.CardView
             android:id="@+id/synccardView"
             android:visibility="gone"
             android:layout_row="1"
@@ -90,9 +90,9 @@
                     android:textStyle="bold" />
             </LinearLayout>
 
-        </android.support.v7.widget.CardView>
+        </androidx.cardview.widget.CardView>
 
-        <android.support.v7.widget.CardView
+        <androidx.cardview.widget.CardView
             android:id="@+id/admincardView"
             android:visibility="gone"
             android:layout_row="2"
@@ -127,9 +127,9 @@
                     android:textStyle="bold" />
             </LinearLayout>
 
-        </android.support.v7.widget.CardView>
+        </androidx.cardview.widget.CardView>
 
-        <android.support.v7.widget.CardView
+        <androidx.cardview.widget.CardView
             android:id="@+id/configparamcardView"
             android:visibility="gone"
             android:layout_row="0"
@@ -164,9 +164,9 @@
                     android:textStyle="bold" />
             </LinearLayout>
 
-        </android.support.v7.widget.CardView>
+        </androidx.cardview.widget.CardView>
 
-        <android.support.v7.widget.CardView
+        <androidx.cardview.widget.CardView
             android:id="@+id/deploymentcardView"
             android:visibility="gone"
             android:layout_row="2"
@@ -201,9 +201,9 @@
                     android:textStyle="bold" />
             </LinearLayout>
 
-        </android.support.v7.widget.CardView>
+        </androidx.cardview.widget.CardView>
 
-         <android.support.v7.widget.CardView
+         <androidx.cardview.widget.CardView
              android:id="@+id/recoverycardView"
              android:visibility="gone"
              android:layout_row="1"
@@ -238,7 +238,7 @@
                      android:textStyle="bold" />
              </LinearLayout>
 
-         </android.support.v7.widget.CardView>
+         </androidx.cardview.widget.CardView>
      </GridLayout>
 
 
