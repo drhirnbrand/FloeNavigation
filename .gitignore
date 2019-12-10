@@ -11,4 +11,6 @@ model
 /captures
 .externalNativeBuild
 /.idea/vcs.xml
+release/
+debug/
 keystore.properties*
