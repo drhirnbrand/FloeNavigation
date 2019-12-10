@@ -221,13 +221,13 @@ public class AISDecodingService extends IntentService {
      * @param intent It is used to extract the packet send as an intent extras
      */
     @Override
-    protected void onHandleIntent(Intent intent) {
+    protected synchronized void onHandleIntent(Intent intent) {
         Cursor mobileCheckCursor = null;
         Cursor cursor_stnlist = null;
         try
         {
             packet = intent.getExtras().getString("AISPacket");
-            SQLiteOpenHelper dbHelper = DatabaseHelper.getDbInstance(getApplicationContext());;
+            SQLiteOpenHelper dbHelper = DatabaseHelper.getDbInstance(getApplicationContext());
             SQLiteDatabase db = dbHelper.getReadableDatabase();
 
 
