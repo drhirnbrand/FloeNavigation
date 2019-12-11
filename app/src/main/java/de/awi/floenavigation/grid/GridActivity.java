@@ -13,33 +13,29 @@ import android.database.sqlite.SQLiteOpenHelper;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.location.Location;
-import android.location.LocationManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
-
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
-
 import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.Toast;
 
+import com.scalified.fab.ActionButton;
+
 import java.util.HashMap;
-import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
-import com.scalified.fab.ActionButton;
-
-import de.awi.floenavigation.aismessages.AISDecodingService;
+import de.awi.floenavigation.R;
+import de.awi.floenavigation.dashboard.MainActivity;
 import de.awi.floenavigation.helperclasses.ActionBarActivity;
 import de.awi.floenavigation.helperclasses.DatabaseHelper;
-import de.awi.floenavigation.services.GPS_Service;
-import de.awi.floenavigation.dashboard.MainActivity;
 import de.awi.floenavigation.helperclasses.NavigationFunctions;
-import de.awi.floenavigation.R;
+import de.awi.floenavigation.services.GPS_Service;
+import de.awi.floenavigation.util.LocationUtils;
 
 
 /**
@@ -52,7 +48,7 @@ import de.awi.floenavigation.R;
  * which are send to {@link MapView} using setters.
  * It also takes care of handling of status bar icons and tablet location updates.
  */
-public class GridActivity extends Activity implements View.OnClickListener{
+public class GridActivity extends Activity implements View.OnClickListener {
 
     /**
      * Time period of the async task
@@ -118,7 +114,8 @@ public class GridActivity extends Activity implements View.OnClickListener{
      */
     private double tabletDistance;
     /**
-     * Angle between the axis connecting origin along the longitudinal axis and the tablet geographic coordinate
+     * Angle between the axis connecting origin along the longitudinal axis and the tablet
+     * geographic coordinate
      */
     private double tabletTheta;
     /**
@@ -127,22 +124,26 @@ public class GridActivity extends Activity implements View.OnClickListener{
     private double tabletAlpha;
 
     /**
-     * if <code>true</code> checks the checkbox on the menubar list and displays the fixed stations on the grid
+     * if <code>true</code> checks the checkbox on the menubar list and displays the fixed stations
+     * on the grid
      * <code>false</code> otherwise
      */
     public static boolean showFixedStation = true;
     /**
-     * if <code>true</code> checks the checkbox on the menubar list and displays the mobile stations on the grid
+     * if <code>true</code> checks the checkbox on the menubar list and displays the mobile stations
+     * on the grid
      * <code>false</code> otherwise
      */
     public static boolean showMobileStation = true;
     /**
-     * if <code>true</code> checks the checkbox on the menubar list and displays the static stations on the grid
+     * if <code>true</code> checks the checkbox on the menubar list and displays the static stations
+     * on the grid
      * <code>false</code> otherwise
      */
     public static boolean showStaticStation = true;
     /**
-     * if <code>true</code> checks the checkbox on the menubar list and displays the waypoints on the grid
+     * if <code>true</code> checks the checkbox on the menubar list and displays the waypoints on
+     * the grid
      * <code>false</code> otherwise
      */
     public static boolean showWaypointStation = true;
@@ -204,10 +205,6 @@ public class GridActivity extends Activity implements View.OnClickListener{
     public static HashMap<Integer, String> mWaypointsLabels;
 
     /**
-     * Used to provide location service
-     */
-    private LocationManager locationManager;
-    /**
      * Timer to run the async task
      */
     private Timer asyncTaskTimer;
@@ -250,6 +247,7 @@ public class GridActivity extends Activity implements View.OnClickListener{
 
     /**
      * Initializes the views on the activity
+     *
      * @param savedInstanceState stores the saved instance state
      */
     @Override
@@ -262,7 +260,7 @@ public class GridActivity extends Activity implements View.OnClickListener{
         buttonView = this.findViewById(R.id.action_button);
         buttonView.setOnClickListener(this);
 
-        LinearLayout linearLayout = (LinearLayout)findViewById(R.id.myLayout);
+        LinearLayout linearLayout = (LinearLayout) findViewById(R.id.myLayout);
         BubbleDrawable myBubble = new BubbleDrawable(BubbleDrawable.CENTER);
         myBubble.setCornerRadius(20);
         myBubble.setPointerAlignment(BubbleDrawable.CENTER);
@@ -384,7 +382,7 @@ public class GridActivity extends Activity implements View.OnClickListener{
      * {@link #asyncTaskTimer} timer and refresh timer of the map view
      */
     @Override
-    public void onDestroy(){
+    public void onDestroy() {
         super.onDestroy();
         Log.d(TAG, "Lifecycle OnDestroy");
         asyncTaskTimer.cancel();
@@ -394,11 +392,12 @@ public class GridActivity extends Activity implements View.OnClickListener{
     /**
      * Used to specify the options menu for the activity
      * and also keeps default checks to the items in the list
+     *
      * @param menu type of the parameter menu
      * @return <code>true</code> for the menu to be displayed; <code>false</code> otherwise
      */
     @Override
-    public boolean onCreateOptionsMenu(Menu menu){
+    public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.main_menu, menu);
         getMenuInflater().inflate(R.menu.grid_menu, menu);
 
@@ -412,13 +411,17 @@ public class GridActivity extends Activity implements View.OnClickListener{
         emptyIcon = menu.findItem(R.id.empty);
         emptyIcon.setShowAsActionFlags(MenuItem.SHOW_AS_ACTION_ALWAYS);
 
-        if(MainActivity.numOfBaseStations >= DatabaseHelper.INITIALIZATION_SIZE) {
+        if (MainActivity.numOfBaseStations >= DatabaseHelper.INITIALIZATION_SIZE) {
             if (gridSetupIconItem != null) {
-                gridSetupIconItem.getIcon().setColorFilter(Color.parseColor(ActionBarActivity.colorGreen), PorterDuff.Mode.SRC_IN);
+                gridSetupIconItem.getIcon()
+                        .setColorFilter(Color.parseColor(ActionBarActivity.colorGreen),
+                                        PorterDuff.Mode.SRC_IN);
             }
-        } else{
+        } else {
             if (gridSetupIconItem != null) {
-                gridSetupIconItem.getIcon().setColorFilter(Color.parseColor(ActionBarActivity.colorRed), PorterDuff.Mode.SRC_IN);
+                gridSetupIconItem.getIcon()
+                        .setColorFilter(Color.parseColor(ActionBarActivity.colorRed),
+                                        PorterDuff.Mode.SRC_IN);
             }
         }
 
@@ -437,7 +440,7 @@ public class GridActivity extends Activity implements View.OnClickListener{
      * It starts the {@link MainActivity} when the back button on the screen is pressed
      */
     @Override
-    public void onBackPressed(){
+    public void onBackPressed() {
         Log.d(TAG, "BackPressed");
         Intent mainActivityIntent = new Intent(this, MainActivity.class);
         startActivity(mainActivityIntent);
@@ -451,44 +454,44 @@ public class GridActivity extends Activity implements View.OnClickListener{
      * For example, if fixed station is selected, only fixed stations will be available on the grid
      * These selections are not available for tablet position and the position of the mothership
      * It will be present on the grid by default all the time
+     *
      * @param item The menu item that was selected
      * @return <code>true</code> to consume it here; <code>false</code> otherwise
      */
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-       switch (item.getItemId()) {
-           case android.R.id.home:
+        switch (item.getItemId()) {
+            case android.R.id.home:
                 onBackPressed();
                 return true;
 
-           case R.id.FixedStation:
-               showFixedStation = !showFixedStation;
-               item.setChecked(showFixedStation);
-               myView.postInvalidateOnAnimation();
-               //ViewCompat.postInvalidateOnAnimation(myGridView);
-               return true;
+            case R.id.FixedStation:
+                showFixedStation = !showFixedStation;
+                item.setChecked(showFixedStation);
+                myView.postInvalidateOnAnimation();
+                //ViewCompat.postInvalidateOnAnimation(myGridView);
+                return true;
 
-           case R.id.MobileStation:
-               showMobileStation = !showMobileStation;
-               item.setChecked(showMobileStation);
-               myView.postInvalidateOnAnimation();
-               //ViewCompat.postInvalidateOnAnimation(myGridView);
-               return true;
+            case R.id.MobileStation:
+                showMobileStation = !showMobileStation;
+                item.setChecked(showMobileStation);
+                myView.postInvalidateOnAnimation();
+                //ViewCompat.postInvalidateOnAnimation(myGridView);
+                return true;
 
-           case R.id.StaticStation:
-               showStaticStation = !showStaticStation;
-               item.setChecked(showStaticStation);
-               myView.postInvalidateOnAnimation();
-               //ViewCompat.postInvalidateOnAnimation(myGridView);
-               return true;
+            case R.id.StaticStation:
+                showStaticStation = !showStaticStation;
+                item.setChecked(showStaticStation);
+                myView.postInvalidateOnAnimation();
+                //ViewCompat.postInvalidateOnAnimation(myGridView);
+                return true;
 
-           case R.id.Waypoint:
-               showWaypointStation = !showWaypointStation;
-               item.setChecked(showWaypointStation);
-               myView.postInvalidateOnAnimation();
-               //ViewCompat.postInvalidateOnAnimation(myGridView);
-               return true;
-
+            case R.id.Waypoint:
+                showWaypointStation = !showWaypointStation;
+                item.setChecked(showWaypointStation);
+                myView.postInvalidateOnAnimation();
+                //ViewCompat.postInvalidateOnAnimation(myGridView);
+                return true;
 
 
         }
@@ -497,38 +500,45 @@ public class GridActivity extends Activity implements View.OnClickListener{
 
 
     /**
-     * This function handles the functionality of receiving the tablet coordinates and translating it
+     * This function handles the functionality of receiving the tablet coordinates and translating
+     * it
      * to (x, y) coordinates.
-     * If the tablet positions are not available from the {@link GPS_Service}, the last known positions are calculated
+     * If the tablet positions are not available from the {@link GPS_Service}, the last known
+     * positions are calculated
      * and stored in the variables {@link #tabletLat} and {@link #tabletLon}
      * The calculated parameters are then send to the {@link MapView} for displaying purpose
      */
-    private void calculateTabletGridCoordinates(){
-        if (tabletLat == 0.0){
+    private void calculateTabletGridCoordinates() {
+        if (tabletLat == 0.0) {
             try {
                 if (getLastKnownLocation() != null) {
                     tabletLat = getLastKnownLocation().getLatitude();
                 }
-            } catch (SecurityException e){
-                Toast.makeText(this,"Location Service Problem", Toast.LENGTH_LONG).show();
+            } catch (SecurityException e) {
+                Toast.makeText(this, "Location Service Problem", Toast.LENGTH_LONG).show();
             }
         }
-        if (tabletLon == 0.0){
+        if (tabletLon == 0.0) {
             try {
-                if(getLastKnownLocation() != null) {
+                if (getLastKnownLocation() != null) {
                     tabletLon = getLastKnownLocation().getLongitude();
                 }
-            } catch (SecurityException e){
-                Toast.makeText(this,"Location Service Problem", Toast.LENGTH_LONG).show();
+            } catch (SecurityException e) {
+                Toast.makeText(this, "Location Service Problem", Toast.LENGTH_LONG).show();
                 Log.d(TAG, "Location Service Not Available");
                 e.printStackTrace();
             }
         }
-        tabletDistance = NavigationFunctions.calculateDifference(tabletLat, tabletLon, originLatitude, originLongitude);
-        //Log.d(TAG + "TabletParam", "TabletLat: " + String.valueOf(tabletLat)+ " TabletLon: "+ String.valueOf(tabletLon));
-        //Log.d(TAG + "TabletParam", "OriginLat: " + String.valueOf(originLatitude)+ " OriginLon: " + String.valueOf(originLongitude));
-        //tabletTheta = NavigationFunctions.calculateAngleBeta(tabletLat, tabletLon, originLatitude, originLongitude);
-        tabletTheta = NavigationFunctions.calculateAngleBeta(originLatitude, originLongitude, tabletLat, tabletLon);
+        tabletDistance = NavigationFunctions
+                .calculateDifference(tabletLat, tabletLon, originLatitude, originLongitude);
+        //Log.d(TAG + "TabletParam", "TabletLat: " + String.valueOf(tabletLat)+ " TabletLon: "+
+        // String.valueOf(tabletLon));
+        //Log.d(TAG + "TabletParam", "OriginLat: " + String.valueOf(originLatitude)+ " OriginLon:
+        // " + String.valueOf(originLongitude));
+        //tabletTheta = NavigationFunctions.calculateAngleBeta(tabletLat, tabletLon,
+        // originLatitude, originLongitude);
+        tabletTheta = NavigationFunctions
+                .calculateAngleBeta(originLatitude, originLongitude, tabletLat, tabletLon);
         //Log.d(TAG + "TabletParam", "TabletDistance: " + String.valueOf(tabletDistance));
         //tabletAlpha = Math.abs(tabletTheta - beta);
         tabletAlpha = tabletTheta - beta;
@@ -542,26 +552,29 @@ public class GridActivity extends Activity implements View.OnClickListener{
     }
 
     /**
-     * Handles the registration of broadcast receiver and implementation of onReceive function of the gps broadcast receiver
+     * Handles the registration of broadcast receiver and implementation of onReceive function of
+     * the gps broadcast receiver
      * Whenever an updated location it available from the {@link GPS_Service}, the onReceive
-     * function gets triggered and the new coordinates are stored in these 2 variables {@link #tabletLat}
+     * function gets triggered and the new coordinates are stored in these 2 variables {@link
+     * #tabletLat}
      * and {@link #tabletLon}.
      * Also, the color of the status bar icons are toggled based on the values received
      */
     private void actionBarUpdatesFunction() {
 
         ///*****************ACTION BAR UPDATES*************************/
-        if(gpsBroadcastReceiver == null){
-            gpsBroadcastReceiver = new BroadcastReceiver(){
+        if (gpsBroadcastReceiver == null) {
+            gpsBroadcastReceiver = new BroadcastReceiver() {
                 @Override
-                public void onReceive(Context context, Intent intent){
+                public void onReceive(Context context, Intent intent) {
                     //Log.d(TAG, "BroadCast Received");
                     /*String coordinateString = intent.getExtras().get("coordinates").toString();
                     String[] coordinates = coordinateString.split(",");*/
                     tabletLat = intent.getExtras().getDouble(GPS_Service.latitude);
                     tabletLon = intent.getExtras().getDouble(GPS_Service.longitude);
                     locationStatus = intent.getExtras().getBoolean(GPS_Service.locationStatus);
-                    //tabletTime = Long.parseLong(intent.getExtras().get(GPS_Service.GPSTime).toString());
+                    //tabletTime = Long.parseLong(intent.getExtras().get(GPS_Service.GPSTime)
+                    // .toString());
 
                     //Log.d(TAG, "Tablet Lat: " + String.valueOf(tabletLat));
                     //Log.d(TAG, "Tablet Lon: " + String.valueOf(tabletLon));
@@ -573,7 +586,7 @@ public class GridActivity extends Activity implements View.OnClickListener{
         }
 
 
-        if (aisPacketBroadcastReceiver == null){
+        if (aisPacketBroadcastReceiver == null) {
             aisPacketBroadcastReceiver = new BroadcastReceiver() {
                 @Override
                 public void onReceive(Context context, Intent intent) {
@@ -582,26 +595,38 @@ public class GridActivity extends Activity implements View.OnClickListener{
             };
         }
 
-        registerReceiver(aisPacketBroadcastReceiver, new IntentFilter(GPS_Service.AISPacketBroadcast));
+        registerReceiver(aisPacketBroadcastReceiver,
+                         new IntentFilter(GPS_Service.AISPacketBroadcast));
         registerReceiver(gpsBroadcastReceiver, new IntentFilter(GPS_Service.GPSBroadcast));
 
         Runnable gpsLocationRunnable = new Runnable() {
             @Override
             public void run() {
-                if (locationStatus){
-                    if (gpsIconItem != null)
-                        gpsIconItem.getIcon().setColorFilter(Color.parseColor(ActionBarActivity.colorGreen), PorterDuff.Mode.SRC_IN);
+                if (locationStatus) {
+                    if (gpsIconItem != null) {
+                        gpsIconItem.getIcon()
+                                .setColorFilter(Color.parseColor(ActionBarActivity.colorGreen),
+                                                PorterDuff.Mode.SRC_IN);
+                    }
+                } else {
+                    if (gpsIconItem != null) {
+                        gpsIconItem.getIcon()
+                                .setColorFilter(Color.parseColor(ActionBarActivity.colorRed),
+                                                PorterDuff.Mode.SRC_IN);
+                    }
                 }
-                else {
-                    if (gpsIconItem != null)
-                        gpsIconItem.getIcon().setColorFilter(Color.parseColor(ActionBarActivity.colorRed), PorterDuff.Mode.SRC_IN);
-                }
-                if (packetStatus){
-                    if (aisIconItem != null)
-                        aisIconItem.getIcon().setColorFilter(Color.parseColor(ActionBarActivity.colorGreen), PorterDuff.Mode.SRC_IN);
-                }else {
-                    if (aisIconItem != null)
-                        aisIconItem.getIcon().setColorFilter(Color.parseColor(ActionBarActivity.colorRed), PorterDuff.Mode.SRC_IN);
+                if (packetStatus) {
+                    if (aisIconItem != null) {
+                        aisIconItem.getIcon()
+                                .setColorFilter(Color.parseColor(ActionBarActivity.colorGreen),
+                                                PorterDuff.Mode.SRC_IN);
+                    }
+                } else {
+                    if (aisIconItem != null) {
+                        aisIconItem.getIcon()
+                                .setColorFilter(Color.parseColor(ActionBarActivity.colorRed),
+                                                PorterDuff.Mode.SRC_IN);
+                    }
                 }
 
                 statusHandler.postDelayed(this, ActionBarActivity.UPDATE_TIME);
@@ -621,13 +646,14 @@ public class GridActivity extends Activity implements View.OnClickListener{
 
     /**
      * On pressing on the focus button, the grid size gets changed
+     *
      * @param v view which was clicked
      */
     @Override
     public void onClick(View v) {
-        switch (v.getId()){
+        switch (v.getId()) {
             case R.id.action_button:
-                Log.d(TAG,"Button Click");
+                Log.d(TAG, "Button Click");
                 myGridView.resetContentRect();
                 break;
 
@@ -637,15 +663,18 @@ public class GridActivity extends Activity implements View.OnClickListener{
 
     /**
      * Async task runs in the background thread periodically.
-     * This class handles the retrieval of origin fixed station parameters from the database table. The latest values are available from the database whenever exceuted.
+     * This class handles the retrieval of origin fixed station parameters from the database table.
+     * The latest values are available from the database whenever exceuted.
      * Initially, it obtains the origin mmsi from the {@link DatabaseHelper#baseStationTable},
-     * then it obtains the origin geographic coordinates and the (x, y) positions from the {@link DatabaseHelper#fixedStationTable},
+     * then it obtains the origin geographic coordinates and the (x, y) positions from the {@link
+     * DatabaseHelper#fixedStationTable},
      * then it obtains the {@link DatabaseHelper#beta} from the {@link DatabaseHelper#betaTable}.
-     * {@link DatabaseHelper#beta} is used to calculate the tablet position {@link #calculateTabletGridCoordinates()}.
+     * {@link DatabaseHelper#beta} is used to calculate the tablet position {@link
+     * #calculateTabletGridCoordinates()}.
      * Origin coordinates are
      * After the retrieval the each respective cursors are closed.
      */
-    private class ReadOriginFromDB extends AsyncTask<Void, Void, Boolean>{
+    private class ReadOriginFromDB extends AsyncTask<Void, Void, Boolean> {
 
         @Override
         protected Boolean doInBackground(Void... voids) {
@@ -654,47 +683,63 @@ public class GridActivity extends Activity implements View.OnClickListener{
             Cursor betaCursor = null;
             try {
                 int i = 0;
-                DatabaseHelper databaseHelper = DatabaseHelper.getDbInstance(getApplicationContext());
+                DatabaseHelper databaseHelper =
+                        DatabaseHelper.getDbInstance(getApplicationContext());
                 SQLiteDatabase db = databaseHelper.getReadableDatabase();
-                baseStationCursor = db.query(DatabaseHelper.baseStationTable,
-                        new String[] {DatabaseHelper.mmsi},
-                        DatabaseHelper.isOrigin + " = ?",
-                        new String[]{String.valueOf(DatabaseHelper.ORIGIN)},
-                        null, null, null);
+                baseStationCursor =
+                        db.query(DatabaseHelper.baseStationTable, new String[]{DatabaseHelper.mmsi},
+                                 DatabaseHelper.isOrigin + " = ?",
+                                 new String[]{String.valueOf(DatabaseHelper.ORIGIN)}, null, null,
+                                 null);
                 Log.d(TAG, String.valueOf(baseStationCursor.getCount()));
-                if (baseStationCursor.getCount() != 1){
+                if (baseStationCursor.getCount() != 1) {
                     Log.d(TAG, "Error Reading from BaseStation Table");
                     return false;
-                } else{
-                    if(baseStationCursor.moveToFirst()){
-                        originMMSI = baseStationCursor.getInt(baseStationCursor.getColumnIndex(DatabaseHelper.mmsi));
+                } else {
+                    if (baseStationCursor.moveToFirst()) {
+                        originMMSI = baseStationCursor
+                                .getInt(baseStationCursor.getColumnIndex(DatabaseHelper.mmsi));
                     }
                 }
 
 
                 fixedStationCursor = db.query(DatabaseHelper.fixedStationTable,
-                        new String[] {DatabaseHelper.latitude, DatabaseHelper.longitude, DatabaseHelper.xPosition, DatabaseHelper.yPosition},
-                        DatabaseHelper.mmsi +" = ?",
-                        new String[] {String.valueOf(originMMSI)},
-                        null, null, null);
-                if (fixedStationCursor.getCount() != 1){
+                                              new String[]{DatabaseHelper.latitude,
+                                                           DatabaseHelper.longitude,
+                                                           DatabaseHelper.xPosition,
+                                                           DatabaseHelper.yPosition},
+                                              DatabaseHelper.mmsi + " = ?",
+                                              new String[]{String.valueOf(originMMSI)}, null, null,
+                                              null);
+                if (fixedStationCursor.getCount() != 1) {
                     Log.d(TAG, "Error Reading Origin Latitude Longitude");
                     return false;
-                } else{
-                    if(fixedStationCursor.moveToFirst()){
-                        originLatitude = fixedStationCursor.getDouble(fixedStationCursor.getColumnIndex(DatabaseHelper.latitude));
-                        originLongitude = fixedStationCursor.getDouble(fixedStationCursor.getColumnIndex(DatabaseHelper.longitude));
-                        originX = fixedStationCursor.getDouble(fixedStationCursor.getColumnIndex(DatabaseHelper.xPosition));
-                        originY = fixedStationCursor.getDouble(fixedStationCursor.getColumnIndex(DatabaseHelper.yPosition));
-                        myGridView.setOriginX(originX);
-                        myGridView.setOriginY(originY);
+                } else {
+                    if (fixedStationCursor.moveToFirst()) {
+                        originLatitude = fixedStationCursor.getDouble(
+                                fixedStationCursor.getColumnIndex(DatabaseHelper.latitude));
+                        originLongitude = fixedStationCursor.getDouble(
+                                fixedStationCursor.getColumnIndex(DatabaseHelper.longitude));
+                        originX = fixedStationCursor.getDouble(
+                                fixedStationCursor.getColumnIndex(DatabaseHelper.xPosition));
+                        originY = fixedStationCursor.getDouble(
+                                fixedStationCursor.getColumnIndex(DatabaseHelper.yPosition));
+
+                        final double _originX = originX;
+                        final double _originY = originY;
+
+                        runOnUiThread(() -> {
+                            myGridView.setOriginX(_originX);
+                            myGridView.setOriginY(_originY);
+                        });
+                        //                        myGridView.setOriginX(originX);
+                        //                        myGridView.setOriginY(originY);
                     }
                 }
 
                 betaCursor = db.query(DatabaseHelper.betaTable,
-                        new String[]{DatabaseHelper.beta, DatabaseHelper.updateTime},
-                        null, null,
-                        null, null, null);
+                                      new String[]{DatabaseHelper.beta, DatabaseHelper.updateTime},
+                                      null, null, null, null, null);
                 if (betaCursor.getCount() == 1) {
                     if (betaCursor.moveToFirst()) {
                         beta = betaCursor.getDouble(betaCursor.getColumnIndex(DatabaseHelper.beta));
@@ -705,11 +750,11 @@ public class GridActivity extends Activity implements View.OnClickListener{
                     return false;
                 }
                 return true;
-            } catch(SQLiteException e){
+            } catch (SQLiteException e) {
                 Log.d(TAG, "Database Error");
                 e.printStackTrace();
                 return false;
-            }finally {
+            } finally {
                 if (betaCursor != null) {
                     betaCursor.close();
                 }
@@ -723,8 +768,8 @@ public class GridActivity extends Activity implements View.OnClickListener{
         }
 
         @Override
-        protected void onPostExecute(Boolean result){
-            if(!result){
+        protected void onPostExecute(Boolean result) {
+            if (!result) {
                 Log.d(TAG, "ReadOriginFromDB AsyncTask Error");
             }
         }
@@ -733,13 +778,15 @@ public class GridActivity extends Activity implements View.OnClickListener{
 
     /**
      * Async task runs in the background thread periodically.
-     * MMSIs, X, Y and Names of the fixed stations are obtained from the fixed station database table {@link DatabaseHelper#fixedStationTable}.
+     * MMSIs, X, Y and Names of the fixed stations are obtained from the fixed station database
+     * table {@link DatabaseHelper#fixedStationTable}.
      * The latest values are available from the database whenever exceuted.
      * One by one these values are stored in the respective hashmaps in a key-value pair format.
-     * These hashmaps are used by the {@link MapView} to display all the fixed stations on the grid.
+     * These hashmaps are used by the {@link MapView} to display all the fixed stations on the
+     * grid.
      * The onPostExecute method implements the call to setter functions of the {@link MapView}
      */
-    private class ReadFixedStationsFromDB extends AsyncTask<Void, Void, Boolean>{
+    private class ReadFixedStationsFromDB extends AsyncTask<Void, Void, Boolean> {
 
         @Override
         protected Boolean doInBackground(Void... voids) {
@@ -751,10 +798,12 @@ public class GridActivity extends Activity implements View.OnClickListener{
                 //double xPosition, yPosition;
                 //int mmsi;
 
-                mFixedStnCursor = db.query(DatabaseHelper.fixedStationTable, new String[]{DatabaseHelper.mmsi, DatabaseHelper.xPosition, DatabaseHelper.yPosition, DatabaseHelper.stationName},
-                        null,
-                        null,
-                        null, null, null, null);
+                mFixedStnCursor = db.query(DatabaseHelper.fixedStationTable,
+                                           new String[]{DatabaseHelper.mmsi,
+                                                        DatabaseHelper.xPosition,
+                                                        DatabaseHelper.yPosition,
+                                                        DatabaseHelper.stationName}, null, null,
+                                           null, null, null, null);
                 //mFixedStationMMSIs = new int[mFixedStnCursor.getCount()];
                 //mFixedStationXs = new double[mFixedStnCursor.getCount()];
                 //mFixedStationYs = new double[mFixedStnCursor.getCount()];
@@ -766,11 +815,16 @@ public class GridActivity extends Activity implements View.OnClickListener{
                 if (mFixedStnCursor.moveToFirst()) {
                     for (int i = 0; i < mFixedStnCursor.getCount(); i++) {
                         Log.d(TAG, "FixedStnIndex " + String.valueOf(i));
-                        mFixedStationMMSIs.put(i, mFixedStnCursor.getInt(mFixedStnCursor.getColumnIndex(DatabaseHelper.mmsi)));
-                        mFixedStationXs.put(i, mFixedStnCursor.getDouble(mFixedStnCursor.getColumnIndex(DatabaseHelper.xPosition)));
-                        mFixedStationYs.put(i, mFixedStnCursor.getDouble(mFixedStnCursor.getColumnIndex(DatabaseHelper.yPosition)));
-                        mFixedStationNames.put(i, mFixedStnCursor.getString(mFixedStnCursor.getColumnIndex(DatabaseHelper.stationName)));
-                        Log.d(TAG, "Fixed Station MMSI: " + mFixedStationMMSIs.get(i) + " xPos: " + mFixedStationXs.get(i) + " yPos: " + mFixedStationYs.get(i));
+                        mFixedStationMMSIs.put(i, mFixedStnCursor
+                                .getInt(mFixedStnCursor.getColumnIndex(DatabaseHelper.mmsi)));
+                        mFixedStationXs.put(i, mFixedStnCursor.getDouble(
+                                mFixedStnCursor.getColumnIndex(DatabaseHelper.xPosition)));
+                        mFixedStationYs.put(i, mFixedStnCursor.getDouble(
+                                mFixedStnCursor.getColumnIndex(DatabaseHelper.yPosition)));
+                        mFixedStationNames.put(i, mFixedStnCursor.getString(
+                                mFixedStnCursor.getColumnIndex(DatabaseHelper.stationName)));
+                        Log.d(TAG, "Fixed Station MMSI: " + mFixedStationMMSIs.get(i) + " xPos: " +
+                                mFixedStationXs.get(i) + " yPos: " + mFixedStationYs.get(i));
                         mFixedStnCursor.moveToNext();
                     }
                     return true;
@@ -784,18 +838,17 @@ public class GridActivity extends Activity implements View.OnClickListener{
                 e.printStackTrace();
                 return false;
             } finally {
-                if (mFixedStnCursor != null){
+                if (mFixedStnCursor != null) {
                     mFixedStnCursor.close();
                 }
             }
         }
 
         @Override
-        protected void onPostExecute(Boolean result){
-            if(!result){
+        protected void onPostExecute(Boolean result) {
+            if (!result) {
                 Log.d(TAG, "ReadFixedStationParams AsyncTask Error");
-            }
-            else{
+            } else {
                 myGridView.setmFixedStationMMSIs(mFixedStationMMSIs);
                 myGridView.setmFixedStationXs(mFixedStationXs);
                 myGridView.setmFixedStationYs(mFixedStationYs);
@@ -806,13 +859,15 @@ public class GridActivity extends Activity implements View.OnClickListener{
 
     /**
      * Async task runs in the background thread periodically.
-     * MMSIs, X, Y and Names of the fixed stations are obtained from the mobile station database table {@link DatabaseHelper#mobileStationTable}.
+     * MMSIs, X, Y and Names of the fixed stations are obtained from the mobile station database
+     * table {@link DatabaseHelper#mobileStationTable}.
      * The latest values are available from the database whenever exceuted.
      * One by one these values are stored in the respective hashmaps in a key-value pair format.
-     * These hashmaps are used by the {@link MapView} to display all the fixed stations on the grid.
+     * These hashmaps are used by the {@link MapView} to display all the fixed stations on the
+     * grid.
      * The onPostExecute method implements the call to setter functions of the {@link MapView}
      */
-    private class ReadMobileStationsFromDB extends AsyncTask<Void, Void, Boolean>{
+    private class ReadMobileStationsFromDB extends AsyncTask<Void, Void, Boolean> {
 
         @Override
         protected Boolean doInBackground(Void... voids) {
@@ -825,10 +880,14 @@ public class GridActivity extends Activity implements View.OnClickListener{
                 //int mmsi;
 
                 mMobileStnCursor = db.query(DatabaseHelper.mobileStationTable,
-                        new String[]{DatabaseHelper.mmsi, DatabaseHelper.stationName, DatabaseHelper.xPosition, DatabaseHelper.yPosition, DatabaseHelper.isCalculated},
-                        DatabaseHelper.isCalculated + " = ?",
-                        new String[] {Integer.toString(DatabaseHelper.MOBILE_STATION_IS_CALCULATED)},
-                        null, null, null, null);
+                                            new String[]{DatabaseHelper.mmsi,
+                                                         DatabaseHelper.stationName,
+                                                         DatabaseHelper.xPosition,
+                                                         DatabaseHelper.yPosition,
+                                                         DatabaseHelper.isCalculated},
+                                            DatabaseHelper.isCalculated + " = ?", new String[]{
+                                Integer.toString(DatabaseHelper.MOBILE_STATION_IS_CALCULATED)},
+                                            null, null, null, null);
                 //mMobileStationXs = new double[mMobileStnCursor.getCount()];
                 //mMobileStationYs = new double[mMobileStnCursor.getCount()];
                 //mMobileStationMMSIs = new int[mMobileStnCursor.getCount()];
@@ -839,11 +898,16 @@ public class GridActivity extends Activity implements View.OnClickListener{
                 MapView.clearMobileStationHashTables();
                 if (mMobileStnCursor.moveToFirst()) {
                     for (int i = 0; i < mMobileStnCursor.getCount(); i++) {
-                        mMobileStationMMSIs.put(i, mMobileStnCursor.getInt(mMobileStnCursor.getColumnIndex(DatabaseHelper.mmsi)));
-                        mMobileStationXs.put(i, mMobileStnCursor.getDouble(mMobileStnCursor.getColumnIndex(DatabaseHelper.xPosition)));
-                        mMobileStationYs.put(i, mMobileStnCursor.getDouble(mMobileStnCursor.getColumnIndex(DatabaseHelper.yPosition)));
-                        mMobileStationNames.put(i, mMobileStnCursor.getString(mMobileStnCursor.getColumnIndex(DatabaseHelper.stationName)));
-                        //Log.d(TAG, "Mobile Station MMSI: " + mMobileStationMMSIs.get(i) + " X: " + mMobileStationXs.get(i) + " Y: " + mMobileStationYs.get(i));
+                        mMobileStationMMSIs.put(i, mMobileStnCursor
+                                .getInt(mMobileStnCursor.getColumnIndex(DatabaseHelper.mmsi)));
+                        mMobileStationXs.put(i, mMobileStnCursor.getDouble(
+                                mMobileStnCursor.getColumnIndex(DatabaseHelper.xPosition)));
+                        mMobileStationYs.put(i, mMobileStnCursor.getDouble(
+                                mMobileStnCursor.getColumnIndex(DatabaseHelper.yPosition)));
+                        mMobileStationNames.put(i, mMobileStnCursor.getString(
+                                mMobileStnCursor.getColumnIndex(DatabaseHelper.stationName)));
+                        //Log.d(TAG, "Mobile Station MMSI: " + mMobileStationMMSIs.get(i) + " X:
+                        // " + mMobileStationXs.get(i) + " Y: " + mMobileStationYs.get(i));
                         mMobileStnCursor.moveToNext();
                     }
                     return true;
@@ -857,17 +921,17 @@ public class GridActivity extends Activity implements View.OnClickListener{
                 e.printStackTrace();
                 return false;
             } finally {
-                if (mMobileStnCursor != null){
+                if (mMobileStnCursor != null) {
                     mMobileStnCursor.close();
                 }
             }
         }
 
         @Override
-        protected void onPostExecute(Boolean result){
-            if(!result){
+        protected void onPostExecute(Boolean result) {
+            if (!result) {
                 Log.d(TAG, "ReadMobileStationFromDB AsyncTask Error");
-            } else{
+            } else {
                 myGridView.setmMobileStationMMSIs(mMobileStationMMSIs);
                 myGridView.setmMobileStationXs(mMobileStationXs);
                 myGridView.setmMobileStationYs(mMobileStationYs);
@@ -878,13 +942,15 @@ public class GridActivity extends Activity implements View.OnClickListener{
 
     /**
      * Async task runs in the background thread periodically.
-     * X, Y and Names of the static stations are obtained from the static station database table {@link DatabaseHelper#staticStationListTable}.
+     * X, Y and Names of the static stations are obtained from the static station database table
+     * {@link DatabaseHelper#staticStationListTable}.
      * The latest values are available from the database whenever exceuted.
      * One by one these values are stored in the respective hashmaps in a key-value pair format.
-     * These hashmaps are used by the {@link MapView} to display all the fixed stations on the grid.
+     * These hashmaps are used by the {@link MapView} to display all the fixed stations on the
+     * grid.
      * The onPostExecute method implements the call to setter functions of the {@link MapView}
      */
-    private class ReadStaticStationsFromDB extends AsyncTask<Void, Void, Boolean>{
+    private class ReadStaticStationsFromDB extends AsyncTask<Void, Void, Boolean> {
 
         @Override
         protected Boolean doInBackground(Void... voids) {
@@ -896,10 +962,11 @@ public class GridActivity extends Activity implements View.OnClickListener{
                 //double xPosition, yPosition;
                 //int mmsi;
 
-                mStaticStationCursor = db.query(DatabaseHelper.staticStationListTable, new String[]{DatabaseHelper.staticStationName, DatabaseHelper.xPosition, DatabaseHelper.yPosition},
-                        null,
-                        null,
-                        null, null, null, null);
+                mStaticStationCursor = db.query(DatabaseHelper.staticStationListTable,
+                                                new String[]{DatabaseHelper.staticStationName,
+                                                             DatabaseHelper.xPosition,
+                                                             DatabaseHelper.yPosition}, null, null,
+                                                null, null, null, null);
                 //mStaticStationXs = new double[mStaticStationCursor.getCount()];
                 //mStaticStationYs = new double[mStaticStationCursor.getCount()];
                 //mStaticStationNames = new String[mStaticStationCursor.getCount()];
@@ -908,15 +975,18 @@ public class GridActivity extends Activity implements View.OnClickListener{
                 mStaticStationYs.clear();
                 MapView.clearStaticStationHashTables();
                 if (mStaticStationCursor.moveToFirst()) {
-                    for(int i = 0; i < mStaticStationCursor.getCount(); i++){
-                        mStaticStationNames.put(i, mStaticStationCursor.getString(mStaticStationCursor.getColumnIndex(DatabaseHelper.staticStationName)));
-                        mStaticStationXs.put(i, mStaticStationCursor.getDouble(mStaticStationCursor.getColumnIndex(DatabaseHelper.xPosition)));
-                        mStaticStationYs.put(i, mStaticStationCursor.getDouble(mStaticStationCursor.getColumnIndex(DatabaseHelper.yPosition)));
+                    for (int i = 0; i < mStaticStationCursor.getCount(); i++) {
+                        mStaticStationNames.put(i, mStaticStationCursor.getString(
+                                mStaticStationCursor
+                                        .getColumnIndex(DatabaseHelper.staticStationName)));
+                        mStaticStationXs.put(i, mStaticStationCursor.getDouble(
+                                mStaticStationCursor.getColumnIndex(DatabaseHelper.xPosition)));
+                        mStaticStationYs.put(i, mStaticStationCursor.getDouble(
+                                mStaticStationCursor.getColumnIndex(DatabaseHelper.yPosition)));
                         mStaticStationCursor.moveToNext();
                     }
                     return true;
-                }
-                else {
+                } else {
                     Log.d(TAG, "StaticStation Cursor Error");
                     return false;
                 }
@@ -933,10 +1003,10 @@ public class GridActivity extends Activity implements View.OnClickListener{
         }
 
         @Override
-        protected void onPostExecute(Boolean result){
-            if(!result){
+        protected void onPostExecute(Boolean result) {
+            if (!result) {
                 Log.d(TAG, "ReadStaticStationFromDB AsyncTask Error");
-            } else{
+            } else {
                 myGridView.setmStaticStationNamess(mStaticStationNames);
                 myGridView.setmStaticStationXs(mStaticStationXs);
                 myGridView.setmStaticStationYs(mStaticStationYs);
@@ -946,13 +1016,15 @@ public class GridActivity extends Activity implements View.OnClickListener{
 
     /**
      * Async task runs in the background thread periodically.
-     * Labels, X, Y and Names of the waypoints are obtained from the waypoint database table {@link DatabaseHelper#waypointsTable}.
+     * Labels, X, Y and Names of the waypoints are obtained from the waypoint database table {@link
+     * DatabaseHelper#waypointsTable}.
      * The latest values are available from the database whenever exceuted.
      * One by one these values are stored in the respective hashmaps in a key-value pair format.
-     * These hashmaps are used by the {@link MapView} to display all the fixed stations on the grid.
+     * These hashmaps are used by the {@link MapView} to display all the fixed stations on the
+     * grid.
      * The onPostExecute method implements the call to setter functions of the {@link MapView}
      */
-    private class ReadWaypointsFromDB extends AsyncTask<Void, Void, Boolean>{
+    private class ReadWaypointsFromDB extends AsyncTask<Void, Void, Boolean> {
 
         @Override
         protected Boolean doInBackground(Void... voids) {
@@ -964,10 +1036,11 @@ public class GridActivity extends Activity implements View.OnClickListener{
                 //double xPosition, yPosition;
                 //int mmsi;
 
-                mWaypointsCursor = db.query(DatabaseHelper.waypointsTable, new String[]{DatabaseHelper.labelID, DatabaseHelper.xPosition, DatabaseHelper.yPosition},
-                        null,
-                        null,
-                        null, null, null, null);
+                mWaypointsCursor = db.query(DatabaseHelper.waypointsTable,
+                                            new String[]{DatabaseHelper.labelID,
+                                                         DatabaseHelper.xPosition,
+                                                         DatabaseHelper.yPosition}, null, null,
+                                            null, null, null, null);
                 //mWaypointsXs = new double[mWaypointsCursor.getCount()];
                 //mWaypointsYs = new double[mWaypointsCursor.getCount()];
                 //mWaypointsLabels = new String[mWaypointsCursor.getCount()];
@@ -976,15 +1049,17 @@ public class GridActivity extends Activity implements View.OnClickListener{
                 mWaypointsYs.clear();
                 MapView.clearWaypointHashTables();
                 if (mWaypointsCursor.moveToFirst()) {
-                    for(int i = 0; i < mWaypointsCursor.getCount(); i++){
-                        mWaypointsLabels.put(i, mWaypointsCursor.getString(mWaypointsCursor.getColumnIndex(DatabaseHelper.labelID)));
-                        mWaypointsXs.put(i, mWaypointsCursor.getDouble(mWaypointsCursor.getColumnIndex(DatabaseHelper.xPosition)));
-                        mWaypointsYs.put(i, mWaypointsCursor.getDouble(mWaypointsCursor.getColumnIndex(DatabaseHelper.yPosition)));
+                    for (int i = 0; i < mWaypointsCursor.getCount(); i++) {
+                        mWaypointsLabels.put(i, mWaypointsCursor.getString(
+                                mWaypointsCursor.getColumnIndex(DatabaseHelper.labelID)));
+                        mWaypointsXs.put(i, mWaypointsCursor.getDouble(
+                                mWaypointsCursor.getColumnIndex(DatabaseHelper.xPosition)));
+                        mWaypointsYs.put(i, mWaypointsCursor.getDouble(
+                                mWaypointsCursor.getColumnIndex(DatabaseHelper.yPosition)));
                         mWaypointsCursor.moveToNext();
                     }
                     return true;
-                }
-                else {
+                } else {
                     Log.d(TAG, "Waypoints Cursor Error");
                     return false;
                 }
@@ -993,17 +1068,17 @@ public class GridActivity extends Activity implements View.OnClickListener{
                 e.printStackTrace();
                 return false;
             } finally {
-                if (mWaypointsCursor != null){
+                if (mWaypointsCursor != null) {
                     mWaypointsCursor.close();
                 }
             }
         }
 
         @Override
-        protected void onPostExecute(Boolean result){
-            if(!result){
+        protected void onPostExecute(Boolean result) {
+            if (!result) {
                 Log.d(TAG, "ReadWaypointsFromDB AsyncTask Error");
-            } else{
+            } else {
                 myGridView.setmWapointLabels(mWaypointsLabels);
                 myGridView.setmWaypointsXs(mWaypointsXs);
                 myGridView.setmWapointsYs(mWaypointsYs);
@@ -1013,26 +1088,13 @@ public class GridActivity extends Activity implements View.OnClickListener{
 
     /**
      * Intializes the location service and obtains the last known location of the tablet
+     *
      * @return the last location
      */
     @SuppressLint("MissingPermission")
     private Location getLastKnownLocation() {
-        locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-        List<String> providers = locationManager.getProviders(true);
-        Location bestLocation = null;
-        for (String provider : providers) {
-            Location l = locationManager.getLastKnownLocation(provider);
-            if (l == null) {
-                continue;
-            }
-            if (bestLocation == null || l.getAccuracy() < bestLocation.getAccuracy()) {
-                // Found best last known location: %s", l);
-                bestLocation = l;
-            }
-        }
-        return bestLocation;
+        return LocationUtils.getLastKnownLocation(this);
     }
-
 
 
 }

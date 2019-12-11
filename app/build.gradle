@@ -24,6 +24,13 @@ android {
             storeFile file(keystoreProperties['storeFile'])
             storePassword keystoreProperties['storePassword']
         }
+
+        release {
+            keyAlias keystoreProperties['keyAliasDebug']
+            keyPassword keystoreProperties['keyPasswordDebug']
+            storeFile file(keystoreProperties['storeFile'])
+            storePassword keystoreProperties['storePassword']
+        }
     }
 
     defaultConfig {
@@ -34,21 +41,29 @@ android {
         versionName "1.1.1"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
-        multiDexEnabled true
-        vectorDrawables.useSupportLibrary = true
+        multiDexEnabled false
+        vectorDrawables.useSupportLibrary = false
     }
     buildTypes {
+        debug {
+            applicationIdSuffix ".debug"
+            debuggable = true
+        }
         release {
-            minifyEnabled true
+            minifyEnabled = true
+            shrinkResources = true
+            debuggable = true
+            signingConfig signingConfigs.release
+        }
+        optimized {
+            minifyEnabled = true
+            shrinkResources = true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
             debuggable = false
             jniDebuggable = false
             renderscriptDebuggable = false
             signingConfig signingConfigs.release
-        }
-        debug {
-            applicationIdSuffix ".debug"
-            debuggable = true
+            applicationIdSuffix ".optimized"
         }
     }
     buildToolsVersion '29.0.2'
