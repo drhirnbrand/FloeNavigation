@@ -190,9 +190,14 @@ public class ValidationService extends IntentService {
                                     //stationName = mFixedStnCursor.getString(mFixedStnCursor.getColumnIndex(DatabaseHelper.stationName));
                                     updateTime = mFixedStnCursor.getDouble(mFixedStnCursor.getColumnIndex(DatabaseHelper.updateTime));
                                     validationCheckTime = mFixedStnCursor.getDouble(mFixedStnCursor.getColumnIndexOrThrow(DatabaseHelper.validationCheckTime));
+
+
+                                    // TODO: Here is the piece of code that removes a station when a threshold is exceeded.
+                                    // Currently the predictionAccuracy is reset to 0 every time there is a new data packet is received.
                                     if (predictionAccuracy > PREDICTION_ACCURACY_THRESHOLD_VALUE / VALIDATION_TIME) {
                                         Log.d(TAG, "Packets = " + stationMessageCount);
 
+                                        // There is an additional constraint requiring the station to have multiple "failed" packets.
                                         if (stationMessageCount >= MAX_NUM_OF_VALID_PACKETS) {
                                             stationMessageCount = 0;
                                             final int faildPredictionTime = PREDICTION_ACCURACY_THRESHOLD_VALUE / (60 * 1000);
@@ -206,6 +211,8 @@ public class ValidationService extends IntentService {
 
                                             if (mmsi == baseStnMMSI[DatabaseHelper.firstStationIndex] || mmsi == baseStnMMSI[DatabaseHelper.secondStationIndex]) {
                                                 deleteEntryfromStationListTableinDB(mmsi, db);
+
+                                                // FIXME: This is where the origin gets removed permanently.
                                                 updataMMSIInDBTables(mmsi, db, (mmsi == baseStnMMSI[DatabaseHelper.firstStationIndex]));
                                             } else {
                                                 deleteEntryfromStationListTableinDB(mmsi, db);
@@ -226,7 +233,9 @@ public class ValidationService extends IntentService {
                                             }
                                             ContentValues mContentValues = new ContentValues();
                                             mContentValues.put(DatabaseHelper.predictionAccuracy, predictionAccuracy);
-                                            mContentValues.put(DatabaseHelper.predictionAccuracy, ++predictionAccuracy);
+                                            // Remove the increment on the predictionAccuracy in any case.
+                                            mContentValues.put(DatabaseHelper.predictionAccuracy, predictionAccuracy);
+//                                            mContentValues.put(DatabaseHelper.predictionAccuracy, ++predictionAccuracy);
                                             mContentValues.put(DatabaseHelper.incorrectMessageCount, stationMessageCount);
                                             mContentValues.put(DatabaseHelper.validationCheckTime, validationCheckTime);
                                             Log.d(TAG, "EvaluationDifference > Threshold: predictionAccuracy: " + String.valueOf(predictionAccuracy));
@@ -364,6 +373,7 @@ public class ValidationService extends IntentService {
             mBaseStnCursor = db.query(DatabaseHelper.baseStationTable, new String[]{DatabaseHelper.mmsi, DatabaseHelper.isOrigin},
                     null, null, null, null, DatabaseHelper.isOrigin + " DESC");
 
+            // FIXME: Base station retrieval does not work like this, because the number > 2 if there has was a replacement.
             if (mBaseStnCursor.getCount() == DatabaseHelper.NUM_OF_BASE_STATIONS) {
                 int index = 0;
 

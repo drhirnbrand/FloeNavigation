@@ -205,9 +205,9 @@ public class AlphaCalculationService extends IntentService {
                                         stationX = distance * Math.cos(Math.toRadians(alpha));
                                         stationY = distance * Math.sin(Math.toRadians(alpha));
 
-                                        Log.i(TAG, String.format("Station %s, %5f,%5f", stationMMSI, stationLatitude, stationLongitude));
-                                        Log.i(TAG, String.format("Station %s with Origin %s %5f,%5f that is d=%2f, a=%2f", stationMMSI, originMMSI, originLatitude, originLongitude, distance, alpha));
-                                        Log.i(TAG, String.format("Station %s on grid %2f, %2f", stationMMSI, stationX, stationY));
+                                        Log.i(TAG, String.format("Station %s, %.5f,%.5f", stationMMSI, stationLatitude, stationLongitude));
+                                        Log.i(TAG, String.format("Station %s with Origin %s %.5f,%.5f that is d=%.2f, a=%.2f", stationMMSI, originMMSI, originLatitude, originLongitude, distance, alpha));
+                                        Log.i(TAG, String.format("Station %s on grid %.2f, %.2f", stationMMSI, stationX, stationY));
 
                                         ContentValues alphaUpdate = new ContentValues();
                                         alphaUpdate.put(DatabaseHelper.alpha, alpha);
@@ -270,6 +270,7 @@ public class AlphaCalculationService extends IntentService {
      * @param db SQLiteDatabase object
      * @return <code>true</code> if successful in reading all the required parameters from the database
      */
+    // FIXME: When origin is BASESTN1 or BASESTN2 virtual replacement, x/y needs to be decoded based on other base station.
     private boolean readFromDatabase(SQLiteDatabase db){
         Cursor baseStationCursor = null;
         Cursor fixedStationCursor = null;

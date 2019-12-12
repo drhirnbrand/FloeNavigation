@@ -35,7 +35,7 @@ import de.awi.floenavigation.helperclasses.NavigationFunctions;
  */
 public class PredictionService extends IntentService {
 
-    private final static String TAG = "PREDICTION_SERVICE: ";
+    private final static String TAG = PredictionService.class.getSimpleName();
     /**
      * Handler to execute the runnable
      */
@@ -199,11 +199,11 @@ public class PredictionService extends IntentService {
                                             mmsi = mFixedStnCursor.getInt(mFixedStnCursor.getColumnIndex(DatabaseHelper.mmsi));
                                             updateTime = mFixedStnCursor.getDouble(mFixedStnCursor.getColumnIndexOrThrow(DatabaseHelper.updateTime));
                                             predictionTime = mFixedStnCursor.getDouble(mFixedStnCursor.getColumnIndexOrThrow(DatabaseHelper.predictionTime));
-                                            predictionAccuracy = mFixedStnCursor.getInt(mFixedStnCursor.getColumnIndex(DatabaseHelper.predictionAccuracy));
-                                            if (predictionAccuracy >= PREDICTION_ACCURACY_THRESHOLD_VALUE / VALIDATION_TIME) {
-                                                stationLatitude = mFixedStnCursor.getDouble(mFixedStnCursor.getColumnIndex(DatabaseHelper.latitude));
-                                                stationLongitude = mFixedStnCursor.getDouble(mFixedStnCursor.getColumnIndex(DatabaseHelper.longitude));
-                                            } else {
+//                                            predictionAccuracy = mFixedStnCursor.getInt(mFixedStnCursor.getColumnIndex(DatabaseHelper.predictionAccuracy));
+//                                            if (predictionAccuracy >= PREDICTION_ACCURACY_THRESHOLD_VALUE / VALIDATION_TIME) {
+//                                                stationLatitude = mFixedStnCursor.getDouble(mFixedStnCursor.getColumnIndex(DatabaseHelper.latitude));
+//                                                stationLongitude = mFixedStnCursor.getDouble(mFixedStnCursor.getColumnIndex(DatabaseHelper.longitude));
+//                                            } else {
                                                 if (updateTime > predictionTime) {
                                                     stationLatitude = mFixedStnCursor.getDouble(mFixedStnCursor.getColumnIndex(DatabaseHelper.recvdLatitude));
                                                     stationLongitude = mFixedStnCursor.getDouble(mFixedStnCursor.getColumnIndex(DatabaseHelper.recvdLongitude));
@@ -211,7 +211,7 @@ public class PredictionService extends IntentService {
                                                     stationLatitude = mFixedStnCursor.getDouble(mFixedStnCursor.getColumnIndex(DatabaseHelper.latitude));
                                                     stationLongitude = mFixedStnCursor.getDouble(mFixedStnCursor.getColumnIndex(DatabaseHelper.longitude));
                                                 }
-                                            }
+//                                            }
                                             stationSOG = mFixedStnCursor.getDouble(mFixedStnCursor.getColumnIndex(DatabaseHelper.sog));
                                             stationCOG = mFixedStnCursor.getDouble(mFixedStnCursor.getColumnIndex(DatabaseHelper.cog));
                                             calculateNewParams(mmsi, stationLatitude, stationLongitude);
@@ -226,8 +226,8 @@ public class PredictionService extends IntentService {
                                             mContentValues.put(DatabaseHelper.alpha, alpha);
                                             mContentValues.put(DatabaseHelper.isPredicted, 1);
                                             db.update(DatabaseHelper.fixedStationTable, mContentValues, DatabaseHelper.mmsi + " = ?", new String[]{String.valueOf(mmsi)});
-                                            Log.d(TAG, "Lat: " + stationLatitude + " Lon: " + stationLongitude);
-                                            Log.d(TAG, "PredLat: " + predictedCoordinate[0] + "PredLon: " + predictedCoordinate[1] + " xPos: " + xPosition);
+                                            Log.d(TAG, String.format("Station %s:  %.5f,%.5f", mmsi, stationLatitude, stationLongitude));
+                                            Log.d(TAG, String.format("Station %s: Predicted %.5f,%.5f (%.3f,%.3f)", mmsi, predictedCoordinate[0] , predictedCoordinate[1], xPosition, yPosition));
                                         } while (mFixedStnCursor.moveToNext());
                                         mFixedStnCursor.close();
                                     } else {
