@@ -104,6 +104,8 @@ public class MapView extends View{
      * The y value on the grid at the centre of the star symbol used to represent the mothership
      */
     private double StarMidPointY = 0.0;
+
+    private double aspectRatio = 1;
     /**
      * Tablet Triangle width
      */
@@ -495,6 +497,8 @@ public class MapView extends View{
 
         int width = getMeasuredWidth();
         int height = getMeasuredHeight();
+
+        aspectRatio = (double) width/ (double) height;
 
         //Interactive Graph Area Code//
         // Draws axes and text labels

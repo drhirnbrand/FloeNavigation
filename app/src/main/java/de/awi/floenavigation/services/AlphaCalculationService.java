@@ -181,6 +181,9 @@ public class AlphaCalculationService extends IntentService {
      *
      * @param intent Intent
      */
+    // FIXME: The alpha calculation needs to be done only when a new mobile station packet is received. Otherwise the station will wander around,
+    //  since its lat/lon location is not predicted it will not follow the drift. With each received packet it will jump to the correct x,y. And then
+    // it will wander off again.
     @Override
     protected void onHandleIntent(Intent intent) {
         if (intent != null){

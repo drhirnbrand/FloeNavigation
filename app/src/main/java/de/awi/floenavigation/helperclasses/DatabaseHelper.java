@@ -80,7 +80,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
      * are left. This is also used for updating the ActionBar icon for Grid Setup.
      */
     public static final int NUM_OF_BASE_STATIONS = 2;
-    public static final int NUM_OF_DEVICES = 1234;
 
     /**
      * Initial Value which is inserted by default in the column {@link #isLocationReceived} in the Database table {@link #fixedStationTable}.
