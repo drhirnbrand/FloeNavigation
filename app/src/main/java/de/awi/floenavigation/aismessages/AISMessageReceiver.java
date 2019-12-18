@@ -5,17 +5,24 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.os.Looper;
 import android.os.StrictMode;
 import android.util.Log;
-
-import org.apache.commons.net.telnet.TelnetClient;
+import android.widget.Toast;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.net.Socket;
+import java.net.SocketException;
+import java.net.UnknownHostException;
+
+import de.awi.floenavigation.services.GPS_Service;
+import de.awi.floenavigation.util.Constants;
 
 /**
- * It runs on a separate thread. It is called from the {@link de.awi.floenavigation.network.NetworkMonitor}
+ * It runs on a separate thread. It is called from the
+ * {@link de.awi.floenavigation.network.NetworkMonitor}
  * when the ping request between the tablet and the AIS Server is successful.
  * It takes care of establishing socket connection with the Wifi Network of the AIS transponder
  */
@@ -24,31 +31,28 @@ public class AISMessageReceiver implements Runnable {
     private static final String TAG = "AISMessageReceiver";
 
     /**
-     *This variable stores the ip address of the AIS Transponder to which the tablet is connected over Wifi
-     * You can change the value of the variable in {@link de.awi.floenavigation.initialsetup.GridSetupActivity#dstAddress}
+     * Socket timeout in milliseconds. Default for TCP is 20 min. Should probably reduced to detect
+     * hanging connections faster.
      */
-    private String dstAddress;
+    private static final int SO_TIMEOUT = 20 * 60 * 1000;
+
+    // Threads cannot be restarted, therefore not final.
+    private Thread thread;
+
     /**
-     *This variable stores the port number of the AIS transponder
-     * You can change the value of the variable in {@link de.awi.floenavigation.initialsetup.GridSetupActivity#dstPort}
+     * This variable stores the ip address of the AIS Transponder to which the tablet is connected
+     * over Wifi
+     * You can change the value of the variable in
+     * {@link Constants#DST_ADDRESS}
      */
-    private int dstPort;
+    private String destAddress;
     /**
-     * Used to establish telnet client connection
+     * This variable stores the port number of the AIS transponder
+     * You can change the value of the variable in
+     * {@link Constants#DST_PORT}
      */
-    private TelnetClient client;
-    /**
-     * Stores the packet received from the buffered reader on the basis of AIVDM and AIVDO
-     */
-    private String packet;
-    /**
-     * To initialize input stream reader
-     */
-    private BufferedReader bufferedReader;
-    /**
-     * Used to store the read lines from the buffered reader
-     */
-    StringBuilder responseString;
+    private int destPort;
+
     /**
      * Flag to store the status of client connection
      */
@@ -57,130 +61,249 @@ public class AISMessageReceiver implements Runnable {
      * Stores the context of the application
      */
     private Context context;
+
     /**
-     * The flag receives its value from {@link de.awi.floenavigation.network.NetworkMonitor}
-     * Used to disconnect the client connection when the ping request is unsuccessful with the AIS transponder
-     */
-    private boolean mDisconnectFlag = false;
-    /**
-     * Broadcast receiver to receive intent packets from {@link de.awi.floenavigation.network.NetworkMonitor}
+     * Broadcast receiver to receive intent packets from
+     * {@link de.awi.floenavigation.network.NetworkMonitor}
      */
     private BroadcastReceiver reconnectReceiver;
     /**
-     * Flag to stop decoding AIS packets, set from {@link de.awi.floenavigation.synchronization.SyncActivity}
+     * Flag to stop decoding AIS packets, set from
+     * {@link de.awi.floenavigation.synchronization.SyncActivity}
      * Triggered when Synchronization with the server is in progress.
      */
     private static boolean stopDecoding = false;
+    private boolean disconnectFlag;
+
+    private enum State {
+        INIT,
+        OPEN,
+        RECEIVING,
+        ERROR,
+        CLOSED;
+    }
+
+    private State state;
 
     /**
      * Default constructor to initialize broadcast receiver
      * Object created from {@link de.awi.floenavigation.network.NetworkMonitor}
-     * @param addr Sets the ip address of the AIS transponder
-     * @param port Sets the port number of the AIS transponder
-     * @param con Sets the context of the Activity from which this object is initialized
+     *
+     * @param destAddress Sets the ip address of the AIS transponder
+     * @param port        Sets the port number of the AIS transponder
+     * @param context     Sets the context of the Activity from which this object is initialized
      */
-    public AISMessageReceiver(String addr, int port, Context con){
-        this.dstAddress = addr;
-        this.dstPort = port;
-        this.context = con;
+    private AISMessageReceiver(final String destAddress, final int port, final Context context) {
+        this.context = context;
+        this.thread = new Thread(this);
+
+        this.destAddress = destAddress;
+        this.destPort = port;
+
+        this.disconnectFlag = false;
+
+        StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
+        StrictMode.setThreadPolicy(policy);
+    }
+
+    public static AISMessageReceiver newInstance(final String destAddress, final int port,
+                                                 final Context context) {
+        final AISMessageReceiver instance = new AISMessageReceiver(destAddress, port, context);
+        instance.init();
+        return instance;
+    }
+
+    private void init() {
         reconnectReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
 
-                if (intent.getExtras()!= null) {
-                    Log.d(TAG, "BraodCastReceived: " + String.valueOf( intent.getExtras().getBoolean("mDisconnectFlag")));
-                    mDisconnectFlag = intent.getExtras().getBoolean("mDisconnectFlag");
+                if (intent.getExtras() != null) {
+                    Log.d(TAG, String.format("BroadCastReceived '{}' received", intent.getAction(),
+                                             intent.getExtras().getBoolean("mDisconnectFlag")));
+                    restart();
+                    disconnectFlag = intent.getExtras().getBoolean("mDisconnectFlag");
                 }
             }
         };
-        StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
-        StrictMode.setThreadPolicy(policy);
+        context.registerReceiver(reconnectReceiver, new IntentFilter("Reconnect"));
+        this.state = State.INIT;
+        start();
+    }
 
+
+    public synchronized void start() {
+        if (this.state != State.INIT) {
+            Log.e(TAG, "Cannot be started once past initialization");
+        }
+        if (thread.isAlive()) {
+            return;
+        }
+        try {
+            thread.start();
+        } catch (IllegalThreadStateException e) {
+            Log.i(TAG, "Thread was probably started and is finished already, make a new one");
+            thread = new Thread(this);
+            thread.start();
+        }
+    }
+
+    public synchronized void restart() {
+        if (!((state == State.ERROR) || (state == State.CLOSED))) {
+            return;
+        }
+
+        if (thread.isAlive()) {
+            Log.d(TAG, "Receiver thread still alive!");
+            return;
+        }
+
+        setState(State.INIT);
+        Log.i(TAG, "Restarting thread");
+        thread = new Thread(this);
+        thread.start();
     }
 
     /**
      * Overides the run method of the runnable, which is continuously executed that helps in
-     * setting up the client connection and reading the input stream from the buffered reader and thereby filtering
-     * on the basis of AIVDM and AIVDO packets and calling the {@link AISDecodingService} to decode the ASCII packet
+     * setting up the client connection and reading the input stream from the buffered reader and
+     * thereby filtering
+     * on the basis of AIVDM and AIVDO packets and calling the {@link AISDecodingService} to decode
+     * the ASCII packet
      */
     @Override
-    public void run(){
-        context.registerReceiver(reconnectReceiver, new IntentFilter("Reconnect"));
-        responseString = new StringBuilder();
-        try {
-            //System.setProperty("http.keepAlive", "false");
-            client = new TelnetClient();
+    public void run() {
+        Looper.prepare();
+        setState(State.OPEN);
 
-            client.connect(dstAddress, dstPort);
+        try (Socket socket = new Socket(destAddress, destPort)) {
+            configure(socket);
+            isConnected = true;
+            setState(State.RECEIVING);
 
-            //client.setKeepAlive(false);
-            InputStreamReader clientStream = new InputStreamReader(client.getInputStream());
-            bufferedReader = new BufferedReader(clientStream);
-            /*Intent serviceIntent = new Intent(context, AISDecodingService.class);
-            context.startService(serviceIntent);*/
+            try (BufferedReader reader = new BufferedReader(
+                    new InputStreamReader(socket.getInputStream()))) {
 
-            do{
+                String message;
+                do {
+                    message = reader.readLine();
 
-                if (client != null) {
-                    isConnected =  client.isConnected();
-                }
+                    final Intent broadcastIntent = new Intent(GPS_Service.AISPacketBroadcast);
+                    broadcastIntent.putExtra(GPS_Service.AISPacketStatus, true);
+                    context.sendBroadcast(broadcastIntent);
 
-                if(mDisconnectFlag){
-                    if (client != null) {
+                    if (!disconnectFlag) {
 
-                        clientStream.close();
-                        bufferedReader.close();
-                        client.disconnect();
+                        if (message != null) {
 
-                        Intent serviceIntent = new Intent(context, AISDecodingService.class);
-                        //serviceIntent.putExtra("AISPacket", packet);
-                        context.stopService(serviceIntent);
-                        client = null;
-                        //Log.d(TAG, "DisconnectFlag: " + String.valueOf(client.isConnected()));
-                        break;
-                    }
-                }
+                            if (message.contains("AIVDM") || message.toString().contains("AIVDO")) {
 
-                while(bufferedReader.read() != -1) {
-                    //Log.d(TAG, "ConnectionStatus: " + String.valueOf(client.isConnected()));
-                    //Log.d(TAG, "DisconnectFlag Value: " + String.valueOf(mDisconnectFlag));
-                    responseString.append(bufferedReader.readLine());
-                    if (responseString.toString().contains("AIVDM") || responseString.toString().contains("AIVDO")) {
-                        packet = responseString.toString();
-                        //responseString.setLength(0);
-
-                        if(!stopDecoding) {
-                            Intent serviceIntent = new Intent(context, AISDecodingService.class);
-                            serviceIntent.putExtra("AISPacket", packet);
-                            context.startService(serviceIntent);
+                                if (!stopDecoding) {
+                                    Intent serviceIntent =
+                                            new Intent(context, AISDecodingService.class);
+                                    serviceIntent.putExtra("AISPacket", message);
+                                    context.startService(serviceIntent);
+                                }
+                                //                            final AISRawMessage packet =
+                                //                            AISRawMessage.newInstance(message);
+                                //
+                                //                            if (packet.isValid()) {
+                                //                                notifyOnline();
+                                //
+                                //                                Intent serviceIntent =
+                                //                                        new Intent(context,
+                                //                                        AISDecodingService.class);
+                                //                                serviceIntent
+                                //                                        .putExtra(Constants
+                                //                                        .EXTRA_AIS_PACKET_KEY,
+                                //                                        packet.getData());
+                                //                                context.startService
+                                //                                (serviceIntent);
+                                //                            }
+                            }
                         }
                     }
-                    responseString.setLength(0);
-                    /*Intent intent = new Intent("RECEIVED_PACKET");
-                    intent.putExtra("AISPACKET", packet);
-                    this.context.sendBroadcast(intent);*/
-                    //Log.d(TAG, packet);
+                } while (message != null);
+            } catch (IOException e) {
+                setState(State.ERROR);
+                Log.e(TAG, "Connection ended!");
+            }
 
-
-                }
-            } while (isConnected);
-
-
+        } catch (UnknownHostException e) {
+            Toast.makeText(context, "My AIS transponder was not found in the network",
+                           Toast.LENGTH_LONG).show();
+            Log.e(TAG, "AIS transponder host not found!", e);
+            setState(State.ERROR);
         } catch (IOException e) {
-            e.printStackTrace();
-            client = null;
+            Toast.makeText(context, "Connection to my AIS transponder has failed",
+                           Toast.LENGTH_LONG).show();
+            Log.e(TAG, "AIS transponder I/O error", e);
+            setState(State.ERROR);
         }
 
+        notifyOffline();
 
+        // Stop the decoding service.
+        Intent serviceIntent = new Intent(context, AISDecodingService.class);
+        context.stopService(serviceIntent);
+
+
+            /*Intent serviceIntent = new Intent(context, AISDecodingService.class);
+            context.startService(serviceIntent);*/
     }
+
+    private void notifyOnline() {
+        Log.i(TAG, "AIS message receiver is online");
+        Intent broadcastIntent = new Intent(GPS_Service.AISPacketBroadcast);
+        broadcastIntent.putExtra(GPS_Service.AISPacketStatus, true);
+        context.sendBroadcast(broadcastIntent);
+    }
+
+    private void notifyOffline() {
+        Log.i(TAG, "AIS message receiver is offline");
+        Intent broadcastIntent = new Intent(GPS_Service.AISPacketBroadcast);
+        broadcastIntent.putExtra(GPS_Service.AISPacketStatus, false);
+        context.sendBroadcast(broadcastIntent);
+        if (state != State.ERROR) {
+            state = State.CLOSED;
+        }
+    }
+
+    private void configure(final Socket socket) {
+        try {
+            socket.setSoTimeout(SO_TIMEOUT);
+        } catch (SocketException e) {
+            Log.d(TAG, "Unable to configure socket timeouts");
+        }
+    }
+
 
     /**
      * Function for the setting the value
-     * @param stopAISDecoding flag received from {@link de.awi.floenavigation.synchronization.SyncActivity} to stop the
+     *
+     * @param stopAISDecoding flag received from
+     *                        {@link de.awi.floenavigation.synchronization.SyncActivity}
+     *                        to stop the
      *                        decoding when the sync activity is in progress
      */
-    public static void setStopDecoding(boolean stopAISDecoding){
+    public static void setStopDecoding(final boolean stopAISDecoding) {
         stopDecoding = stopAISDecoding;
     }
 
+    public synchronized void setState(final State state) {
+        this.state = state;
+    }
+
+    public synchronized boolean isConnected() {
+        if (state == State.ERROR) {
+            return false;
+        }
+        if (state == State.CLOSED) {
+            return false;
+        }
+        if (state == State.INIT) {
+            return false;
+        }
+        return true;
+    }
 }

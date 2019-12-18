@@ -4,157 +4,108 @@ import android.content.Context;
 import android.content.Intent;
 import android.util.Log;
 
-import java.io.IOException;
-import java.net.InetAddress;
-
-import de.awi.floenavigation.services.GPS_Service;
 import de.awi.floenavigation.aismessages.AISMessageReceiver;
-import de.awi.floenavigation.initialsetup.GridSetupActivity;
+import de.awi.floenavigation.services.GPS_Service;
+import de.awi.floenavigation.util.Constants;
 
 /**
  * {@link NetworkMonitor} runs on a separate thread.
- * It implements a runnable {@link Runnable} method to periodically execute ping request to the ip address {@link GridSetupActivity#dstAddress} and on
- * {@link GridSetupActivity#dstPort} number.
- * On Successful ping request {@link #success}, it starts the {@link AISMessageReceiver} on a separate thread, also sets the {@link GPS_Service#AISPacketStatus}
+ * It implements a runnable {@link Runnable} method to periodically execute ping request to the ip
+ * address {@link Constants#DST_ADDRESS} and on
+ * {@link Constants#DST_PORT} number.
+ * On Successful ping request, it starts the {@link AISMessageReceiver} on a
+ * separate thread, also sets the {@link GPS_Service#AISPacketStatus}
  * to true, which is broadcasted to all the activities or fragments which requests it.
- * On unsuccessful ping request, it sends a disconnect flag set to true to {@link AISMessageReceiver} requesting it to stop the decoding of the AIS packet received.
- *
+ * On unsuccessful ping request, it sends a disconnect flag set to true to {@link
+ * AISMessageReceiver} requesting it to stop the decoding of the AIS packet received.
  */
 public class NetworkMonitor implements Runnable {
-    /**
-     * <code>true</code> ping request is successful
-     * <code>false</code> otherwise
-     */
-    boolean success = false;
+
     /**
      * Context of the activity from where the service is called
      */
-    Context appContext;
-    /**
-     * {@link AISMessageReceiver} object
-     */
-    AISMessageReceiver aisMessage;
-    /**
-     * Thread to run {@link AISMessageReceiver}
-     */
-    Thread aisMessageThread;
+    private final Context context;
+
     /**
      * String for logging purpose
      */
-    private static final String TAG = "NetworkMonitor";
+    private static final String TAG = NetworkMonitor.class.getSimpleName();
+
+    private Thread thread;
 
     /**
-     * Initializes the thread {@link #aisMessageThread}
-     * @param con
+     * Initializes the thread.
+     *
+     * @param context
      */
-    public NetworkMonitor(Context con){
-        this.appContext = con;
-        aisMessage = new AISMessageReceiver(GridSetupActivity.dstAddress,GridSetupActivity.dstPort, con);
-        aisMessageThread = new Thread(aisMessage);
-
+    public NetworkMonitor(Context context) {
+        this.context = context;
     }
 
     /**
-     * run method to continuously send ping request to the {@link GridSetupActivity#dstAddress} and {@link GridSetupActivity#dstPort}
-     * if {@link #success} is true, it starts the {@link AISMessageReceiver} on {@link #aisMessageThread}.
-     * Separate thread is created on every transition from unsuccessful ping request to a successful ping request
+     * run method to continuously send ping request to the {@link Constants#DST_ADDRESS} and
+     * {@link Constants#DST_PORT}
+     * <p>
+     * Separate thread is created on every transition from unsuccessful ping request to a successful
+     * ping request
      */
-    public void run(){
+    @Override
+    public void run() {
+        Log.d(TAG, "Repeatedly pinging the remote host...");
 
-        while(true) {
-            try {
-                Thread.sleep(1000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-            success = pingRequest("/system/bin/ping -c 1 " + GridSetupActivity.dstAddress);
-            boolean mdisconnectFlag = true;
+        final AISMessageReceiver aisMessageReceiver =
+                AISMessageReceiver.newInstance(Constants.DST_ADDRESS, Constants.DST_PORT, context);
 
-            Intent intent = new Intent();
-            intent.setAction("Reconnect");
-            Log.d(TAG, "Success Value: " + String.valueOf(success));
-            //Log.d(TAG, "Thread Status: " + String.valueOf(aisMessageThread.isAlive()));
-            if(success){
-                //Broadcast Service for action bar updates
-                Intent broadcastIntent = new Intent(GPS_Service.AISPacketBroadcast);
-                broadcastIntent.putExtra(GPS_Service.AISPacketStatus, true);
-                appContext.sendBroadcast(broadcastIntent);
+        // TODO: Loop forever?
+        while (true) {
 
-                if(!aisMessageThread.isAlive()){
-/*                    try {
-                        Thread.sleep(5000);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }*/
-                    try {
-                        aisMessageThread.start();
-                        mdisconnectFlag = false;
-                        Log.d(TAG, "Connect Flag send");
-                        intent.putExtra("mDisconnectFlag", mdisconnectFlag);
-                        appContext.sendBroadcast(intent);
-                    }catch (IllegalThreadStateException e){
-                        Log.d(TAG, "Network Monitor Exception");
-                        mdisconnectFlag = true; //to disconnect the client
-                        intent.putExtra("mDisconnectFlag", mdisconnectFlag);
-                        appContext.sendBroadcast(intent);
-                        aisMessage = new AISMessageReceiver(GridSetupActivity.dstAddress,GridSetupActivity.dstPort, appContext);
-                        aisMessageThread = new Thread(aisMessage);
-                        e.printStackTrace();
-                        mdisconnectFlag = true; //to disconnect the client
-                        intent.putExtra("mDisconnectFlag", mdisconnectFlag);
-                        appContext.sendBroadcast(intent);
+            final boolean success = NetworkUtils.isDestinationReachable(Constants.DST_ADDRESS);
 
+            Log.d(TAG,
+                  String.format("AIS mobile station/relay reachable: %s", String.valueOf(success)));
 
-                        aisMessage = new AISMessageReceiver(GridSetupActivity.dstAddress,GridSetupActivity.dstPort, appContext);
-                        aisMessageThread = new Thread(aisMessage);
-                    }
+            if (success) {
+                if (!aisMessageReceiver.isConnected()) {
+                    aisMessageReceiver.restart();
                 }
+                backOff();
             } else {
-                Log.d(TAG, "Ping Failed");
-                //Broadcast Service for action bar updates
-                Intent broadcastIntent = new Intent(GPS_Service.AISPacketBroadcast);
-                broadcastIntent.putExtra(GPS_Service.AISPacketStatus, false);
-                appContext.sendBroadcast(broadcastIntent);
-                /*try {
-                    Thread.sleep(1000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }*/
-                if(aisMessageThread.isAlive()) {
-                    mdisconnectFlag = true; //to disconnect the client
-                    intent.putExtra("mDisconnectFlag", mdisconnectFlag);
-                    appContext.sendBroadcast(intent);
+                Log.d(TAG, String.format("AIS mobile station/relay is not reachable at %s",
+                                         Constants.DST_ADDRESS));
 
-
-                    aisMessage = new AISMessageReceiver(GridSetupActivity.dstAddress,GridSetupActivity.dstPort, appContext);
-                    aisMessageThread = new Thread(aisMessage);
-                    //aisMessageThread.start();
-                    //aisMessageThread.interrupt();
-                }
+                notifyOffline();
+                retryTimeout();
             }
-
-
         }
     }
 
-    /**
-     * Responsible for ping request
-     * @param Instr command
-     * @return <code>true</code> if the {@link GridSetupActivity#dstAddress} is reachable
-     *         <code>false</code> otherwise
-     */
-    private boolean pingRequest(String Instr){
+    private void notifyOffline() {
+        //Broadcast Service for action bar updates
+        final Intent broadcastIntent = new Intent(GPS_Service.AISPacketBroadcast);
+        broadcastIntent.putExtra(GPS_Service.AISPacketStatus, false);
+        context.sendBroadcast(broadcastIntent);
+    }
 
-        boolean mExitValue = false;
-
-
+    private void retryTimeout() {
         try {
-            mExitValue = InetAddress.getByName(GridSetupActivity.dstAddress).isReachable(1000);
-        } catch (IOException e) {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
             e.printStackTrace();
         }
-
-        return mExitValue;
     }
 
+    private void backOff() {
+        try {
+            Thread.sleep(10 * 1000);
+        } catch (InterruptedException e) {
+            Log.e(TAG, "Interrupted!", e);
+        }
+    }
+
+    void start() {
+        if (thread == null) {
+            thread = new Thread(this);
+        }
+        thread.start();
+    }
 }
