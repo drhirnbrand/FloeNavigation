@@ -11,9 +11,6 @@ import android.graphics.Point;
 import android.graphics.PointF;
 import android.graphics.Rect;
 import android.graphics.RectF;
-import androidx.core.view.GestureDetectorCompat;
-import androidx.core.view.ViewCompat;
-import androidx.core.widget.EdgeEffectCompat;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.GestureDetector;
@@ -23,41 +20,55 @@ import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.OverScroller;
 
+import androidx.core.view.GestureDetectorCompat;
+import androidx.core.view.ViewCompat;
+import androidx.core.widget.EdgeEffectCompat;
+
 import java.util.HashMap;
 import java.util.Timer;
 import java.util.TimerTask;
 
-import de.awi.floenavigation.helperclasses.DatabaseHelper;
 import de.awi.floenavigation.R;
+import de.awi.floenavigation.helperclasses.DatabaseHelper;
 
 /**
  * {@link MapView} is a grid view part of {@link de.awi.floenavigation.R.layout#activity_grid}.
- * There are several features associated with this grid. The origin fixed station is at location (0, 0) on the grid, which is at the centre of the screen.
- * The scaling of the grid is done in such a way that it shows all the points of interest at a radius of 100km i.e 100 km to the right and the left of origin
+ * There are several features associated with this grid. The origin fixed station is at location (0,
+ * 0) on the grid, which is at the centre of the screen.
+ * The scaling of the grid is done in such a way that it shows all the points of interest at a
+ * radius of 100km i.e 100 km to the right and the left of origin
  * and 100 km to the top and the bottom of the origin.
  * <p>
- *     There are several layers on the grid representing fixed stations, mobile stations, static stations and waypoints, which can be selected from the options menu
- *     if selected, all the stations or the waypoints corresponding to the item selected will only be displayed on the grid.
- *     Tablet position and the mothership are by default present on the grid, it is not available to be selected, although its entry is present in the options menu.
- *     After the initial grid setup, only the 2 fixed stations, mothership and the tablet is available on the grid.
- *     By default, all the layers are selected.
+ * There are several layers on the grid representing fixed stations, mobile stations, static
+ * stations and waypoints, which can be selected from the options menu
+ * if selected, all the stations or the waypoints corresponding to the item selected will only be
+ * displayed on the grid.
+ * Tablet position and the mothership are by default present on the grid, it is not available to be
+ * selected, although its entry is present in the options menu.
+ * After the initial grid setup, only the 2 fixed stations, mothership and the tablet is available
+ * on the grid.
+ * By default, all the layers are selected.
  * </p>
  * <p>
- *     The second feature available on the grid is the focus button, clicking on it, will let the app to display only points in a 1km radius distance around the
- *     tablet (provided that the tablet location is available), or else the origin fixed station.
+ * The second feature available on the grid is the focus button, clicking on it, will let the app to
+ * display only points in a 1km radius distance around the
+ * tablet (provided that the tablet location is available), or else the origin fixed station.
  * </p>
  * <p>
- *     The user/admin could also zoom in and out, pan the grid.
+ * The user/admin could also zoom in and out, pan the grid.
  * </p>
  * <p>
- *     Different shape and colors are used to represent fixed station(green circle), mobile station(blue circle),
- *     static station(yellow circle), waypoints(inverted black triangle), tablet(red triangle) and mothership(red star).
- *     On clicking any of the point of interest one could get appropriate information of that point,
- *     namely x, y, name, mmsi(only for fixed and mobile stations) in a dialog box. This helps the user/admin to pinpoint exact location
- *     of the point on the grid.
+ * Different shape and colors are used to represent fixed station(green circle), mobile station(blue
+ * circle),
+ * static station(yellow circle), waypoints(inverted black triangle), tablet(red triangle) and
+ * mothership(red star).
+ * On clicking any of the point of interest one could get appropriate information of that point,
+ * namely x, y, name, mmsi(only for fixed and mobile stations) in a dialog box. This helps the
+ * user/admin to pinpoint exact location
+ * of the point on the grid.
  * </p>
  */
-public class MapView extends View{
+public class MapView extends View {
 
     /**
      * Tablet x position
@@ -265,7 +276,6 @@ public class MapView extends View{
 
     /**
      * The scaling factor for a single zoom 'step'.
-     *
      */
     private static final float ZOOM_AMOUNT = 0.25f;
 
@@ -357,43 +367,34 @@ public class MapView extends View{
     }
 
     public MapView(Context context, AttributeSet attrs, int defStyle) {
-         super(context, attrs, defStyle);
+        super(context, attrs, defStyle);
 
-         gridActivity = new GridActivity();
-         isBubbleShowing = false;
+        gridActivity = new GridActivity();
+        isBubbleShowing = false;
 
-        TypedArray a = context.getTheme().obtainStyledAttributes(
-                attrs, R.styleable.MapView, defStyle, defStyle);
+        TypedArray a = context.getTheme()
+                .obtainStyledAttributes(attrs, R.styleable.MapView, defStyle, defStyle);
 
         try {
-            mLabelTextColor = a.getColor(
-                    R.styleable.MapView_labelTextColor, mLabelTextColor);
-            mLabelTextSize = a.getDimension(
-                    R.styleable.MapView_labelTextSize, mLabelTextSize);
-            mLabelSeparation = a.getDimensionPixelSize(
-                    R.styleable.MapView_labelSeparation, mLabelSeparation);
+            mLabelTextColor = a.getColor(R.styleable.MapView_labelTextColor, mLabelTextColor);
+            mLabelTextSize = a.getDimension(R.styleable.MapView_labelTextSize, mLabelTextSize);
+            mLabelSeparation =
+                    a.getDimensionPixelSize(R.styleable.MapView_labelSeparation, mLabelSeparation);
 
-            mGridThickness = a.getDimension(
-                    R.styleable.MapView_gridThickness, mGridThickness);
-            mGridColor = a.getColor(
-                    R.styleable.MapView_gridColor, mGridColor);
+            mGridThickness = a.getDimension(R.styleable.MapView_gridThickness, mGridThickness);
+            mGridColor = a.getColor(R.styleable.MapView_gridColor, mGridColor);
 
-            mAxisThickness = a.getDimension(
-                    R.styleable.MapView_axisThickness, mAxisThickness);
-            mAxisColor = a.getColor(
-                    R.styleable.MapView_axisColor, mAxisColor);
+            mAxisThickness = a.getDimension(R.styleable.MapView_axisThickness, mAxisThickness);
+            mAxisColor = a.getColor(R.styleable.MapView_axisColor, mAxisColor);
 
-            mDataThickness = a.getDimension(
-                    R.styleable.MapView_dataThickness, mDataThickness);
-            mDataColor = a.getColor(
-                    R.styleable.MapView_dataColor, mDataColor);
+            mDataThickness = a.getDimension(R.styleable.MapView_dataThickness, mDataThickness);
+            mDataColor = a.getColor(R.styleable.MapView_dataColor, mDataColor);
         } finally {
             a.recycle();
         }
 
         initPaints();
         initRefreshTimer();
-
 
 
         // Sets up interactions
@@ -414,7 +415,7 @@ public class MapView extends View{
      * Initializes a timer to execute the task
      * The timer task periodically runs at a rate of {@link #SCREEN_REFRESH_TIMER_PERIOD}
      */
-    public void initRefreshTimer(){
+    public void initRefreshTimer() {
         refreshScreenTimer = new Timer();
         refreshScreenTimer.schedule(new TimerTask() {
             @Override
@@ -465,31 +466,44 @@ public class MapView extends View{
      * onDraw is fdr drawing a custom view
      * It is a canvas object that the view can use to draw itself.
      * <p>
-     *     Fixed stations {@link #mFixedStationMMSIs} are iterated over and each fixed station is drawn on the grid using
-     *     green circle at the calculated grid position. The (x, y) position is translated to the screen coordinates using {@link #getDrawX(double)}
-     *     and {@link #getDrawY(double)} functions.
-     *     The fixed stations are only displayed if {@link GridActivity#showFixedStation} is set to true.
+     * Fixed stations {@link #mFixedStationMMSIs} are iterated over and each fixed station is drawn
+     * on the grid using
+     * green circle at the calculated grid position. The (x, y) position is translated to the screen
+     * coordinates using {@link #getDrawX(double)}
+     * and {@link #getDrawY(double)} functions.
+     * The fixed stations are only displayed if {@link GridActivity#showFixedStation} is set to
+     * true.
      * </p>
      * <p>
-     *     Mobile stations {@link #mMobileStationMMSIs} are iterated over and each mobile station is drawn on the grid using
-     *     blue circle at the calculated grid position. The (x, y) position is translated to the screen coordinates using {@link #getDrawX(double)}
-     *     and {@link #getDrawY(double)} functions.
-     *     The mobile stations are only displayed if {@link GridActivity#showMobileStation} is set to true.
-     *     However if the mmsi is of the mothership, a red star is drawn on the grid and there is no requirement of {@link GridActivity#showMobileStation}
-     *     this to be true.
+     * Mobile stations {@link #mMobileStationMMSIs} are iterated over and each mobile station is
+     * drawn on the grid using
+     * blue circle at the calculated grid position. The (x, y) position is translated to the screen
+     * coordinates using {@link #getDrawX(double)}
+     * and {@link #getDrawY(double)} functions.
+     * The mobile stations are only displayed if {@link GridActivity#showMobileStation} is set to
+     * true.
+     * However if the mmsi is of the mothership, a red star is drawn on the grid and there is no
+     * requirement of {@link GridActivity#showMobileStation}
+     * this to be true.
      * </p>
      * <p>
-     *     Static stations {@link #mStaticStationNames} are iterated over and each static station is drawn on the grid using
-     *     yellow circle at the calculated grid position. The (x, y) position is translated to the screen coordinates using {@link #getDrawX(double)}
-     *     and {@link #getDrawY(double)} functions.
-     *     The static stations are only displayed if {@link GridActivity#showStaticStation} is set to true.
+     * Static stations {@link #mStaticStationNames} are iterated over and each static station is
+     * drawn on the grid using
+     * yellow circle at the calculated grid position. The (x, y) position is translated to the
+     * screen coordinates using {@link #getDrawX(double)}
+     * and {@link #getDrawY(double)} functions.
+     * The static stations are only displayed if {@link GridActivity#showStaticStation} is set to
+     * true.
      * </p>
      * <p>
-     *     Waypoints {@link #mWaypointsLabels} are iterated over and each static station is drawn on the grid using
-     *     black inverted triangle at the calculated grid position. The (x, y) position is translated to the screen coordinates using {@link #getDrawX(double)}
-     *     and {@link #getDrawY(double)} functions.
-     *     The waypoints are only displayed if {@link GridActivity#showWaypointStation} is set to true.
+     * Waypoints {@link #mWaypointsLabels} are iterated over and each static station is drawn on the
+     * grid using
+     * black inverted triangle at the calculated grid position. The (x, y) position is translated to
+     * the screen coordinates using {@link #getDrawX(double)}
+     * and {@link #getDrawY(double)} functions.
+     * The waypoints are only displayed if {@link GridActivity#showWaypointStation} is set to true.
      * </p>
+     *
      * @param canvas canvas object
      */
     @Override
@@ -498,7 +512,7 @@ public class MapView extends View{
         int width = getMeasuredWidth();
         int height = getMeasuredHeight();
 
-        aspectRatio = (double) width/ (double) height;
+        aspectRatio = (double) width / (double) height;
 
         //Interactive Graph Area Code//
         // Draws axes and text labels
@@ -512,22 +526,27 @@ public class MapView extends View{
         drawEdgeEffectsUnclipped(canvas);
 
 
-
         try {
             //Draw Tablet Position
             setLineColor(Color.RED);
             Log.d(TAG, "tabletX " + this.getTabletX() + " " + "tabletY " + this.getTabletY());
-            //Log.d(TAG, "GETDRAWtabletX " + getDrawX((float) getTabletX()) + " " + "GETDRAWtabletY " + getDrawY((float)getTabletY()));
-            drawTriangle((float) getDrawX(getTabletX()), (float) getDrawY(getTabletY()), TabTriangleWidth, TabTriangleHeight, false, mDataPaint, canvas);
+            //Log.d(TAG, "GETDRAWtabletX " + getDrawX((float) getTabletX()) + " " +
+            // "GETDRAWtabletY " + getDrawY((float)getTabletY()));
+            drawTriangle((float) getDrawX(getTabletX()), (float) getDrawY(getTabletY()),
+                         TabTriangleWidth, TabTriangleHeight, false, mDataPaint, canvas);
             //drawStar((float) getDrawX(getTabletX()), (float) getDrawY(getTabletY()), 20, canvas);
 
 
             //For Loop Fixed Station
             if (GridActivity.showFixedStation) {
                 setLineColor(Color.GREEN);
-                if (GridActivity.mFixedStationMMSIs != null && GridActivity.mFixedStationXs != null && GridActivity.mFixedStationYs != null) {
+                if (GridActivity.mFixedStationMMSIs != null &&
+                        GridActivity.mFixedStationXs != null &&
+                        GridActivity.mFixedStationYs != null) {
                     for (int i = 0; i < getFixedStationSize(); i++) {
-                        canvas.drawCircle((float) getDrawX(getFixedStationX(i)), (float) getDrawY(getFixedStationY(i)), CircleSize, mDataPaint);
+                        canvas.drawCircle((float) getDrawX(getFixedStationX(i)),
+                                          (float) getDrawY(getFixedStationY(i)), CircleSize,
+                                          mDataPaint);
                         Log.d(TAG, "FixedStationX: " + String.valueOf(getFixedStationX(i)));
                         Log.d(TAG, "FixedStationY: " + String.valueOf(getFixedStationY(i)));
                         //Log.d(TAG, "Loop Counter: " + String.valueOf(i));
@@ -543,15 +562,23 @@ public class MapView extends View{
             //For Loop Mobile Station
             if (GridActivity.showMobileStation) {
 
-                if (GridActivity.mMobileStationMMSIs != null && GridActivity.mMobileStationXs != null && GridActivity.mMobileStationYs != null) {
+                if (GridActivity.mMobileStationMMSIs != null &&
+                        GridActivity.mMobileStationXs != null &&
+                        GridActivity.mMobileStationYs != null) {
                     for (int i = 0; i < getMobileStationSize(); i++) {  //
-                        if(getMobileStationMMSI(i) != DatabaseHelper.MOTHER_SHIP_MMSI) {
+                        if (getMobileStationMMSI(i) != DatabaseHelper.MOTHER_SHIP_MMSI) {
                             setLineColor(Color.BLUE);
-                            canvas.drawCircle((float) getDrawX(getMobileXposition(i)), (float) getDrawY(getMobileYposition(i)), CircleSize, mDataPaint);
-                        } else{
+                            canvas.drawCircle((float) getDrawX(getMobileXposition(i)),
+                                              (float) getDrawY(getMobileYposition(i)), CircleSize,
+                                              mDataPaint);
+                        } else {
                             setLineColor(Color.RED);
-                            drawStar((float) getDrawX(getMobileXposition(i)), (float) getDrawY(getMobileYposition(i)), StarSize, StarSize, mDataPaint, canvas);
-                            //drawTriangle((float) getDrawX(getMobileXposition(i)), (float) getDrawY(getMobileYposition(i)), TabTriangleWidth, TabTriangleHeight, false, mDataPaint, canvas);
+                            drawStar((float) getDrawX(getMobileXposition(i)),
+                                     (float) getDrawY(getMobileYposition(i)), StarSize, StarSize,
+                                     mDataPaint, canvas);
+                            //drawTriangle((float) getDrawX(getMobileXposition(i)), (float)
+                            // getDrawY(getMobileYposition(i)), TabTriangleWidth,
+                            // TabTriangleHeight, false, mDataPaint, canvas);
 
                         }
                     }
@@ -561,11 +588,17 @@ public class MapView extends View{
             //For Loop Static Station
             if (GridActivity.showStaticStation) {
                 setLineColor(Color.YELLOW);
-                if (GridActivity.mStaticStationNames != null && GridActivity.mStaticStationXs != null && GridActivity.mStaticStationYs != null) {
+                if (GridActivity.mStaticStationNames != null &&
+                        GridActivity.mStaticStationXs != null &&
+                        GridActivity.mStaticStationYs != null) {
                     for (int i = 0; i < getStaticStationSize(); i++) {
-                        canvas.drawCircle((float) getDrawX(getStaticXposition(i)), (float) getDrawY(getStaticYposition(i)), CircleSize, mDataPaint);
-                        //Log.d(TAG, "StaticStation TranslatedX: " + String.valueOf(translateCoord(mStaticStationXs.get(i)) * getWidth()/numColumns));
-                        //Log.d(TAG, "StaticStation TranslatedY: " + String.valueOf(translateCoord(mStaticStationYs.get(i)) * getHeight()/numRows));
+                        canvas.drawCircle((float) getDrawX(getStaticXposition(i)),
+                                          (float) getDrawY(getStaticYposition(i)), CircleSize,
+                                          mDataPaint);
+                        //Log.d(TAG, "StaticStation TranslatedX: " + String.valueOf
+                        // (translateCoord(mStaticStationXs.get(i)) * getWidth()/numColumns));
+                        //Log.d(TAG, "StaticStation TranslatedY: " + String.valueOf
+                        // (translateCoord(mStaticStationYs.get(i)) * getHeight()/numRows));
                     }
                 }
             }
@@ -574,13 +607,16 @@ public class MapView extends View{
             //For Loop Waypoint
             if (GridActivity.showWaypointStation) {
                 setLineColor(Color.BLACK);
-                if (GridActivity.mWaypointsLabels != null && GridActivity.mWaypointsXs != null && GridActivity.mWaypointsYs != null) {
+                if (GridActivity.mWaypointsLabels != null && GridActivity.mWaypointsXs != null &&
+                        GridActivity.mWaypointsYs != null) {
                     for (int i = 0; i < getWaypointSize(); i++) {
-                        drawTriangle((float) getDrawX(getWaypointXposition(i)), (float) getDrawY(getWaypointYposition(i)), WayTriangleWidth, WayTriangleHeight, true, mDataPaint, canvas);
+                        drawTriangle((float) getDrawX(getWaypointXposition(i)),
+                                     (float) getDrawY(getWaypointYposition(i)), WayTriangleWidth,
+                                     WayTriangleHeight, true, mDataPaint, canvas);
                     }
                 }
             }
-        } catch(NullPointerException e){
+        } catch (NullPointerException e) {
             e.printStackTrace();
             Log.d(TAG, "Null Pointer Exception");
         }
@@ -600,16 +636,10 @@ public class MapView extends View{
         // Computes axis stops (in terms of numerical value and position on screen)
         int i;
 
-        computeAxisStops(
-                mCurrentViewport.left,
-                mCurrentViewport.right,
-                getWidth() / mMaxLabelWidth / 2,
-                mXStopsBuffer);
-        computeAxisStops(
-                mCurrentViewport.top,
-                mCurrentViewport.bottom,
-                getHeight() / mLabelHeight / 2,
-                mYStopsBuffer);
+        computeAxisStops(mCurrentViewport.left, mCurrentViewport.right,
+                         getWidth() / mMaxLabelWidth / 2, mXStopsBuffer);
+        computeAxisStops(mCurrentViewport.top, mCurrentViewport.bottom,
+                         getHeight() / mLabelHeight / 2, mYStopsBuffer);
 
         // Avoid unnecessary allocations during drawing. Re-use allocated
         // arrays and only reallocate if the number of stops grows.
@@ -628,7 +658,7 @@ public class MapView extends View{
 
         // Compute positions
         for (i = 0; i < mXStopsBuffer.numStops; i++) {
-            mAxisXPositionsBuffer[i] = (float)getDrawX(mXStopsBuffer.stops[i]);
+            mAxisXPositionsBuffer[i] = (float) getDrawX(mXStopsBuffer.stops[i]);
         }
         for (i = 0; i < mYStopsBuffer.numStops; i++) {
             mAxisYPositionsBuffer[i] = (float) getDrawY(mYStopsBuffer.stops[i]);
@@ -657,69 +687,42 @@ public class MapView extends View{
         boolean scaleXInMeters = false;
         boolean scaleYInMeters = false;
         mLabelTextPaint.setTextAlign(Paint.Align.CENTER);
-        if(Math.abs((mXStopsBuffer.stops[1] - mXStopsBuffer.stops[0])) <= 500){
+        if (Math.abs((mXStopsBuffer.stops[1] - mXStopsBuffer.stops[0])) <= 500) {
             scaleXInMeters = true;
         }
 
-        if(Math.abs((mYStopsBuffer.stops[1] - mYStopsBuffer.stops[0])) <= 500){
+        if (Math.abs((mYStopsBuffer.stops[1] - mYStopsBuffer.stops[0])) <= 500) {
             scaleYInMeters = true;
         }
         for (i = 0; i < mXStopsBuffer.numStops; i++) {
             // Do not use String.format in high-performance code such as onDraw code.
-            //mXStopsBuffer.stops[i] = (mXStopsBuffer.stops[i] > 1000) ? mXStopsBuffer.stops[i] / 1000 : mXStopsBuffer.stops[i];
-            mXStopsBuffer.stops[i] = scaleXInMeters ? mXStopsBuffer.stops[i] : mXStopsBuffer.stops[i] / 1000;
+            //mXStopsBuffer.stops[i] = (mXStopsBuffer.stops[i] > 1000) ? mXStopsBuffer.stops[i] /
+            // 1000 : mXStopsBuffer.stops[i];
+            mXStopsBuffer.stops[i] =
+                    scaleXInMeters ? mXStopsBuffer.stops[i] : mXStopsBuffer.stops[i] / 1000;
             labelLength = formatFloat(mLabelBuffer, mXStopsBuffer.stops[i], mXStopsBuffer.decimals);
             labelOffset = mLabelBuffer.length - labelLength;
             Log.d(TAG, "Stops" + String.valueOf(mXStopsBuffer.stops[i]));
-            canvas.drawText(
-                    mLabelBuffer, labelOffset, labelLength,
-                    mAxisXPositionsBuffer[i],
-                    mContentRect.bottom + mLabelHeight + mLabelSeparation,
-                    mLabelTextPaint);
+            canvas.drawText(mLabelBuffer, labelOffset, labelLength, mAxisXPositionsBuffer[i],
+                            mContentRect.bottom + mLabelHeight + mLabelSeparation, mLabelTextPaint);
         }
 
         // Draws Y labels
         mLabelTextPaint.setTextAlign(Paint.Align.RIGHT);
         for (i = 0; i < mYStopsBuffer.numStops; i++) {
             // Do not use String.format in high-performance code such as onDraw code.
-            //mYStopsBuffer.stops[i] = (mYStopsBuffer.stops[i] > 1000) ? mYStopsBuffer.stops[i] / 1000 : mYStopsBuffer.stops[i];
-            mYStopsBuffer.stops[i] = scaleYInMeters ? mYStopsBuffer.stops[i] : mYStopsBuffer.stops[i] / 1000;
+            //mYStopsBuffer.stops[i] = (mYStopsBuffer.stops[i] > 1000) ? mYStopsBuffer.stops[i] /
+            // 1000 : mYStopsBuffer.stops[i];
+            mYStopsBuffer.stops[i] =
+                    scaleYInMeters ? mYStopsBuffer.stops[i] : mYStopsBuffer.stops[i] / 1000;
             labelLength = formatFloat(mLabelBuffer, mYStopsBuffer.stops[i], mYStopsBuffer.decimals);
             labelOffset = mLabelBuffer.length - labelLength;
-            canvas.drawText(
-                    mLabelBuffer, labelOffset, labelLength,
-                    mContentRect.left - mLabelSeparation,
-                    mAxisYPositionsBuffer[i] + mLabelHeight / 2,
-                    mLabelTextPaint);
+            canvas.drawText(mLabelBuffer, labelOffset, labelLength,
+                            mContentRect.left - mLabelSeparation,
+                            mAxisYPositionsBuffer[i] + mLabelHeight / 2, mLabelTextPaint);
         }
     }
 
-
-    /*
-     * Draws the currently visible portion of the data series defined by {@link #fun(float)} to the
-     * canvas. This method does not clip its drawing, so users should call {@link Canvas#clipRect
-     * before calling this method.
-     */
-    /*private void drawDataSeriesUnclipped(Canvas canvas) {
-        
-        mSeriesLinesBuffer[0] = getDrawX(0.5f);
-        mSeriesLinesBuffer[1] = getDrawY(0.5f);
-        //mSeriesLinesBuffer[1] = getDrawY(mCurrentViewport.left);
-        mSeriesLinesBuffer[2] = getDrawX(0.6f);
-        mSeriesLinesBuffer[3] = getDrawY(0.5f);
-        float x;
-        for (int i = 1; i <= DRAW_STEPS; i++) {
-            mSeriesLinesBuffer[i * 4 + 0] = mSeriesLinesBuffer[(i - 1) * 4 + 2];
-            mSeriesLinesBuffer[i * 4 + 1] = mSeriesLinesBuffer[(i - 1) * 4 + 3];
-
-            x = (mCurrentViewport.left + (mCurrentViewport.width() / DRAW_STEPS * i));
-            mSeriesLinesBuffer[i * 4 + 2] = getDrawX(x);
-            mSeriesLinesBuffer[i * 4 + 3] = getDrawY(fun(x));
-        }
-        //canvas.drawLines(mSeriesLinesBuffer, mDataPaint);
-        canvas.drawCircle(mSeriesLinesBuffer[0], mSeriesLinesBuffer[1], 15, mDataPaint);
-        canvas.drawCircle(mSeriesLinesBuffer[2], mSeriesLinesBuffer[3], 15, mDataPaint);
-    }*/
 
     /**
      * Draws the overscroll "glow" at the four edges of the chart region, if necessary. The edges
@@ -781,13 +784,19 @@ public class MapView extends View{
         }
     }
 
-    public void resetContentRect(){
-        Log.d(TAG,"onClick MapView Handler");
-        if(tabletLat != 0.0 && tableLon != 0.0) {
-            mCurrentViewport.set((float) (tabletX - DEFAULT_ZOOM_LEVEL), (float) (tabletY - DEFAULT_ZOOM_LEVEL), (float) (tabletX + DEFAULT_ZOOM_LEVEL), (float) (tabletY + DEFAULT_ZOOM_LEVEL));
-        } else{
+    public void resetContentRect() {
+        Log.d(TAG, "onClick MapView Handler");
+        if (tabletLat != 0.0 && tableLon != 0.0) {
+            mCurrentViewport.set((float) (tabletX - DEFAULT_ZOOM_LEVEL),
+                                 (float) (tabletY - DEFAULT_ZOOM_LEVEL),
+                                 (float) (tabletX + DEFAULT_ZOOM_LEVEL),
+                                 (float) (tabletY + DEFAULT_ZOOM_LEVEL));
+        } else {
             //mCurrentViewport.set(AXIS_X_MIN, AXIS_Y_MIN, AXIS_X_MAX, AXIS_Y_MAX);
-            mCurrentViewport.set((float) (originX - DEFAULT_ZOOM_LEVEL), (float) (originY - DEFAULT_ZOOM_LEVEL), (float) (originX + DEFAULT_ZOOM_LEVEL), (float) (originY + DEFAULT_ZOOM_LEVEL));
+            mCurrentViewport.set((float) (originX - DEFAULT_ZOOM_LEVEL),
+                                 (float) (originY - DEFAULT_ZOOM_LEVEL),
+                                 (float) (originX + DEFAULT_ZOOM_LEVEL),
+                                 (float) (originY + DEFAULT_ZOOM_LEVEL));
         }
         constrainViewport();
         ViewCompat.postInvalidateOnAnimation(MapView.this);
@@ -797,10 +806,10 @@ public class MapView extends View{
      * Computes the set of axis labels to show given start and stop boundaries and an ideal number
      * of stops between these boundaries.
      *
-     * @param start The minimum extreme (e.g. the left edge) for the axis.
-     * @param stop The maximum extreme (e.g. the right edge) for the axis.
-     * @param steps The ideal number of stops to create. This should be based on available screen
-     *              space; the more space there is, the more stops should be shown.
+     * @param start    The minimum extreme (e.g. the left edge) for the axis.
+     * @param stop     The maximum extreme (e.g. the right edge) for the axis.
+     * @param steps    The ideal number of stops to create. This should be based on available screen
+     *                 space; the more space there is, the more stops should be shown.
      * @param outStops The destination {@link AxisStops} object to populate.
      */
     private static void computeAxisStops(float start, float stop, int steps, AxisStops outStops) {
@@ -850,28 +859,30 @@ public class MapView extends View{
 
     /**
      * Function to draw triangle on the grid
-     * @param x x position on the grid
-     * @param y y position on the grid
-     * @param width width of the triangle
-     * @param height height of the triangle
+     *
+     * @param x        x position on the grid
+     * @param y        y position on the grid
+     * @param width    width of the triangle
+     * @param height   height of the triangle
      * @param inverted <code>true</code> triangle is inverted; <code>false</code> otherwise
-     * @param paint paint object
-     * @param canvas canvas
+     * @param paint    paint object
+     * @param canvas   canvas
      */
-    private void drawTriangle(float x, float y, int width, int height, boolean inverted, Paint paint, Canvas canvas){
+    private void drawTriangle(float x, float y, int width, int height, boolean inverted,
+                              Paint paint, Canvas canvas) {
 
-        PointF p1 = new PointF(x,y);
-        float pointX = x + width/2f;
-        float pointY = inverted?  y + height : y - height;
+        PointF p1 = new PointF(x, y);
+        float pointX = x + width / 2f;
+        float pointY = inverted ? y + height : y - height;
 
-        PointF p2 = new PointF(pointX,pointY);
-        PointF p3 = new PointF(x+width,y);
+        PointF p2 = new PointF(pointX, pointY);
+        PointF p3 = new PointF(x + width, y);
 
         Path path = new Path();
         path.setFillType(Path.FillType.EVEN_ODD);
-        path.moveTo(p1.x,p1.y);
-        path.lineTo(p2.x,p2.y);
-        path.lineTo(p3.x,p3.y);
+        path.moveTo(p1.x, p1.y);
+        path.lineTo(p2.x, p2.y);
+        path.lineTo(p3.x, p3.y);
         path.close();
 
         canvas.drawPath(path, paint);
@@ -879,15 +890,16 @@ public class MapView extends View{
 
     /**
      * Function to draw star on the grid to represent mothership
-     * @param xPos x position on the grid
-     * @param yPos y position on the grid
-     * @param width width of the star
+     *
+     * @param xPos   x position on the grid
+     * @param yPos   y position on the grid
+     * @param width  width of the star
      * @param height height of the star
-     * @param paint paint object
+     * @param paint  paint object
      * @param canvas canvas
      */
-    private void drawStar(float xPos, float yPos, int width, int height, Paint paint, Canvas canvas)
-    {
+    private void drawStar(float xPos, float yPos, int width, int height, Paint paint,
+                          Canvas canvas) {
         float mid = width / 2;
         float min = Math.min(width, height);
         float fat = min / 17;
@@ -928,49 +940,44 @@ public class MapView extends View{
     /**
      * The scale listener, used for handling multi-finger scale gestures.
      */
-    private final ScaleGestureDetector.OnScaleGestureListener mScaleGestureListener
-            = new ScaleGestureDetector.SimpleOnScaleGestureListener() {
-        /**
-         * This is the active focal point in terms of the viewport. Could be a local
-         * variable but kept here to minimize per-frame allocations.
-         */
-        private PointF viewportFocus = new PointF();
-        private float lastSpan;
+    private final ScaleGestureDetector.OnScaleGestureListener mScaleGestureListener =
+            new ScaleGestureDetector.SimpleOnScaleGestureListener() {
+                /**
+                 * This is the active focal point in terms of the viewport. Could be a local
+                 * variable but kept here to minimize per-frame allocations.
+                 */
+                private PointF viewportFocus = new PointF();
+                private float lastSpan;
 
-        @Override
-        public boolean onScaleBegin(ScaleGestureDetector scaleGestureDetector) {
-            lastSpan = scaleGestureDetector.getCurrentSpan();
-            return true;
-        }
+                @Override
+                public boolean onScaleBegin(ScaleGestureDetector scaleGestureDetector) {
+                    lastSpan = scaleGestureDetector.getCurrentSpan();
+                    return true;
+                }
 
-        @Override
-        public boolean onScale(ScaleGestureDetector scaleGestureDetector) {
-            float span = scaleGestureDetector.getCurrentSpan();
+                @Override
+                public boolean onScale(ScaleGestureDetector scaleGestureDetector) {
+                    float span = scaleGestureDetector.getCurrentSpan();
 
-            float newWidth = lastSpan / span * mCurrentViewport.width();
-            float newHeight = lastSpan / span * mCurrentViewport.height();
+                    float newWidth = lastSpan / span * mCurrentViewport.width();
+                    float newHeight = lastSpan / span * mCurrentViewport.height();
 
-            float focusX = scaleGestureDetector.getFocusX();
-            float focusY = scaleGestureDetector.getFocusY();
-            hitTest(focusX, focusY, viewportFocus);
+                    float focusX = scaleGestureDetector.getFocusX();
+                    float focusY = scaleGestureDetector.getFocusY();
+                    hitTest(focusX, focusY, viewportFocus);
 
-            mCurrentViewport.set(
-                    viewportFocus.x
-                            - newWidth * (focusX - mContentRect.left)
-                            / mContentRect.width(),
-                    viewportFocus.y
-                            - newHeight * (mContentRect.bottom - focusY)
-                            / mContentRect.height(),
-                    0,
-                    0);
-            mCurrentViewport.right = mCurrentViewport.left + newWidth;
-            mCurrentViewport.bottom = mCurrentViewport.top + newHeight;
-            constrainViewport();
-            ViewCompat.postInvalidateOnAnimation(MapView.this);
-            lastSpan = span;
-            return true;
-        }
-    };
+                    mCurrentViewport.set(viewportFocus.x - newWidth * (focusX - mContentRect.left) /
+                            mContentRect.width(), viewportFocus.y -
+                                                 newHeight * (mContentRect.bottom - focusY) /
+                                                         mContentRect.height(), 0, 0);
+                    mCurrentViewport.right = mCurrentViewport.left + newWidth;
+                    mCurrentViewport.bottom = mCurrentViewport.top + newHeight;
+                    constrainViewport();
+                    ViewCompat.postInvalidateOnAnimation(MapView.this);
+                    lastSpan = span;
+                    return true;
+                }
+            };
 
     /**
      * Ensures that current viewport is inside the viewport extremes defined by {@link #AXIS_X_MIN},
@@ -980,9 +987,9 @@ public class MapView extends View{
         mCurrentViewport.left = Math.max(AXIS_X_MIN, mCurrentViewport.left);
         mCurrentViewport.top = Math.max(AXIS_Y_MIN, mCurrentViewport.top);
         mCurrentViewport.bottom = Math.max(Math.nextUp(mCurrentViewport.top),
-                Math.min(AXIS_Y_MAX, mCurrentViewport.bottom));
+                                           Math.min(AXIS_Y_MAX, mCurrentViewport.bottom));
         mCurrentViewport.right = Math.max(Math.nextUp(mCurrentViewport.left),
-                Math.min(AXIS_X_MAX, mCurrentViewport.right));
+                                          Math.min(AXIS_X_MAX, mCurrentViewport.right));
     }
 
     /**
@@ -996,13 +1003,10 @@ public class MapView extends View{
             return false;
         }
 
-        dest.set(
-                mCurrentViewport.left
-                        + mCurrentViewport.width()
-                        * (x - mContentRect.left) / mContentRect.width(),
-                mCurrentViewport.top
-                        + mCurrentViewport.height()
-                        * (y - mContentRect.bottom) / -mContentRect.height());
+        dest.set(mCurrentViewport.left +
+                         mCurrentViewport.width() * (x - mContentRect.left) / mContentRect.width(),
+                 mCurrentViewport.top + mCurrentViewport.height() * (y - mContentRect.bottom) /
+                         -mContentRect.height());
         return true;
     }
 
@@ -1010,115 +1014,114 @@ public class MapView extends View{
      * The gesture listener, used for handling simple gestures such as double touches, scrolls,
      * and flings.
      */
-    private final GestureDetector.SimpleOnGestureListener mGestureListener
-            = new GestureDetector.SimpleOnGestureListener() {
-        @Override
-        public boolean onDown(MotionEvent e) {
-            releaseEdgeEffects();
-            mScrollerStartViewport.set(mCurrentViewport);
-            mScroller.forceFinished(true);
-            ViewCompat.postInvalidateOnAnimation(MapView.this);
-            return true;
-        }
+    private final GestureDetector.SimpleOnGestureListener mGestureListener =
+            new GestureDetector.SimpleOnGestureListener() {
+                @Override
+                public boolean onDown(MotionEvent e) {
+                    releaseEdgeEffects();
+                    mScrollerStartViewport.set(mCurrentViewport);
+                    mScroller.forceFinished(true);
+                    ViewCompat.postInvalidateOnAnimation(MapView.this);
+                    return true;
+                }
 
-        @Override
-        public boolean onDoubleTap(MotionEvent e) {
-            mZoomer.forceFinished(true);
-            if (hitTest(e.getX(), e.getY(), mZoomFocalPoint)) {
-                mZoomer.startZoom(ZOOM_AMOUNT);
-            }
-            ViewCompat.postInvalidateOnAnimation(MapView.this);
-            return true;
-        }
+                @Override
+                public boolean onDoubleTap(MotionEvent e) {
+                    mZoomer.forceFinished(true);
+                    if (hitTest(e.getX(), e.getY(), mZoomFocalPoint)) {
+                        mZoomer.startZoom(ZOOM_AMOUNT);
+                    }
+                    ViewCompat.postInvalidateOnAnimation(MapView.this);
+                    return true;
+                }
 
-        @Override
-        public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
-            // Scrolling uses math based on the viewport (as opposed to math using pixels).
-            /**
-             * Pixel offset is the offset in screen pixels, while viewport offset is the
-             * offset within the current viewport. For additional information on surface sizes
-             * and pixel offsets, see the docs for {@link computeScrollSurfaceSize()}. For
-             * additional information about the viewport, see the comments for
-             * {@link mCurrentViewport}.
-             */
-            float viewportOffsetX = distanceX * mCurrentViewport.width() / mContentRect.width();
-            float viewportOffsetY = -distanceY * mCurrentViewport.height() / mContentRect.height();
-            computeScrollSurfaceSize(mSurfaceSizeBuffer);
-            int scrolledX = (int) (mSurfaceSizeBuffer.x
-                    * (mCurrentViewport.left + viewportOffsetX - AXIS_X_MIN)
-                    / (AXIS_X_MAX - AXIS_X_MIN));
-            int scrolledY = (int) (mSurfaceSizeBuffer.y
-                    * (AXIS_Y_MAX - mCurrentViewport.bottom - viewportOffsetY)
-                    / (AXIS_Y_MAX - AXIS_Y_MIN));
-            boolean canScrollX = mCurrentViewport.left > AXIS_X_MIN
-                    || mCurrentViewport.right < AXIS_X_MAX;
-            boolean canScrollY = mCurrentViewport.top > AXIS_Y_MIN
-                    || mCurrentViewport.bottom < AXIS_Y_MAX;
-            setViewportBottomLeft(
-                    mCurrentViewport.left + viewportOffsetX,
-                    mCurrentViewport.bottom + viewportOffsetY);
+                @Override
+                public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX,
+                                        float distanceY) {
+                    // Scrolling uses math based on the viewport (as opposed to math using pixels).
+                    /**
+                     * Pixel offset is the offset in screen pixels, while viewport offset is the
+                     * offset within the current viewport. For additional information on surface
+                     * sizes
+                     * and pixel offsets, see the docs for {@link computeScrollSurfaceSize()}. For
+                     * additional information about the viewport, see the comments for
+                     * {@link mCurrentViewport}.
+                     */
+                    float viewportOffsetX =
+                            distanceX * mCurrentViewport.width() / mContentRect.width();
+                    float viewportOffsetY =
+                            -distanceY * mCurrentViewport.height() / mContentRect.height();
+                    computeScrollSurfaceSize(mSurfaceSizeBuffer);
+                    int scrolledX = (int) (mSurfaceSizeBuffer.x *
+                            (mCurrentViewport.left + viewportOffsetX - AXIS_X_MIN) /
+                            (AXIS_X_MAX - AXIS_X_MIN));
+                    int scrolledY = (int) (mSurfaceSizeBuffer.y *
+                            (AXIS_Y_MAX - mCurrentViewport.bottom - viewportOffsetY) /
+                            (AXIS_Y_MAX - AXIS_Y_MIN));
+                    boolean canScrollX = mCurrentViewport.left > AXIS_X_MIN ||
+                            mCurrentViewport.right < AXIS_X_MAX;
+                    boolean canScrollY = mCurrentViewport.top > AXIS_Y_MIN ||
+                            mCurrentViewport.bottom < AXIS_Y_MAX;
+                    setViewportBottomLeft(mCurrentViewport.left + viewportOffsetX,
+                                          mCurrentViewport.bottom + viewportOffsetY);
 
-            if (canScrollX && scrolledX < 0) {
-                mEdgeEffectLeft.onPull(scrolledX / (float) mContentRect.width());
-                mEdgeEffectLeftActive = true;
-            }
-            if (canScrollY && scrolledY < 0) {
-                mEdgeEffectTop.onPull(scrolledY / (float) mContentRect.height());
-                mEdgeEffectTopActive = true;
-            }
-            if (canScrollX && scrolledX > mSurfaceSizeBuffer.x - mContentRect.width()) {
-                mEdgeEffectRight.onPull((scrolledX - mSurfaceSizeBuffer.x + mContentRect.width())
-                        / (float) mContentRect.width());
-                mEdgeEffectRightActive = true;
-            }
-            if (canScrollY && scrolledY > mSurfaceSizeBuffer.y - mContentRect.height()) {
-                mEdgeEffectBottom.onPull((scrolledY - mSurfaceSizeBuffer.y + mContentRect.height())
-                        / (float) mContentRect.height());
-                mEdgeEffectBottomActive = true;
-            }
-            return true;
-        }
+                    if (canScrollX && scrolledX < 0) {
+                        mEdgeEffectLeft.onPull(scrolledX / (float) mContentRect.width());
+                        mEdgeEffectLeftActive = true;
+                    }
+                    if (canScrollY && scrolledY < 0) {
+                        mEdgeEffectTop.onPull(scrolledY / (float) mContentRect.height());
+                        mEdgeEffectTopActive = true;
+                    }
+                    if (canScrollX && scrolledX > mSurfaceSizeBuffer.x - mContentRect.width()) {
+                        mEdgeEffectRight
+                                .onPull((scrolledX - mSurfaceSizeBuffer.x + mContentRect.width()) /
+                                                (float) mContentRect.width());
+                        mEdgeEffectRightActive = true;
+                    }
+                    if (canScrollY && scrolledY > mSurfaceSizeBuffer.y - mContentRect.height()) {
+                        mEdgeEffectBottom
+                                .onPull((scrolledY - mSurfaceSizeBuffer.y + mContentRect.height()) /
+                                                (float) mContentRect.height());
+                        mEdgeEffectBottomActive = true;
+                    }
+                    return true;
+                }
 
-        @Override
-        public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
-            fling((int) -velocityX, (int) -velocityY);
-            return true;
-        }
-    };
+                @Override
+                public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX,
+                                       float velocityY) {
+                    fling((int) -velocityX, (int) -velocityY);
+                    return true;
+                }
+            };
 
     @Override
     protected void onSizeChanged(int w, int h, int oldw, int oldh) {
         super.onSizeChanged(w, h, oldw, oldh);
-        mContentRect.set(
-                getPaddingLeft()  + mMaxLabelWidth + mLabelSeparation,
-                getPaddingTop(),
-                getWidth() - getPaddingRight(),
-                getHeight() - getPaddingBottom() - mLabelHeight - mLabelSeparation);
+        mContentRect.set(getPaddingLeft() + mMaxLabelWidth + mLabelSeparation, getPaddingTop(),
+                         getWidth() - getPaddingRight(),
+                         getHeight() - getPaddingBottom() - mLabelHeight - mLabelSeparation);
     }
 
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         int minChartSize = getResources().getDimensionPixelSize(R.dimen.min_chart_size);
-        setMeasuredDimension(
-                Math.max(getSuggestedMinimumWidth(),
-                        resolveSize(minChartSize + getPaddingLeft() + mMaxLabelWidth
-                                        + mLabelSeparation + getPaddingRight(),
-                                widthMeasureSpec)),
-                Math.max(getSuggestedMinimumHeight(),
-                        resolveSize(minChartSize + getPaddingTop() + mLabelHeight
-                                        + mLabelSeparation + getPaddingBottom(),
-                                heightMeasureSpec)));
+        setMeasuredDimension(Math.max(getSuggestedMinimumWidth(), resolveSize(
+                minChartSize + getPaddingLeft() + mMaxLabelWidth + mLabelSeparation +
+                        getPaddingRight(), widthMeasureSpec)), Math.max(getSuggestedMinimumHeight(),
+                                                                        resolveSize(minChartSize +
+                                                                                            getPaddingTop() +
+                                                                                            mLabelHeight +
+                                                                                            mLabelSeparation +
+                                                                                            getPaddingBottom(),
+                                                                                    heightMeasureSpec)));
     }
 
 
-
-
     private void releaseEdgeEffects() {
-        mEdgeEffectLeftActive
-                = mEdgeEffectTopActive
-                = mEdgeEffectRightActive
-                = mEdgeEffectBottomActive
-                = false;
+        mEdgeEffectLeftActive =
+        mEdgeEffectTopActive = mEdgeEffectRightActive = mEdgeEffectBottomActive = false;
         mEdgeEffectLeft.onRelease();
         mEdgeEffectTop.onRelease();
         mEdgeEffectRight.onRelease();
@@ -1130,20 +1133,15 @@ public class MapView extends View{
         // Flings use math in pixels (as opposed to math based on the viewport).
         computeScrollSurfaceSize(mSurfaceSizeBuffer);
         mScrollerStartViewport.set(mCurrentViewport);
-        int startX = (int) (mSurfaceSizeBuffer.x * (mScrollerStartViewport.left - AXIS_X_MIN) / (
-                AXIS_X_MAX - AXIS_X_MIN));
-        int startY = (int) (mSurfaceSizeBuffer.y * (AXIS_Y_MAX - mScrollerStartViewport.bottom) / (
-                AXIS_Y_MAX - AXIS_Y_MIN));
+        int startX = (int) (mSurfaceSizeBuffer.x * (mScrollerStartViewport.left - AXIS_X_MIN) /
+                (AXIS_X_MAX - AXIS_X_MIN));
+        int startY = (int) (mSurfaceSizeBuffer.y * (AXIS_Y_MAX - mScrollerStartViewport.bottom) /
+                (AXIS_Y_MAX - AXIS_Y_MIN));
         mScroller.forceFinished(true);
-        mScroller.fling(
-                startX,
-                startY,
-                velocityX,
-                velocityY,
-                0, mSurfaceSizeBuffer.x - mContentRect.width(),
-                0, mSurfaceSizeBuffer.y - mContentRect.height(),
-                mContentRect.width() / 2,
-                mContentRect.height() / 2);
+        mScroller.fling(startX, startY, velocityX, velocityY, 0,
+                        mSurfaceSizeBuffer.x - mContentRect.width(), 0,
+                        mSurfaceSizeBuffer.y - mContentRect.height(), mContentRect.width() / 2,
+                        mContentRect.height() / 2);
         ViewCompat.postInvalidateOnAnimation(this);
     }
 
@@ -1155,11 +1153,9 @@ public class MapView extends View{
      * and vertically.
      */
     private void computeScrollSurfaceSize(Point out) {
-        out.set(
-                (int) (mContentRect.width() * (AXIS_X_MAX - AXIS_X_MIN)
-                        / mCurrentViewport.width()),
-                (int) (mContentRect.height() * (AXIS_Y_MAX - AXIS_Y_MIN)
-                        / mCurrentViewport.height()));
+        out.set((int) (mContentRect.width() * (AXIS_X_MAX - AXIS_X_MIN) / mCurrentViewport.width()),
+                (int) (mContentRect.height() * (AXIS_Y_MAX - AXIS_Y_MIN) /
+                        mCurrentViewport.height()));
     }
 
     @Override
@@ -1176,47 +1172,37 @@ public class MapView extends View{
             int currX = mScroller.getCurrX();
             int currY = mScroller.getCurrY();
 
-            boolean canScrollX = (mCurrentViewport.left > AXIS_X_MIN
-                    || mCurrentViewport.right < AXIS_X_MAX);
-            boolean canScrollY = (mCurrentViewport.top > AXIS_Y_MIN
-                    || mCurrentViewport.bottom < AXIS_Y_MAX);
+            boolean canScrollX =
+                    (mCurrentViewport.left > AXIS_X_MIN || mCurrentViewport.right < AXIS_X_MAX);
+            boolean canScrollY =
+                    (mCurrentViewport.top > AXIS_Y_MIN || mCurrentViewport.bottom < AXIS_Y_MAX);
 
-            if (canScrollX
-                    && currX < 0
-                    && mEdgeEffectLeft.isFinished()
-                    && !mEdgeEffectLeftActive) {
+            if (canScrollX && currX < 0 && mEdgeEffectLeft.isFinished() && !mEdgeEffectLeftActive) {
                 mEdgeEffectLeft.onAbsorb((int) mScroller.getCurrVelocity());
                 mEdgeEffectLeftActive = true;
                 needsInvalidate = true;
-            } else if (canScrollX
-                    && currX > (mSurfaceSizeBuffer.x - mContentRect.width())
-                    && mEdgeEffectRight.isFinished()
-                    && !mEdgeEffectRightActive) {
+            } else if (canScrollX && currX > (mSurfaceSizeBuffer.x - mContentRect.width()) &&
+                    mEdgeEffectRight.isFinished() && !mEdgeEffectRightActive) {
                 mEdgeEffectRight.onAbsorb((int) mScroller.getCurrVelocity());
                 mEdgeEffectRightActive = true;
                 needsInvalidate = true;
             }
 
-            if (canScrollY
-                    && currY < 0
-                    && mEdgeEffectTop.isFinished()
-                    && !mEdgeEffectTopActive) {
+            if (canScrollY && currY < 0 && mEdgeEffectTop.isFinished() && !mEdgeEffectTopActive) {
                 mEdgeEffectTop.onAbsorb((int) mScroller.getCurrVelocity());
                 mEdgeEffectTopActive = true;
                 needsInvalidate = true;
-            } else if (canScrollY
-                    && currY > (mSurfaceSizeBuffer.y - mContentRect.height())
-                    && mEdgeEffectBottom.isFinished()
-                    && !mEdgeEffectBottomActive) {
+            } else if (canScrollY && currY > (mSurfaceSizeBuffer.y - mContentRect.height()) &&
+                    mEdgeEffectBottom.isFinished() && !mEdgeEffectBottomActive) {
                 mEdgeEffectBottom.onAbsorb((int) mScroller.getCurrVelocity());
                 mEdgeEffectBottomActive = true;
                 needsInvalidate = true;
             }
 
-            float currXRange = AXIS_X_MIN + (AXIS_X_MAX - AXIS_X_MIN)
-                    * currX / mSurfaceSizeBuffer.x;
-            float currYRange = AXIS_Y_MAX - (AXIS_Y_MAX - AXIS_Y_MIN)
-                    * currY / mSurfaceSizeBuffer.y;
+            float currXRange =
+                    AXIS_X_MIN + (AXIS_X_MAX - AXIS_X_MIN) * currX / mSurfaceSizeBuffer.x;
+            float currYRange =
+                    AXIS_Y_MAX - (AXIS_Y_MAX - AXIS_Y_MIN) * currY / mSurfaceSizeBuffer.y;
             setViewportBottomLeft(currXRange, currYRange);
         }
 
@@ -1225,15 +1211,14 @@ public class MapView extends View{
             // double-touch).
             float newWidth = (1f - mZoomer.getCurrZoom()) * mScrollerStartViewport.width();
             float newHeight = (1f - mZoomer.getCurrZoom()) * mScrollerStartViewport.height();
-            float pointWithinViewportX = (mZoomFocalPoint.x - mScrollerStartViewport.left)
-                    / mScrollerStartViewport.width();
-            float pointWithinViewportY = (mZoomFocalPoint.y - mScrollerStartViewport.top)
-                    / mScrollerStartViewport.height();
-            mCurrentViewport.set(
-                    mZoomFocalPoint.x - newWidth * pointWithinViewportX,
-                    mZoomFocalPoint.y - newHeight * pointWithinViewportY,
-                    mZoomFocalPoint.x + newWidth * (1 - pointWithinViewportX),
-                    mZoomFocalPoint.y + newHeight * (1 - pointWithinViewportY));
+            float pointWithinViewportX = (mZoomFocalPoint.x - mScrollerStartViewport.left) /
+                    mScrollerStartViewport.width();
+            float pointWithinViewportY = (mZoomFocalPoint.y - mScrollerStartViewport.top) /
+                    mScrollerStartViewport.height();
+            mCurrentViewport.set(mZoomFocalPoint.x - newWidth * pointWithinViewportX,
+                                 mZoomFocalPoint.y - newHeight * pointWithinViewportY,
+                                 mZoomFocalPoint.x + newWidth * (1 - pointWithinViewportX),
+                                 mZoomFocalPoint.y + newHeight * (1 - pointWithinViewportY));
             constrainViewport();
             needsInvalidate = true;
         }
@@ -1245,25 +1230,33 @@ public class MapView extends View{
 
     /**
      * Setting the layout for the bubble
+     *
      * @param layout linear layout
      * @param bubble drawable object
      */
-    public void setBubbleLayout(LinearLayout layout, BubbleDrawable bubble){
+    public void setBubbleLayout(LinearLayout layout, BubbleDrawable bubble) {
         this.linearLayout = layout;
         this.drawableBubble = bubble;
     }
 
     /**
      * OnTouchEvent gets triggered when the user/admin touches anywhere on the grid.
-     * This function handles the functionality of displaying a bubble dialog box providing information of the corresponding
+     * This function handles the functionality of displaying a bubble dialog box providing
+     * information of the corresponding
      * point which was clicked.
      * <p>
-     *     It checks whether the {@link #isBubbleShowing} is set to true, if then it will close the bubble dialog box.
-     *     It calculates the {@link #xTouch} and {@link #yTouch} and checks whether this position is in the range of the point of interest.
-     *     Depending on the return value of {@link #checkInRange(float, float)}, this function decides the point which was clicked and takes appropriate action.
-     *     It draws a bubble {@link #drawableBubble} at the point where the user/admin touched and displays the corresponding information.
-     *     Different set of information are displayed for each fixed station, mobile station, waypoint, static station and tablet.
+     * It checks whether the {@link #isBubbleShowing} is set to true, if then it will close the
+     * bubble dialog box.
+     * It calculates the {@link #xTouch} and {@link #yTouch} and checks whether this position is in
+     * the range of the point of interest.
+     * Depending on the return value of {@link #checkInRange(float, float)}, this function decides
+     * the point which was clicked and takes appropriate action.
+     * It draws a bubble {@link #drawableBubble} at the point where the user/admin touched and
+     * displays the corresponding information.
+     * Different set of information are displayed for each fixed station, mobile station, waypoint,
+     * static station and tablet.
      * </p>
+     *
      * @param event event
      * @return onTouchEvent
      */
@@ -1272,9 +1265,9 @@ public class MapView extends View{
     public boolean onTouchEvent(MotionEvent event) {
         int actionIndex = event.getActionIndex();
         String postnMsg;
-        switch (event.getAction()){
+        switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN:
-                if(isBubbleShowing){
+                if (isBubbleShowing) {
                     linearLayout.setVisibility(View.GONE);
                     isBubbleShowing = false;
                 }
@@ -1284,55 +1277,82 @@ public class MapView extends View{
                 //Log.d(TAG, "XTouch: " + getDrawX(xTouch) + " YTouch: " + getDrawY(yTouch));
                 int[] checkValues = checkInRange(xTouch, yTouch);
                 int index = checkValues[0];
-                if(index != -1){
+                if (index != -1) {
                     Log.d(TAG, "Station Touched");
-                    if (checkValues[1] == TABLET_POSITION){
-                        drawableBubble.setCoordinates((float) getDrawX(getTabletX()) + TabTriangleWidth/2f, (float) getDrawY(getTabletY()) - TabTriangleHeight);
+                    if (checkValues[1] == TABLET_POSITION) {
+                        drawableBubble.setCoordinates(
+                                (float) getDrawX(getTabletX()) + TabTriangleWidth / 2f,
+                                (float) getDrawY(getTabletY()) - TabTriangleHeight);
                         postnMsg = String.format("x: %1.4f y: %2.4f", getTabletX(), getTabletY());
                         drawableBubble.setMessages("Current Position", null, postnMsg);
                         linearLayout.setBackground(drawableBubble);
                         linearLayout.setVisibility(View.VISIBLE);
                         isBubbleShowing = true;
-                    } else if(checkValues[1] == FIXED_STATION) {
-                        if(GridActivity.showFixedStation) {
-                            drawableBubble.setCoordinates((float) getDrawX(getFixedStationX(index)), (float) getDrawY(getFixedStationY(index)));
-                            postnMsg = String.format("x: %1.4f y: %2.4f", getFixedStationX(index), getFixedStationY(index));
-                            if(getFixedStationMMSI(index) != 1000 && getFixedStationMMSI(index) != 1001) {
-                                drawableBubble.setMessages(String.valueOf(getFixedStationMMSI(index)), getFixedStationName(index), postnMsg);
-                            } else{
-                                drawableBubble.setMessages(null, getFixedStationName(index), postnMsg);
+                    } else if (checkValues[1] == FIXED_STATION) {
+                        if (GridActivity.showFixedStation) {
+                            drawableBubble.setCoordinates((float) getDrawX(getFixedStationX(index)),
+                                                          (float) getDrawY(
+                                                                  getFixedStationY(index)));
+                            postnMsg = String.format("x: %1.4f y: %2.4f", getFixedStationX(index),
+                                                     getFixedStationY(index));
+                            if (getFixedStationMMSI(index) != 1000 &&
+                                    getFixedStationMMSI(index) != 1001) {
+                                drawableBubble
+                                        .setMessages(String.valueOf(getFixedStationMMSI(index)),
+                                                     getFixedStationName(index), postnMsg);
+                            } else {
+                                drawableBubble
+                                        .setMessages(null, getFixedStationName(index), postnMsg);
                             }
                             linearLayout.setBackground(drawableBubble);
                             linearLayout.setVisibility(View.VISIBLE);
                             isBubbleShowing = true;
                         }
-                    } else if(checkValues[1] == MOBILE_STATION){
-                        if(GridActivity.showMobileStation) {
-                            if(getMobileStationMMSI(index) != DatabaseHelper.MOTHER_SHIP_MMSI) {
-                                drawableBubble.setCoordinates((float) getDrawX(getMobileXposition(index)), (float) getDrawY(getMobileYposition(index)));
-                            } else{
-                                drawableBubble.setCoordinates((float) StarMidPointX, (float) StarMidPointY);
+                    } else if (checkValues[1] == MOBILE_STATION) {
+                        if (GridActivity.showMobileStation) {
+                            if (getMobileStationMMSI(index) != DatabaseHelper.MOTHER_SHIP_MMSI) {
+                                drawableBubble
+                                        .setCoordinates((float) getDrawX(getMobileXposition(index)),
+                                                        (float) getDrawY(
+                                                                getMobileYposition(index)));
+                            } else {
+                                drawableBubble.setCoordinates((float) StarMidPointX,
+                                                              (float) StarMidPointY);
                             }
-                            postnMsg = String.format("x: %1.4f y: %2.4f", getMobileXposition(index), getMobileYposition(index));
-                            drawableBubble.setMessages(String.valueOf(getMobileStationMMSI(index)), getMobileStationName(index), postnMsg);
+                            postnMsg = String.format("x: %1.4f y: %2.4f", getMobileXposition(index),
+                                                     getMobileYposition(index));
+                            drawableBubble.setMessages(String.valueOf(getMobileStationMMSI(index)),
+                                                       getMobileStationName(index), postnMsg);
                             linearLayout.setBackground(drawableBubble);
                             linearLayout.setVisibility(View.VISIBLE);
                             isBubbleShowing = true;
                         }
-                    } else if(checkValues[1] == STATIC_STATION){
-                        if(GridActivity.showStaticStation) {
-                            drawableBubble.setCoordinates((float) getDrawX(getStaticXposition(index)), (float) getDrawY(getStaticYposition(index)));
-                            postnMsg = String.format("x: %1.4f y: %2.4f", getStaticXposition(index), getStaticYposition(index));
-                            drawableBubble.setMessages(String.valueOf(getStaticStationName(index)), null, postnMsg);
+                    } else if (checkValues[1] == STATIC_STATION) {
+                        if (GridActivity.showStaticStation) {
+                            drawableBubble
+                                    .setCoordinates((float) getDrawX(getStaticXposition(index)),
+                                                    (float) getDrawY(getStaticYposition(index)));
+                            postnMsg = String.format("x: %1.4f y: %2.4f", getStaticXposition(index),
+                                                     getStaticYposition(index));
+                            drawableBubble
+                                    .setMessages(String.valueOf(getStaticStationName(index)), null,
+                                                 postnMsg);
                             linearLayout.setBackground(drawableBubble);
                             linearLayout.setVisibility(View.VISIBLE);
                             isBubbleShowing = true;
                         }
-                    } else if (checkValues[1] == WAYPOINT){
-                        if(GridActivity.showWaypointStation) {
-                            drawableBubble.setCoordinates((float) getDrawX(getWaypointXposition(index)) + WayTriangleWidth/2f, (float) getDrawY(getWaypointYposition(index)));
-                            postnMsg = String.format("x: %1.4f y: %2.4f", getWaypointXposition(index), getWaypointYposition(index));
-                            drawableBubble.setMessages(String.valueOf(getWaypointLabel(index)), null, postnMsg);
+                    } else if (checkValues[1] == WAYPOINT) {
+                        if (GridActivity.showWaypointStation) {
+                            drawableBubble.setCoordinates(
+                                    (float) getDrawX(getWaypointXposition(index)) +
+                                            WayTriangleWidth / 2f,
+                                    (float) getDrawY(getWaypointYposition(index)));
+                            postnMsg =
+                                    String.format("x: %1.4f y: %2.4f", getWaypointXposition(index),
+                                                  getWaypointYposition(index));
+                            drawableBubble
+                                    .setMessages(String.valueOf(getWaypointLabel(index)), null,
+                                                 postnMsg);
                             linearLayout.setBackground(drawableBubble);
                             linearLayout.setVisibility(View.VISIBLE);
                             isBubbleShowing = true;
@@ -1349,15 +1369,19 @@ public class MapView extends View{
 
     /**
      * Checks the range around the (x, y) position where the touch event happened.
-     * If the distance between the touch position and the tablet/fixed station/mobile station/static station/waypoint position
+     * If the distance between the touch position and the tablet/fixed station/mobile station/static
+     * station/waypoint position
      * on the grid is less than a calibrated value of {@value #CircleSize} + 10,
-     * then it means that the point is clicked by the user/admin and returns an array with a corresponding constant value,
-     * which notifies the {@link #onTouchEvent(MotionEvent)} the respective operation to be handled.
+     * then it means that the point is clicked by the user/admin and returns an array with a
+     * corresponding constant value,
+     * which notifies the {@link #onTouchEvent(MotionEvent)} the respective operation to be
+     * handled.
+     *
      * @param touchX
      * @param touchY
      * @return
      */
-    private int[] checkInRange(float touchX, float touchY){
+    private int[] checkInRange(float touchX, float touchY) {
         int index = -1;
 
         try {
@@ -1367,19 +1391,21 @@ public class MapView extends View{
             double yTab = getTabletY();
             xTab = getDrawX(xTab);
             yTab = getDrawY(yTab);
-            double tabDistance =  Math.sqrt(Math.pow((xTab - touchX), 2) + Math.pow((yTab - touchY), 2));
-            if(tabDistance < CircleSize + 10){
+            double tabDistance =
+                    Math.sqrt(Math.pow((xTab - touchX), 2) + Math.pow((yTab - touchY), 2));
+            if (tabDistance < CircleSize + 10) {
                 index = 0;
-                return new int[] {index, TABLET_POSITION};
+                return new int[]{index, TABLET_POSITION};
             }
             //Check in Fixed Station
-            if(GridActivity.showFixedStation) {
+            if (GridActivity.showFixedStation) {
                 for (int i = 0; i < getFixedStationSize(); i++) {
                     double xp = getFixedStationX(i);
                     double yp = getFixedStationY(i);
                     xp = getDrawX(xp);
                     yp = getDrawY(yp);
-                    double distance = Math.sqrt(Math.pow((xp - touchX), 2) + Math.pow((yp - touchY), 2));
+                    double distance =
+                            Math.sqrt(Math.pow((xp - touchX), 2) + Math.pow((yp - touchY), 2));
                     Log.d(TAG, "TouchDistance " + distance);
                     if (distance < CircleSize + 10) {
                         index = i;
@@ -1389,21 +1415,22 @@ public class MapView extends View{
             }
 
             //Check in Mobile Stations
-            if(GridActivity.showMobileStation) {
+            if (GridActivity.showMobileStation) {
                 for (int i = 0; i < getMobileStationSize(); i++) {
                     double xp = getMobileXposition(i);
                     double yp = getMobileYposition(i);
                     int mmsi = getMobileStationMMSI(i);
                     xp = getDrawX(xp);
                     yp = getDrawY(yp);
-                    double distance = Math.sqrt(Math.pow((xp - touchX), 2) + Math.pow((yp - touchY), 2));
+                    double distance =
+                            Math.sqrt(Math.pow((xp - touchX), 2) + Math.pow((yp - touchY), 2));
                     Log.d(TAG, "TouchDistance " + distance);
-                    if(mmsi != DatabaseHelper.MOTHER_SHIP_MMSI) {
+                    if (mmsi != DatabaseHelper.MOTHER_SHIP_MMSI) {
                         if (distance < CircleSize + 10) {
                             index = i;
                             return new int[]{index, MOBILE_STATION};
                         }
-                    } else{
+                    } else {
                         if (distance < StarSize + 10) {
                             index = i;
                             return new int[]{index, MOBILE_STATION};
@@ -1414,13 +1441,14 @@ public class MapView extends View{
             }
 
             //Check in Static Stations
-            if(GridActivity.showStaticStation) {
+            if (GridActivity.showStaticStation) {
                 for (int i = 0; i < getStaticStationSize(); i++) {
                     double xp = getStaticXposition(i);
                     double yp = getStaticYposition(i);
                     xp = getDrawX(xp);
                     yp = getDrawY(yp);
-                    double distance = Math.sqrt(Math.pow((xp - touchX), 2) + Math.pow((yp - touchY), 2));
+                    double distance =
+                            Math.sqrt(Math.pow((xp - touchX), 2) + Math.pow((yp - touchY), 2));
                     Log.d(TAG, "TouchDistance " + distance);
                     if (distance < CircleSize + 10) {
                         index = i;
@@ -1430,13 +1458,14 @@ public class MapView extends View{
             }
 
             //Check in Waypoints
-            if(GridActivity.showWaypointStation) {
+            if (GridActivity.showWaypointStation) {
                 for (int i = 0; i < getWaypointSize(); i++) {
                     double xp = getWaypointXposition(i);
                     double yp = getWaypointYposition(i);
                     xp = getDrawX(xp);
                     yp = getDrawY(yp);
-                    double distance = Math.sqrt(Math.pow((xp - touchX), 2) + Math.pow((yp - touchY), 2));
+                    double distance =
+                            Math.sqrt(Math.pow((xp - touchX), 2) + Math.pow((yp - touchY), 2));
                     Log.d(TAG, "TouchDistance " + distance);
                     if (distance < CircleSize + 10) {
                         index = i;
@@ -1445,12 +1474,12 @@ public class MapView extends View{
                 }
             }
 
-        } catch (NullPointerException e){
+        } catch (NullPointerException e) {
             index = -1;
             e.printStackTrace();
             Log.d(TAG, "Null Pointer Exception");
         }
-        return new int[] {index, index};
+        return new int[]{index, index};
     }
 
     /**
@@ -1498,9 +1527,8 @@ public class MapView extends View{
      * Computes the pixel offset for the given X chart value. This may be outside the view bounds.
      */
     private double getDrawX(double x) {
-        return mContentRect.left
-                + mContentRect.width()
-                * (x - mCurrentViewport.left) / mCurrentViewport.width();
+        return mContentRect.left +
+                mContentRect.width() * (x - mCurrentViewport.left) / mCurrentViewport.width();
     }
 
     /**
@@ -1519,20 +1547,14 @@ public class MapView extends View{
      * Computes the pixel offset for the given Y chart value. This may be outside the view bounds.
      */
     private double getDrawY(double y) {
-        return mContentRect.bottom - mContentRect.height() * (y - mCurrentViewport.top) / mCurrentViewport.height();
+        final double drawY = mContentRect.bottom -
+                mContentRect.height() * (y - mCurrentViewport.top) / mCurrentViewport.height();
+        return drawY * aspectRatio;
     }
 
-
-    /**
-     * The simple math function Y = fun(X) to draw on the chart.
-     * @param x The X value
-     * @return The Y value
-     */
-    protected static float fun(float x) {
-        return (float) Math.pow(x, 3) - x / 4;
-    }
 
     private static final int POW10[] = {1, 10, 100, 1000, 10000, 100000, 1000000};
+
     /**
      * Formats a float value to the given number of decimals. Returns the length of the string.
      * The string begins at out.length - [return value].
@@ -1574,9 +1596,10 @@ public class MapView extends View{
 
     /**
      * Set tablet x
+     *
      * @param x x value
      */
-    public void setTabletX(double x){
+    public void setTabletX(double x) {
         tabletX = x;
         ViewCompat.postInvalidateOnAnimation(MapView.this);
 
@@ -1584,18 +1607,20 @@ public class MapView extends View{
 
     /**
      * Set tablet y
+     *
      * @param y y value
      */
-    public void setTabletY(double y){
+    public void setTabletY(double y) {
         tabletY = y;
         ViewCompat.postInvalidateOnAnimation(MapView.this);
     }
 
     /**
      * Set origin x
+     *
      * @param x x value
      */
-    public void setOriginX(double x){
+    public void setOriginX(double x) {
         originX = x;
         ViewCompat.postInvalidateOnAnimation(MapView.this);
 
@@ -1603,148 +1628,162 @@ public class MapView extends View{
 
     /**
      * Set origin y
+     *
      * @param y y value
      */
-    public void setOriginY(double y){
+    public void setOriginY(double y) {
         originY = y;
         ViewCompat.postInvalidateOnAnimation(MapView.this);
     }
 
     /**
      * set fixed station mmsi's
+     *
      * @param MMSIs mmsi
      */
-    public void setmFixedStationMMSIs(HashMap<Integer, Integer> MMSIs){
+    public void setmFixedStationMMSIs(HashMap<Integer, Integer> MMSIs) {
         mFixedStationMMSIs = MMSIs;
     }
 
     /**
      * Set fixed station X values
+     *
      * @param Xs x position
      */
-    public void setmFixedStationXs(HashMap<Integer, Double> Xs){
+    public void setmFixedStationXs(HashMap<Integer, Double> Xs) {
         mFixedStationXs = Xs;
     }
 
     /**
      * Set fixed station Y values
+     *
      * @param Ys y position
      */
-    public void setmFixedStationYs(HashMap<Integer, Double> Ys){
+    public void setmFixedStationYs(HashMap<Integer, Double> Ys) {
         mFixedStationYs = Ys;
     }
 
     /**
      * Set fixed station names
+     *
      * @param Names names
      */
-    public void setmFixedStationNamess(HashMap<Integer, String> Names){
+    public void setmFixedStationNamess(HashMap<Integer, String> Names) {
         mFixedStationNames = Names;
     }
 
     /**
      * Set mobile station mmsi's
+     *
      * @param MMSIs mmsi
      */
-    public void setmMobileStationMMSIs(HashMap<Integer, Integer> MMSIs){
+    public void setmMobileStationMMSIs(HashMap<Integer, Integer> MMSIs) {
         mMobileStationMMSIs = MMSIs;
     }
 
     /**
      * Set mobile station Xs
+     *
      * @param Xs X values
      */
-    public void setmMobileStationXs(HashMap<Integer, Double> Xs){
+    public void setmMobileStationXs(HashMap<Integer, Double> Xs) {
         mMobileStationXs = Xs;
     }
 
     /**
      * Set mobile station Ys
+     *
      * @param Ys Y values
      */
-    public void setmMobileStationYs(HashMap<Integer, Double> Ys){
-       mMobileStationYs = Ys;
+    public void setmMobileStationYs(HashMap<Integer, Double> Ys) {
+        mMobileStationYs = Ys;
     }
 
     /**
      * Set mobile station names
+     *
      * @param Names names
      */
-    public void setmMobileStationNamess(HashMap<Integer, String> Names){
+    public void setmMobileStationNamess(HashMap<Integer, String> Names) {
         mMobileStationNames = Names;
     }
 
     /**
      * Set static station names
+     *
      * @param Names names
      */
-    public void setmStaticStationNamess(HashMap<Integer, String> Names){
+    public void setmStaticStationNamess(HashMap<Integer, String> Names) {
         mStaticStationNames = Names;
     }
 
     /**
      * Set static station X values
+     *
      * @param Xs X positions
      */
-    public void setmStaticStationXs(HashMap<Integer, Double> Xs){
+    public void setmStaticStationXs(HashMap<Integer, Double> Xs) {
         mStaticStationXs = Xs;
     }
 
     /**
      * Set Static station Y values
+     *
      * @param Ys Y positions
      */
-    public void setmStaticStationYs(HashMap<Integer, Double> Ys){
+    public void setmStaticStationYs(HashMap<Integer, Double> Ys) {
         mStaticStationYs = Ys;
     }
 
     /**
      * Set waypoint labels
+     *
      * @param Labels labels
      */
-    public void setmWapointLabels(HashMap<Integer, String> Labels){
+    public void setmWapointLabels(HashMap<Integer, String> Labels) {
         mWaypointsLabels = Labels;
     }
 
     /**
      * Set Waypoint X values
+     *
      * @param Xs X values
      */
-    public void setmWaypointsXs(HashMap<Integer, Double> Xs){
+    public void setmWaypointsXs(HashMap<Integer, Double> Xs) {
         mWaypointsXs = Xs;
     }
 
     /**
      * Set Waypoint Y values
+     *
      * @param Ys Y values
      */
-    public void setmWapointsYs(HashMap<Integer, Double> Ys){
+    public void setmWapointsYs(HashMap<Integer, Double> Ys) {
         mWaypointsYs = Ys;
     }
 
     /**
      * Get Tablet X value
+     *
      * @return Tablet X value
      */
-    public double getTabletX(){
+    public double getTabletX() {
         return tabletX;
     }
 
     /**
-     *
      * @return Tablet Y value
      */
-    public double getTabletY(){
+    public double getTabletY() {
         return tabletY;
     }
 
 
     /**
-     *
      * @return Fixed station mmsi
      */
-    public int getFixedStationSize(){
-        if(mFixedStationMMSIs != null) {
+    public int getFixedStationSize() {
+        if (mFixedStationMMSIs != null) {
             return mFixedStationMMSIs.size();
         } else {
             return 0;
@@ -1752,193 +1791,178 @@ public class MapView extends View{
     }
 
     /**
-     *
      * @param index index of the fixed station in the hashmap to be returned
      * @return fixed station mmsi
      */
-    public int getFixedStationMMSI(int index){
-        if(mFixedStationMMSIs != null) {
+    public int getFixedStationMMSI(int index) {
+        if (mFixedStationMMSIs != null) {
             return mFixedStationMMSIs.get(index);
-        } else{
+        } else {
             return -1;
         }
     }
 
     /**
-     *
      * @param index index of the fixed station in the hashmap to be returned
      * @return fixed station X value
      */
-    public double getFixedStationX(int index){
-        if(mFixedStationXs != null) {
+    public double getFixedStationX(int index) {
+        if (mFixedStationXs != null) {
             return mFixedStationXs.get(index);
-        } else{
+        } else {
             return -1;
         }
     }
 
     /**
-     *
      * @param index index of the fixed station in the hashmap to be returned
      * @return fixed station Y value
      */
-    public double getFixedStationY(int index){
-        if(mFixedStationYs != null) {
+    public double getFixedStationY(int index) {
+        if (mFixedStationYs != null) {
             return mFixedStationYs.get(index);
-        } else{
+        } else {
             return -1;
         }
     }
 
     /**
-     *
      * @param index index of the fixed station in the hashmap to be returned
      * @return fixed station name
      */
-    public String getFixedStationName(int index){
-        if(mFixedStationNames != null) {
+    public String getFixedStationName(int index) {
+        if (mFixedStationNames != null) {
             return mFixedStationNames.get(index);
-        } else{
+        } else {
             return "";
         }
     }
 
     /**
-     *
      * @return number of mobile stations
      */
-    public int getMobileStationSize(){
-        if(mMobileStationMMSIs != null){
-            return  mMobileStationMMSIs.size();
+    public int getMobileStationSize() {
+        if (mMobileStationMMSIs != null) {
+            return mMobileStationMMSIs.size();
         } else {
             return 0;
         }
     }
 
     /**
-     *
      * @param index index of the mobile station in the hashmap to be returned
      * @return mobile station mmsi
      */
-    public int getMobileStationMMSI(int index){
-        if(mMobileStationMMSIs != null) {
+    public int getMobileStationMMSI(int index) {
+        if (mMobileStationMMSIs != null) {
             return mMobileStationMMSIs.get(index);
-        } else{
+        } else {
             return -1;
         }
     }
 
     /**
-     *
      * @param index index of the mobile station in the hashmap to be returned
      * @return mobile station X value
      */
-    public double getMobileXposition(int index){
-        if(mMobileStationXs != null) {
+    public double getMobileXposition(int index) {
+        if (mMobileStationXs != null) {
             return mMobileStationXs.get(index);
-        } else{
+        } else {
             return -1;
         }
     }
 
     /**
-     *
      * @param index index of the mobile station in the hashmap to be returned
      * @return mobile station Y value
      */
-    public double getMobileYposition(int index){
+    public double getMobileYposition(int index) {
         if (mMobileStationYs != null) {
             return mMobileStationYs.get(index);
-        } else{
+        } else {
             return -1;
         }
     }
 
     /**
-     *
      * @param index index of the mobile station in the hashmap to be returned
      * @return name of the mobile station
      */
-    public String getMobileStationName(int index){
+    public String getMobileStationName(int index) {
         if (mMobileStationNames != null) {
             return mMobileStationNames.get(index);
-        } else{
+        } else {
             return "";
         }
     }
 
     /**
-     *
      * @return number of static stations
      */
-    public int getStaticStationSize(){
+    public int getStaticStationSize() {
 
-        if(mStaticStationNames != null) {
+        if (mStaticStationNames != null) {
             return mStaticStationNames.size();
-        } else{
+        } else {
 
             return 0;
         }
     }
 
     /**
-     *
      * @param index index of the static station in the hashmap to be returned
      * @return name of the static station
      */
-    public String getStaticStationName(int index){
-        if(mStaticStationNames != null) {
+    public String getStaticStationName(int index) {
+        if (mStaticStationNames != null) {
             return mStaticStationNames.get(index);
-        } else{
+        } else {
             return "";
         }
     }
 
     /**
-     *
      * @param index index of the static station in the hashmap to be returned
      * @return static station X value
      */
-    public double getStaticXposition(int index){
-        if(mStaticStationXs != null) {
+    public double getStaticXposition(int index) {
+        if (mStaticStationXs != null) {
             return mStaticStationXs.get(index);
-        } else{
+        } else {
             return -1;
         }
     }
 
     /**
-     *
      * @param index index of the static station in the hashmap to be returned
      * @return static station Y value
      */
-    public double getStaticYposition(int index){
-        if(mStaticStationYs != null) {
+    public double getStaticYposition(int index) {
+        if (mStaticStationYs != null) {
             return mStaticStationYs.get(index);
-        } else{
+        } else {
             return -1;
         }
     }
 
     /**
-     *
      * @param index index of the waypoint in the hashmap to be returned
      * @return waypoint label
      */
-    public String getWaypointLabel(int index){
-        if(mWaypointsLabels != null) {
+    public String getWaypointLabel(int index) {
+        if (mWaypointsLabels != null) {
             return mWaypointsLabels.get(index);
-        } else{
+        } else {
             return "";
         }
     }
 
     /**
-     *
      * @return number of waypoints
      */
-    public int getWaypointSize(){
-        if(mWaypointsLabels != null) {
+    public int getWaypointSize() {
+        if (mWaypointsLabels != null) {
             return mWaypointsLabels.size();
         } else {
             return 0;
@@ -1946,27 +1970,25 @@ public class MapView extends View{
     }
 
     /**
-     *
      * @param index index of the waypoint in the hashmap to be returned
      * @return waypoint X value
      */
-    public double getWaypointXposition(int index){
-        if(mWaypointsXs != null) {
+    public double getWaypointXposition(int index) {
+        if (mWaypointsXs != null) {
             return mWaypointsXs.get(index);
-        } else{
+        } else {
             return -1;
         }
     }
 
     /**
-     *
      * @param index index of the waypoint in the hashmap to be returned
      * @return waypoint Y value
      */
-    public double getWaypointYposition(int index){
-        if (mWaypointsYs != null){
-            return  mWaypointsYs.get(index);
-        } else{
+    public double getWaypointYposition(int index) {
+        if (mWaypointsYs != null) {
+            return mWaypointsYs.get(index);
+        } else {
             return -1;
         }
     }
@@ -1974,17 +1996,17 @@ public class MapView extends View{
     /**
      * clear fixed station hash tables
      */
-    public static void clearFixedStationHashTables(){
-        if(mFixedStationNames != null) {
+    public static void clearFixedStationHashTables() {
+        if (mFixedStationNames != null) {
             mFixedStationNames.clear();
         }
-        if(mFixedStationMMSIs != null) {
+        if (mFixedStationMMSIs != null) {
             mFixedStationMMSIs.clear();
         }
-        if(mFixedStationXs != null) {
+        if (mFixedStationXs != null) {
             mFixedStationXs.clear();
         }
-        if(mFixedStationYs != null) {
+        if (mFixedStationYs != null) {
             mFixedStationYs.clear();
         }
     }
@@ -1992,17 +2014,17 @@ public class MapView extends View{
     /**
      * Clear mobile station hash tables
      */
-    public static void clearMobileStationHashTables(){
-        if(mMobileStationNames != null) {
+    public static void clearMobileStationHashTables() {
+        if (mMobileStationNames != null) {
             mMobileStationNames.clear();
         }
-        if(mMobileStationMMSIs != null) {
+        if (mMobileStationMMSIs != null) {
             mMobileStationMMSIs.clear();
         }
-        if(mMobileStationXs != null) {
+        if (mMobileStationXs != null) {
             mMobileStationXs.clear();
         }
-        if(mMobileStationYs != null) {
+        if (mMobileStationYs != null) {
             mMobileStationYs.clear();
         }
     }
@@ -2010,14 +2032,14 @@ public class MapView extends View{
     /**
      * Clear Static station hash tables
      */
-    public static void clearStaticStationHashTables(){
-        if(mStaticStationNames != null) {
+    public static void clearStaticStationHashTables() {
+        if (mStaticStationNames != null) {
             mStaticStationNames.clear();
         }
-        if(mStaticStationXs != null) {
+        if (mStaticStationXs != null) {
             mStaticStationXs.clear();
         }
-        if(mStaticStationYs != null) {
+        if (mStaticStationYs != null) {
             mStaticStationYs.clear();
         }
     }
@@ -2025,14 +2047,14 @@ public class MapView extends View{
     /**
      * Clear waypoint hash tables
      */
-    public static void clearWaypointHashTables(){
-        if(mWaypointsLabels != null) {
+    public static void clearWaypointHashTables() {
+        if (mWaypointsLabels != null) {
             mWaypointsLabels.clear();
         }
-        if(mWaypointsXs != null) {
+        if (mWaypointsXs != null) {
             mWaypointsXs.clear();
         }
-        if(mWaypointsYs != null) {
+        if (mWaypointsYs != null) {
             mWaypointsYs.clear();
         }
     }

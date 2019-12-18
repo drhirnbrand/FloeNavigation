@@ -333,7 +333,8 @@ public class AngleCalculationService extends IntentService {
 
     private double getBeta(final double lat1, final double lon1, final double lat2,
                            final double lon2) {
-        return NavigationFunctions.calculateBearing(lat1, lon1, lat2, lon2);
+        final double bearing = NavigationFunctions.calculateBearing(lat1, lon1, lat2, lon2);
+        return NavigationFunctions.calculateBetaFromBearing(bearing);
     }
 
     /**

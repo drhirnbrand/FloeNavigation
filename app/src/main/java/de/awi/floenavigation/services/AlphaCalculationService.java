@@ -210,7 +210,7 @@ public class AlphaCalculationService extends IntentService {
             return;
         }
 
-        double theta = getTheta(originLatitude, originLongitude, stationLatitude, stationLongitude);
+        theta = getTheta(originLatitude, originLongitude, stationLatitude, stationLongitude);
 
         //alpha = Math.abs(theta - beta);
         double alpha = theta - beta;
@@ -437,9 +437,12 @@ public class AlphaCalculationService extends IntentService {
         return NavigationFunctions.calculateDifference(lat1, lon1, lat2, lon2);
     }
 
+
     public double getTheta(final double lat1, final double lon1, final double lat2,
                            final double lon2) {
-        return NavigationFunctions.calculateBearing(lat1, lon1, lat2, lon2);
+        final double t = NavigationFunctions.calculateBearing(lat1, lon1, lat2, lon2);
+        return NavigationFunctions.calculateBetaFromBearing(t);
+        //        return  NavigationFunctions.calculateBearing(lat1, lon1, lat2, lon2);
     }
 
     public void updateDatabase(final int stationMMSI, final double x, final double y,

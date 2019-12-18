@@ -537,10 +537,17 @@ public class GridActivity extends Activity implements View.OnClickListener {
         // " + String.valueOf(originLongitude));
         //tabletTheta = NavigationFunctions.calculateAngleBeta(tabletLat, tabletLon,
         // originLatitude, originLongitude);
-        tabletTheta = NavigationFunctions
-                .calculateAngleBeta(originLatitude, originLongitude, tabletLat, tabletLon);
+
+        //        tabletTheta = NavigationFunctions
+        //                .calculateAngleBeta(originLatitude, originLongitude, tabletLat,
+        //                tabletLon);
+        final double tabletBearing = NavigationFunctions
+                .calculateBearing(originLatitude, originLongitude, tabletLat, tabletLon);
+        tabletTheta = NavigationFunctions.calculateBetaFromBearing(tabletBearing);
         //Log.d(TAG + "TabletParam", "TabletDistance: " + String.valueOf(tabletDistance));
         //tabletAlpha = Math.abs(tabletTheta - beta);
+
+
         tabletAlpha = tabletTheta - beta;
         tabletX = tabletDistance * Math.cos(Math.toRadians(tabletAlpha));
         tabletY = tabletDistance * Math.sin(Math.toRadians(tabletAlpha));

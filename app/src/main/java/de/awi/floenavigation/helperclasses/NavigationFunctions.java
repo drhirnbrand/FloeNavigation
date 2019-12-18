@@ -1,12 +1,12 @@
 package de.awi.floenavigation.helperclasses;
 
-import android.content.Context;
-
 import java.text.DecimalFormat;
 
 /**
- * This Class provides methods to calculate different Navigation parameters used by the App. The methods here are used by the background
- * services and different activities to calculate parameters of the stations. These methods are based on the Haversine formula.
+ * This Class provides methods to calculate different Navigation parameters used by the App. The
+ * methods here are used by the background
+ * services and different activities to calculate parameters of the stations. These methods are
+ * based on the Haversine formula.
  *
  * @see <a href="https://www.movable-type.co.uk/scripts/latlong.html">Navigation Functions</a>
  */
@@ -14,49 +14,58 @@ public class NavigationFunctions {
     private static final String TAG = "Navigation Functions";
 
     /**
-     * Given the current Latitude, Longitude, Speed and Course, this method will calculate and return the expected latitude and longitude
-     * in 10 seconds time using the Haversine formula. Depending on the latitude the Earth's radius may need to be adjusted in the method.
+     * Given the current Latitude, Longitude, Speed and Course, this method will calculate and
+     * return the expected latitude and longitude
+     * in 10 seconds time using the Haversine formula. Depending on the latitude the Earth's radius
+     * may need to be adjusted in the method.
      * This method assumes a linear and constant speed.
-     * @param lat Current Latitude of the Station/Ship
-     * @param lon Current Longitude of the Station/Ship
-     * @param speed Current Speed Over Ground of the Station/Ship
+     *
+     * @param lat     Current Latitude of the Station/Ship
+     * @param lon     Current Longitude of the Station/Ship
+     * @param speed   Current Speed Over Ground of the Station/Ship
      * @param bearing Current Course Over Ground of the Station/Ship
-     * @return an array of double containing the expected latitude and longitude in 10 seconds time, with the latitude at 0 index.
+     * @return an array of double containing the expected latitude and longitude in 10 seconds time,
+     * with the latitude at 0 index.
      */
-    public static double[] calculateNewPosition(double lat, double lon, double speed, double bearing){
+    public static double[] calculateNewPosition(double lat, double lon, double speed,
+                                                double bearing) {
 
         final double r = 6364.348 * 1000; // Earth Radius in m
         double distance = speed * 10 * 0.51444;
 
-        double lat2 = Math.asin(Math.sin(Math.toRadians(lat)) * Math.cos(distance / r)
-                + Math.cos(Math.toRadians(lat)) * Math.sin(distance / r) * Math.cos(Math.toRadians(bearing)));
-        double lon2 = Math.toRadians(lon)
-                + Math.atan2(Math.sin(Math.toRadians(bearing)) * Math.sin(distance / r) * Math.cos(Math.toRadians(lat)), Math.cos(distance / r)
-                - Math.sin(Math.toRadians(lat)) * Math.sin(lat2));
-        lat2 = Math.toDegrees( lat2);
+        double lat2 = Math.asin(Math.sin(Math.toRadians(lat)) * Math.cos(distance / r) +
+                                        Math.cos(Math.toRadians(lat)) * Math.sin(distance / r) *
+                                                Math.cos(Math.toRadians(bearing)));
+        double lon2 = Math.toRadians(lon) + Math.atan2(
+                Math.sin(Math.toRadians(bearing)) * Math.sin(distance / r) *
+                        Math.cos(Math.toRadians(lat)),
+                Math.cos(distance / r) - Math.sin(Math.toRadians(lat)) * Math.sin(lat2));
+        lat2 = Math.toDegrees(lat2);
         lon2 = Math.toDegrees(lon2);
         return new double[]{lat2, lon2};
     }
 
     /**
-     * Given two sets of coordinates this method will calculate the distance between the two points in meters using the Haversine formula.
+     * Given two sets of coordinates this method will calculate the distance between the two points
+     * in meters using the Haversine formula.
      * Depending on the latitude the Earth's radius may need to be adjusted in the method.
+     *
      * @param lat1 Latitude of the first point
      * @param lon1 Longitude of the first point
      * @param lat2 Latitude of the second point
      * @param lon2 Longitude of the second point
      * @return The distance between the two sets of latitude and longitude in meters.
      */
-    public static double calculateDifference(double lat1, double lon1, double lat2, double lon2){
+    public static double calculateDifference(double lat1, double lon1, double lat2, double lon2) {
 
         final double R = 6364.348; // Radius of the earth change this
 
         double latDistance = Math.toRadians(lat2 - lat1);
         double lonDistance = Math.toRadians(lon2 - lon1);
 
-        double a = Math.sin(latDistance / 2) * Math.sin(latDistance / 2)
-                + Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2))
-                * Math.sin(lonDistance / 2) * Math.sin(lonDistance / 2);
+        double a = Math.sin(latDistance / 2) * Math.sin(latDistance / 2) +
+                Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2)) *
+                        Math.sin(lonDistance / 2) * Math.sin(lonDistance / 2);
         double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 
         double distance = R * c * 1000; // convert to meters
@@ -68,21 +77,28 @@ public class NavigationFunctions {
 
     /*
     public static double[] calculateCoordinatePosition(double lat, double lon, Context context){
-        double[] referencePointsCoordinates = new DatabaseHelper(context).readBaseCoordinatePointsLatLon(context);
+        double[] referencePointsCoordinates = new DatabaseHelper(context)
+        .readBaseCoordinatePointsLatLon(context);
         //referencePointsCoordinates[0] = originLatitutde;
         //referencePointsCoordinates[1] = originLongitude;
         //referencePointsCoordinates[2] = xAxisReferenceLatitude;
         //referencePointsCoordinates[3] = xAxisReferenceLongitude;
-        double distance1 = calculateDifference(referencePointsCoordinates[0], referencePointsCoordinates[1], lat, lon);
-        double distance2 = calculateDifference(referencePointsCoordinates[2], referencePointsCoordinates[3], lat, lon);
-        double x = ((distance1 * distance1) - (distance2 * distance2) + (DatabaseHelper.station2InitialX * DatabaseHelper.station2InitialX))
+        double distance1 = calculateDifference(referencePointsCoordinates[0],
+        referencePointsCoordinates[1], lat, lon);
+        double distance2 = calculateDifference(referencePointsCoordinates[2],
+        referencePointsCoordinates[3], lat, lon);
+        double x = ((distance1 * distance1) - (distance2 * distance2) + (DatabaseHelper
+        .station2InitialX * DatabaseHelper.station2InitialX))
                 / (2 * DatabaseHelper.station2InitialX);
         double y = 0;
         if(x > 0){
             y = Math.sqrt((distance1 * distance1) - (x * x));
         }
-        double xAxisBearing = calculateBearing(referencePointsCoordinates[0], referencePointsCoordinates[1], referencePointsCoordinates[2], referencePointsCoordinates[3]);
-        double pointBearing = calculateBearing(referencePointsCoordinates[0], referencePointsCoordinates[1], lat, lon);
+        double xAxisBearing = calculateBearing(referencePointsCoordinates[0],
+        referencePointsCoordinates[1], referencePointsCoordinates[2],
+        referencePointsCoordinates[3]);
+        double pointBearing = calculateBearing(referencePointsCoordinates[0],
+        referencePointsCoordinates[1], lat, lon);
         if(pointBearing < xAxisBearing){
             y = -1 * y;
         } else if(xAxisBearing < 90 && pointBearing > 270){
@@ -96,50 +112,97 @@ public class NavigationFunctions {
     */
 
     /**
-     * Given two sets of points this method will calculate the bearing from the first coordinates to the second coordinates.
+     * Given two sets of points this method will calculate the bearing from the first coordinates to
+     * the second coordinates.
+     *
      * @param lat1 Latitude of the first point
      * @param lon1 Longitude of the first point
      * @param lat2 Latitude of the second point
      * @param lon2 Longitude of the second point
      * @return The bearing from the first point to the second point in Degrees
      */
-    public static double calculateBearing(double lat1, double lon1, double lat2, double lon2){
+    public static double calculateBearing(final double lat1, final double lon1, final double lat2,
+                                          final double lon2) {
         double y = Math.sin(Math.toRadians(lon2 - lon1)) * Math.cos(Math.toRadians(lat2));
         double x = (Math.cos(Math.toRadians(lat1)) * Math.sin(Math.toRadians(lat2))) -
-                (Math.sin(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2)) * Math.cos(Math.toRadians(lon2 - lon1)));
-        return Math.toDegrees(Math.atan2(y,x));
+                (Math.sin(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2)) *
+                        Math.cos(Math.toRadians(lon2 - lon1)));
+        return Math.toDegrees(Math.atan2(y, x));
+    }
+
+    public static double calculateNormalizedBearing(final double lat1, final double lon1,
+                                                    final double lat2, final double lon2) {
+        final double bearing = calculateBearing(lat1, lon1, lat2, lon2);
+        final double normalizedBearing = (bearing + 360) % 360;
+
+        return normalizedBearing;
+    }
+
+    public static double calculateBetaFromBearing(final double bearing) {
+
+        final double nBrng = (bearing + 360) % 360;
+
+        if (nBrng == 0.0) {
+            return 90.0;
+        }
+        if (nBrng > 0.0 && nBrng < 90.0) {
+            return 90.0 - nBrng;
+        }
+        if (nBrng == 90.0) {
+            return 0.0;
+        }
+        if (nBrng > 90.0 && nBrng < 180.0) {
+            return -(nBrng - 90.0);
+        }
+        if (nBrng == 180) {
+            return -90.0;
+        }
+        if (nBrng > 180.0 && nBrng < 270.0) {
+            return -(nBrng - 90.0);
+        }
+        if (nBrng == 270.0) {
+            return 180.0;
+        }
+        if (nBrng > 270.0 && nBrng < 360) {
+            return (360 - nBrng) + 90;
+        }
+        throw new IllegalArgumentException("Unable to compute beta from bearing!");
     }
 
     /**
-     * Converts the Geographic coordinate (latitude/longitude) passed to it from Decimal form (Degree.xxx) to Degree Minute Second form.
+     * Converts the Geographic coordinate (latitude/longitude) passed to it from Decimal form
+     * (Degree.xxx) to Degree Minute Second form.
+     *
      * @param decCoord the coordinate to be converted.
      * @return The Converted coordinate in Degree Minutes Seconds as a String.
      */
-    public static String convertToDegMinSec(double decCoord){
+    public static String convertToDegMinSec(double decCoord) {
 
         String degMinSec;
         DecimalFormat df = new DecimalFormat("#.0000");
 
         double decCoordinate = Math.abs(decCoord);
-        int deg = (int)decCoordinate;
+        int deg = (int) decCoordinate;
         double temp = (decCoordinate - deg) * 60;
-        int min = (int)temp;
+        int min = (int) temp;
         double sec = ((temp - min) * 60);
 
-        degMinSec = String.valueOf(deg) + "°" + String.valueOf(min) + "'" + String.valueOf(df.format(sec))+ "\"";
+        degMinSec = String.valueOf(deg) + "°" + String.valueOf(min) + "'" +
+                String.valueOf(df.format(sec)) + "\"";
 
         return degMinSec;
     }
 
     /**
      * This method calculates the angle between two points from the longitudinal axis in degrees.
+     *
      * @param lat1 Latitude of the first point
      * @param lon1 Longitude of the first point
      * @param lat2 Latitude of the second point
      * @param lon2 Longitude of the second point
      * @return The angle between the two points from the longitudinal axis in degrees.
      */
-    public static double calculateAngleBeta(double lat1, double lon1, double lat2, double lon2){
+    public static double calculateAngleBeta(double lat1, double lon1, double lat2, double lon2) {
 
         //double fixedLat = lat1;
         //double fixedLon = lon2;
@@ -176,22 +239,24 @@ public class NavigationFunctions {
     }
 
     /**
-     * This method formats a given set of coordinates in decimal form (Degree.xxx) to Degree Minute Second along with Direction.
-     * @param latitude Latitude in Decimal form
+     * This method formats a given set of coordinates in decimal form (Degree.xxx) to Degree Minute
+     * Second along with Direction.
+     *
+     * @param latitude  Latitude in Decimal form
      * @param longitude Longitude in Decimal
      * @return The formatted coordinates in a String Array with latitude first and longitude second.
      */
-    public static String[] locationInDegrees(double latitude, double longitude){
+    public static String[] locationInDegrees(double latitude, double longitude) {
 
         int MAX_SIZE = 2;
         String[] coordinatesInDegree = new String[MAX_SIZE];
         String latDirection = "N";
         String lonDirection = "E";
 
-        if(latitude < 0){
+        if (latitude < 0) {
             latDirection = "S";
         }
-        if(longitude < 0){
+        if (longitude < 0) {
             lonDirection = "W";
         }
 

@@ -14,7 +14,6 @@ import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.os.Bundle;
 import android.os.Handler;
-import androidx.fragment.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -27,28 +26,39 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.fragment.app.Fragment;
+
+import de.awi.floenavigation.R;
+import de.awi.floenavigation.admin.AdminPageActivity;
+import de.awi.floenavigation.aismessages.AISDecodingService;
 import de.awi.floenavigation.dashboard.MainActivity;
 import de.awi.floenavigation.helperclasses.ActionBarActivity;
-import de.awi.floenavigation.admin.AdminPageActivity;
 import de.awi.floenavigation.helperclasses.DatabaseHelper;
 import de.awi.floenavigation.helperclasses.FragmentChangeListener;
-import de.awi.floenavigation.services.GPS_Service;
 import de.awi.floenavigation.helperclasses.NavigationFunctions;
-import de.awi.floenavigation.R;
-import de.awi.floenavigation.aismessages.AISDecodingService;
+import de.awi.floenavigation.services.GPS_Service;
 
 /**
- * This {@link Fragment} runs on top of the {@link DeploymentActivity} and calculates the location parameters of a Fixed Station which is being deployed.
+ * This {@link Fragment} runs on top of the {@link DeploymentActivity} and calculates the location
+ * parameters of a Fixed Station which is being deployed.
  * <p>
- *     The {@link StationInstallFragment} inserts the MMSI number in to the {@link DatabaseHelper#fixedStationTable} and {@link DatabaseHelper#stationListTable}.
- *     This fragment waits and checks the {@link DatabaseHelper#fixedStationTable} to see if a Position Report has been received from the given MMSI number.
- *     The Position Report {@link de.awi.floenavigation.aismessages.PostnReportClassA} and {@link de.awi.floenavigation.aismessages.PostnReportClassB} are received, decoded
- *     and inserted in to the Database by {@link AISDecodingService}. If a position report is received the fragment uses the location data (Latitude and Longitude) from the Position to calculate the angle Alpha and x and y coordinates of
- *     the Fixed Station and insert these values in {@link DatabaseHelper#fixedStationTable}. If the position report is not received for a specified time
- *     the {@link StationInstallFragment} is called again to re-enter MMSI number.
- *     The Layout of this fragment shows a {@link ProgressBar} with a waiting message when waiting for the Position Report and once it receives the position report
- *     it shows a simple successful message with a button.
+ * The {@link StationInstallFragment} inserts the MMSI number in to the {@link
+ * DatabaseHelper#fixedStationTable} and {@link DatabaseHelper#stationListTable}.
+ * This fragment waits and checks the {@link DatabaseHelper#fixedStationTable} to see if a Position
+ * Report has been received from the given MMSI number.
+ * The Position Report {@link de.awi.floenavigation.aismessages.PostnReportClassA} and {@link
+ * de.awi.floenavigation.aismessages.PostnReportClassB} are received, decoded
+ * and inserted in to the Database by {@link AISDecodingService}. If a position report is received
+ * the fragment uses the location data (Latitude and Longitude) from the Position to calculate the
+ * angle Alpha and x and y coordinates of
+ * the Fixed Station and insert these values in {@link DatabaseHelper#fixedStationTable}. If the
+ * position report is not received for a specified time
+ * the {@link StationInstallFragment} is called again to re-enter MMSI number.
+ * The Layout of this fragment shows a {@link ProgressBar} with a waiting message when waiting for
+ * the Position Report and once it receives the position report
+ * it shows a simple successful message with a button.
  * </p>
+ *
  * @see AISDecodingService
  * @see DeploymentActivity
  * @see Runnable
@@ -63,13 +73,15 @@ public class AISStationCoordinateFragment extends Fragment implements View.OnCli
     private static final String TAG = "AISStationDeployFrag";
 
     /**
-     * Default value to insert in the column {@link DatabaseHelper#predictionTime} when a new {@link DatabaseHelper#fixedStationTable} is
+     * Default value to insert in the column {@link DatabaseHelper#predictionTime} when a new {@link
+     * DatabaseHelper#fixedStationTable} is
      * deployed.
      */
     private static final double DEFAULT_PREDICTION_TIME = 0.0;
 
     /**
-     * Text which is displayed when a Position report is received, location parameters are calculated and inserted in to the Database successfully.
+     * Text which is displayed when a Position report is received, location parameters are
+     * calculated and inserted in to the Database successfully.
      */
     private static final String changeText = "AIS Packet Received from the new Station";
 
@@ -79,7 +91,8 @@ public class AISStationCoordinateFragment extends Fragment implements View.OnCli
     private int MMSINumber;
 
     /**
-     * A {@link Handler} which is runs the {@link Runnable} {@link #aisStationRunnable} which periodically checks for the Position Report.
+     * A {@link Handler} which is runs the {@link Runnable} {@link #aisStationRunnable} which
+     * periodically checks for the Position Report.
      */
     private final Handler handler = new Handler();
 
@@ -114,7 +127,8 @@ public class AISStationCoordinateFragment extends Fragment implements View.OnCli
     private double stationLongitude;
 
     /**
-     * Distance of the Fixed Station from the Origin. Calculated between {@link #originLatitude}, {@link #originLatitude} and {@link #stationLatitude}, {@link #stationLongitude}
+     * Distance of the Fixed Station from the Origin. Calculated between {@link #originLatitude},
+     * {@link #originLatitude} and {@link #stationLatitude}, {@link #stationLongitude}
      * using the Haversine formula
      */
     private double distance;
@@ -135,33 +149,39 @@ public class AISStationCoordinateFragment extends Fragment implements View.OnCli
     private double theta;
 
     /**
-     * The Angle alpha of the Fixed Station which it makes with the x-Axis of the Floe's Coordinate System
+     * The Angle alpha of the Fixed Station which it makes with the x-Axis of the Floe's Coordinate
+     * System
      */
     private double alpha;
 
     /**
-     * The interval at which the Fragment checks the Database table {@link DatabaseHelper#fixedStationTable} for insertion of Position Report by
+     * The interval at which the Fragment checks the Database table {@link
+     * DatabaseHelper#fixedStationTable} for insertion of Position Report by
      * {@link AISDecodingService}
      */
     private static final int checkInterval = 1000;
 
     /**
-     * Variable for keeping track of the time the fragment waits for the Position Report. It is increment every time the {@link #aisStationRunnable} runs.
+     * Variable for keeping track of the time the fragment waits for the Position Report. It is
+     * increment every time the {@link #aisStationRunnable} runs.
      */
     private int autoCancelTimer = 0;
 
     /**
-     * A constant value specifying how long the Fragment will wait for a Position Report. Current value is 300 seconds or 5 minutes.
+     * A constant value specifying how long the Fragment will wait for a Position Report. Current
+     * value is 300 seconds or 5 minutes.
      */
     private final static int MAX_TIMER = 300; //5 mins timer
 
     /**
-     * A boolean variable which is <code>true</code> when the Position report has been received and the Station is insert in to the Database.
+     * A boolean variable which is <code>true</code> when the Position report has been received and
+     * the Station is insert in to the Database.
      */
     private boolean isSetupComplete = false;
 
     /**
-     * {@link Runnable} which checks periodically (as specified by {@link #checkInterval}) for the Position report data in {@link DatabaseHelper#fixedStationTable}.
+     * {@link Runnable} which checks periodically (as specified by {@link #checkInterval}) for the
+     * Position report data in {@link DatabaseHelper#fixedStationTable}.
      */
     private Runnable aisStationRunnable;
 
@@ -181,13 +201,15 @@ public class AISStationCoordinateFragment extends Fragment implements View.OnCli
     private boolean packetStatus = false;
 
     /**
-     * A {@link Handler} which is runs a {@link Runnable} object which changes the Action Bar icons colors according to {@link #packetStatus}
+     * A {@link Handler} which is runs a {@link Runnable} object which changes the Action Bar icons
+     * colors according to {@link #packetStatus}
      * and {@link #locationStatus}.
      */
     private final Handler statusHandler = new Handler();
 
     /**
-     * {@link BroadcastReceiver} for checking the WiFi connection to an AIS Transponder which is broadcast from {@link de.awi.floenavigation.network.NetworkMonitor}.
+     * {@link BroadcastReceiver} for checking the WiFi connection to an AIS Transponder which is
+     * broadcast from {@link de.awi.floenavigation.network.NetworkMonitor}.
      */
     private BroadcastReceiver aisPacketBroadcastReceiver;
 
@@ -204,16 +226,26 @@ public class AISStationCoordinateFragment extends Fragment implements View.OnCli
     }
 
     /**
-     * Default {@link Fragment#onCreateView(LayoutInflater, ViewGroup, Bundle)}. Reads the MMSI number of the Fixed Station passed to it by {@link StationInstallFragment}.
+     * Default {@link Fragment#onCreateView(LayoutInflater, ViewGroup, Bundle)}. Reads the MMSI
+     * number of the Fixed Station passed to it by {@link StationInstallFragment}.
      * The layout shows a {@link ProgressBar} with a waiting message and a cancel button.
      * <p>
-     *     The fragment runs the {@link #aisStationRunnable} to check the {@link DatabaseHelper#fixedStationTable} if the position data has been inserted by the {@link AISDecodingService}.
-     *     If the data is inserted the Fragment calculates the {@link #distance}, {@link #alpha}, {@link #stationX} and {@link #stationY} of the Fixed Station and updates
-     *     the {@link DatabaseHelper#fixedStationTable} and changes the Layout to show a Finish button pressing which will start the {@link AdminPageActivity}.
-     *     If the data is not yet inserted the {@link #aisStationRunnable} increments {@link #autoCancelTimer} and re-posts the {@link #aisStationRunnable} with a delay of {@link #checkInterval}.
-     *     If the {@link #autoCancelTimer} values goes above {@link #MAX_TIMER} then the MMSI is removed from the {@link DatabaseHelper#fixedStationTable} and {@link DatabaseHelper#stationListTable}
-     *     the {@link #aisStationRunnable} is cancelled and control is returned to {@link StationInstallFragment} to re-enter a valid MMSI number.
+     * The fragment runs the {@link #aisStationRunnable} to check the {@link
+     * DatabaseHelper#fixedStationTable} if the position data has been inserted by the {@link
+     * AISDecodingService}.
+     * If the data is inserted the Fragment calculates the {@link #distance}, {@link #alpha}, {@link
+     * #stationX} and {@link #stationY} of the Fixed Station and updates
+     * the {@link DatabaseHelper#fixedStationTable} and changes the Layout to show a Finish button
+     * pressing which will start the {@link AdminPageActivity}.
+     * If the data is not yet inserted the {@link #aisStationRunnable} increments {@link
+     * #autoCancelTimer} and re-posts the {@link #aisStationRunnable} with a delay of {@link
+     * #checkInterval}.
+     * If the {@link #autoCancelTimer} values goes above {@link #MAX_TIMER} then the MMSI is removed
+     * from the {@link DatabaseHelper#fixedStationTable} and {@link DatabaseHelper#stationListTable}
+     * the {@link #aisStationRunnable} is cancelled and control is returned to {@link
+     * StationInstallFragment} to re-enter a valid MMSI number.
      * </p>
+     *
      * @param inflater
      * @param container
      * @param savedInstanceState
@@ -238,75 +270,99 @@ public class AISStationCoordinateFragment extends Fragment implements View.OnCli
             @Override
             public void run() {
                 try {
-                    SQLiteOpenHelper dbHelper = DatabaseHelper.getDbInstance(getActivity());;
+                    SQLiteOpenHelper dbHelper = DatabaseHelper.getDbInstance(getActivity());
+                    ;
                     SQLiteDatabase db = dbHelper.getReadableDatabase();
                     if (checkForAISPacket(db)) {
                         Log.d(TAG, "AIS Packet Received");
                         if (readParamsFromDatabase(db)) {
-                            distance = NavigationFunctions.calculateDifference(originLatitude, originLongitude, stationLatitude, stationLongitude);
-                            theta = NavigationFunctions.calculateAngleBeta(originLatitude, originLongitude, stationLatitude, stationLongitude);
+                            distance = NavigationFunctions
+                                    .calculateDifference(originLatitude, originLongitude,
+                                                         stationLatitude, stationLongitude);
+                            //                            theta = NavigationFunctions
+                            //                            .calculateAngleBeta(originLatitude,
+                            //                            originLongitude, stationLatitude,
+                            //                            stationLongitude);
+                            theta = getTheta(originLatitude, originLongitude, stationLatitude,
+                                             stationLongitude);
                             //alpha = Math.abs(theta - beta);
                             alpha = theta - beta;
                             stationX = distance * Math.cos(Math.toRadians(alpha));
                             stationY = distance * Math.sin(Math.toRadians(alpha));
                             ContentValues stationUpdate = new ContentValues();
-                            stationUpdate.put(DatabaseHelper.predictionTime, DEFAULT_PREDICTION_TIME);
+                            stationUpdate
+                                    .put(DatabaseHelper.predictionTime, DEFAULT_PREDICTION_TIME);
                             stationUpdate.put(DatabaseHelper.alpha, alpha);
                             stationUpdate.put(DatabaseHelper.distance, distance);
                             stationUpdate.put(DatabaseHelper.xPosition, stationX);
                             stationUpdate.put(DatabaseHelper.yPosition, stationY);
                             db.update(DatabaseHelper.fixedStationTable, stationUpdate,
-                                    DatabaseHelper.mmsi + " = ?", new String[] {String.valueOf(MMSINumber)});
+                                      DatabaseHelper.mmsi + " = ?",
+                                      new String[]{String.valueOf(MMSINumber)});
                             packetReceived();
-                        } else{
+                        } else {
                             Log.d(TAG, "Error Reading from Database");
                             //Do something here
-                            Toast.makeText(getActivity(), "Error in Database. Please Try again", Toast.LENGTH_LONG).show();
+                            Toast.makeText(getActivity(), "Error in Database. Please Try again",
+                                           Toast.LENGTH_LONG).show();
                         }
                     } else {
                         Log.d(TAG, "Waiting for AIS Packet");
                         autoCancelTimer++;
                         handler.postDelayed(this, checkInterval);
-                        if (autoCancelTimer >= MAX_TIMER){
+                        if (autoCancelTimer >= MAX_TIMER) {
                             removeMMSIfromDBTable();
-                            Toast.makeText(getActivity(), "No relevant packets received", Toast.LENGTH_LONG).show();
+                            Toast.makeText(getActivity(), "No relevant packets received",
+                                           Toast.LENGTH_LONG).show();
                             handler.removeCallbacks(this);
-                            StationInstallFragment stationInstallFragment = new StationInstallFragment();
+                            StationInstallFragment stationInstallFragment =
+                                    new StationInstallFragment();
                             FragmentChangeListener fc = (FragmentChangeListener) getActivity();
                             fc.replaceFragment(stationInstallFragment);
                         }
 
                     }
-                } catch (SQLiteException e){
+                } catch (SQLiteException e) {
                     e.printStackTrace();
                     Log.d(TAG, "Database Error");
                 }
             }
+
         };
         handler.post(aisStationRunnable);
         setHasOptionsMenu(true);
         return layout;
     }
 
+    private double getTheta(final double originLatitude, final double originLongitude,
+                            final double stationLatitude, final double stationLongitude) {
+        theta = NavigationFunctions
+                .calculateAngleBeta(originLatitude, originLongitude, stationLatitude,
+                                    stationLongitude);
+        return theta;
+    }
+
     /**
-     * Called when the Fragment come back from background to foreground. Disables the Up Button and calls the
+     * Called when the Fragment come back from background to foreground. Disables the Up Button and
+     * calls the
      * {@link #actionBarUpdatesFunction()} to set the correct icon colors in the Action Bar.
      */
     @Override
-    public void onResume(){
+    public void onResume() {
         super.onResume();
         DeploymentActivity activity = (DeploymentActivity) getActivity();
-        if(activity != null){
+        if (activity != null) {
             activity.hideUpButton();
         }
         actionBarUpdatesFunction();
     }
 
     /**
-     * Called when the Fragment is no longer in foreground. It unregisters the AIS and GPS {@link BroadcastReceiver}s.
+     * Called when the Fragment is no longer in foreground. It unregisters the AIS and GPS {@link
+     * BroadcastReceiver}s.
      */
     @Override
-    public void onPause(){
+    public void onPause() {
         super.onPause();
         getActivity().unregisterReceiver(broadcastReceiver);
         broadcastReceiver = null;
@@ -315,19 +371,23 @@ public class AISStationCoordinateFragment extends Fragment implements View.OnCli
     }
 
     /**
-     * Default Handler for the Finish button on the Screen. It calls the {@link #onClickFinish()} method.
+     * Default Handler for the Finish button on the Screen. It calls the {@link #onClickFinish()}
+     * method.
+     *
      * @param v
      */
     @Override
-    public void onClick(View v){
-        switch (v.getId()){
+    public void onClick(View v) {
+        switch (v.getId()) {
             case R.id.station_finish:
                 onClickFinish();
         }
     }
 
     /**
-     * Creates the Action Bar icons on top of the screen. By default it shows the GPS icon, AIS Connectivity icon and the Grid Setup icon.
+     * Creates the Action Bar icons on top of the screen. By default it shows the GPS icon, AIS
+     * Connectivity icon and the Grid Setup icon.
+     *
      * @param menu
      * @param inflater
      */
@@ -345,39 +405,49 @@ public class AISStationCoordinateFragment extends Fragment implements View.OnCli
         aisIconItem = menu.findItem(iconItems[2]);
         aisIconItem.setShowAsActionFlags(MenuItem.SHOW_AS_ACTION_ALWAYS);
 
-        if(MainActivity.numOfBaseStations >= DatabaseHelper.INITIALIZATION_SIZE) {
+        if (MainActivity.numOfBaseStations >= DatabaseHelper.INITIALIZATION_SIZE) {
             if (gridSetupIconItem != null) {
-                gridSetupIconItem.getIcon().setColorFilter(Color.parseColor(ActionBarActivity.colorGreen), PorterDuff.Mode.SRC_IN);
+                gridSetupIconItem.getIcon()
+                        .setColorFilter(Color.parseColor(ActionBarActivity.colorGreen),
+                                        PorterDuff.Mode.SRC_IN);
             }
-        } else{
+        } else {
             if (gridSetupIconItem != null) {
-                gridSetupIconItem.getIcon().setColorFilter(Color.parseColor(ActionBarActivity.colorRed), PorterDuff.Mode.SRC_IN);
+                gridSetupIconItem.getIcon()
+                        .setColorFilter(Color.parseColor(ActionBarActivity.colorRed),
+                                        PorterDuff.Mode.SRC_IN);
             }
         }
 
-        super.onCreateOptionsMenu(menu,inflater);
+        super.onCreateOptionsMenu(menu, inflater);
     }
 
     /**
-     * Removes the {@link #MMSINumber} from the Database tables {@link DatabaseHelper#fixedStationTable} and {@link DatabaseHelper#stationListTable}.
-     * Called when a position report is not received within the specified time interval or when the cancel button is pressed.
+     * Removes the {@link #MMSINumber} from the Database tables {@link
+     * DatabaseHelper#fixedStationTable} and {@link DatabaseHelper#stationListTable}.
+     * Called when a position report is not received within the specified time interval or when the
+     * cancel button is pressed.
      */
     private void removeMMSIfromDBTable() {
         SQLiteOpenHelper dbHelper = DatabaseHelper.getDbInstance(getActivity());
         SQLiteDatabase db = dbHelper.getReadableDatabase();
 
-        db.delete(DatabaseHelper.fixedStationTable, DatabaseHelper.mmsi + " = ?", new String[]{String.valueOf(MMSINumber)});
-        db.delete(DatabaseHelper.stationListTable, DatabaseHelper.mmsi + " = ?", new String[]{String.valueOf(MMSINumber)});
+        db.delete(DatabaseHelper.fixedStationTable, DatabaseHelper.mmsi + " = ?",
+                  new String[]{String.valueOf(MMSINumber)});
+        db.delete(DatabaseHelper.stationListTable, DatabaseHelper.mmsi + " = ?",
+                  new String[]{String.valueOf(MMSINumber)});
         Log.d(TAG, "Deleted MMSI from db tables");
 
     }
 
     /**
-     * Called when an AIS Packet (Position Report) is received from the Fixed Station. It changes the Layout of the fragment.
-     * It hides the {@link ProgressBar} and the waiting message and replaces it with a new successful insertion message {@link #changeText}
+     * Called when an AIS Packet (Position Report) is received from the Fixed Station. It changes
+     * the Layout of the fragment.
+     * It hides the {@link ProgressBar} and the waiting message and replaces it with a new
+     * successful insertion message {@link #changeText}
      * and changes the text of the Cancel button to Finish.
      */
-    private void packetReceived(){
+    private void packetReceived() {
         View v = getView();
         ProgressBar progress = v.findViewById(R.id.aisStationProgress);
         progress.stopNestedScroll();
@@ -393,37 +463,49 @@ public class AISStationCoordinateFragment extends Fragment implements View.OnCli
     }
 
     /**
-     * Checks the Database table {@link DatabaseHelper#fixedStationTable} if the Position data of the Fixed Station has been inserted by
-     * the {@link AISDecodingService}. If the data is inserted it sets {@link #stationLatitude} and {@link #stationLongitude} to the received values.
+     * Checks the Database table {@link DatabaseHelper#fixedStationTable} if the Position data of
+     * the Fixed Station has been inserted by
+     * the {@link AISDecodingService}. If the data is inserted it sets {@link #stationLatitude} and
+     * {@link #stationLongitude} to the received values.
+     *
      * @return <code>true</code> if packet has been received.
      */
-    private boolean checkForAISPacket(SQLiteDatabase db){
+    private boolean checkForAISPacket(SQLiteDatabase db) {
         boolean success = false;
         int locationReceived;
         Cursor cursor = null;
-        try{
+        try {
 
             cursor = db.query(DatabaseHelper.fixedStationTable,
-                    new String[]{DatabaseHelper.mmsi, DatabaseHelper.latitude, DatabaseHelper.longitude, DatabaseHelper.isLocationReceived},
-                    DatabaseHelper.mmsi + " = ? AND (" + DatabaseHelper.packetType + " = ? OR " + DatabaseHelper.packetType + " = ? )",
-                    new String[] {Integer.toString(MMSINumber), Integer.toString(AISDecodingService.POSITION_REPORT_CLASSA_TYPE_1), Integer.toString(AISDecodingService.POSITION_REPORT_CLASSB)},
-                    null, null, null);
-            if(cursor.moveToFirst()){
-                locationReceived = cursor.getInt(cursor.getColumnIndexOrThrow(DatabaseHelper.isLocationReceived));
-                if(locationReceived == DatabaseHelper.IS_LOCATION_RECEIVED) {
-                    stationLatitude = cursor.getDouble(cursor.getColumnIndexOrThrow(DatabaseHelper.latitude));
-                    stationLongitude = cursor.getDouble(cursor.getColumnIndexOrThrow(DatabaseHelper.longitude));
+                              new String[]{DatabaseHelper.mmsi, DatabaseHelper.latitude,
+                                           DatabaseHelper.longitude,
+                                           DatabaseHelper.isLocationReceived},
+                              DatabaseHelper.mmsi + " = ? AND (" + DatabaseHelper.packetType +
+                                      " = ? OR " + DatabaseHelper.packetType + " = ? )",
+                              new String[]{Integer.toString(MMSINumber), Integer.toString(
+                                      AISDecodingService.POSITION_REPORT_CLASSA_TYPE_1),
+                                           Integer.toString(
+                                                   AISDecodingService.POSITION_REPORT_CLASSB)},
+                              null, null, null);
+            if (cursor.moveToFirst()) {
+                locationReceived = cursor.getInt(
+                        cursor.getColumnIndexOrThrow(DatabaseHelper.isLocationReceived));
+                if (locationReceived == DatabaseHelper.IS_LOCATION_RECEIVED) {
+                    stationLatitude =
+                            cursor.getDouble(cursor.getColumnIndexOrThrow(DatabaseHelper.latitude));
+                    stationLongitude = cursor.getDouble(
+                            cursor.getColumnIndexOrThrow(DatabaseHelper.longitude));
                     success = true;
                     //Toast.makeText(getActivity(), "Success True", Toast.LENGTH_LONG).show();
                     Log.d(TAG, "Packet Recieved from AIS Station");
                 }
             }
             //db.close();
-        } catch (SQLiteException e){
+        } catch (SQLiteException e) {
             Log.d(TAG, "Database Unavailable");
             Toast.makeText(getActivity(), "Database Unavailable", Toast.LENGTH_LONG).show();
         } finally {
-            if (cursor != null){
+            if (cursor != null) {
                 cursor.close();
             }
         }
@@ -431,17 +513,21 @@ public class AISStationCoordinateFragment extends Fragment implements View.OnCli
     }
 
     /**
-     * Handler for the Finish/Cancel Button. If the Fixed Station Deployment is complete meaning its position is received, parameters are calculated
-     * and inserted in to the database then the Fragment is finished and {@link AdminPageActivity} is started.
-     * If the Deployment is not yet complete that means the current deployment needs to be canceled, the {@link #MMSINumber} is removed
-     * from the Database tables and {@link #handler} callbacks are removed and {@link StationInstallFragment} is started to start a new deployment.
+     * Handler for the Finish/Cancel Button. If the Fixed Station Deployment is complete meaning its
+     * position is received, parameters are calculated
+     * and inserted in to the database then the Fragment is finished and {@link AdminPageActivity}
+     * is started.
+     * If the Deployment is not yet complete that means the current deployment needs to be canceled,
+     * the {@link #MMSINumber} is removed
+     * from the Database tables and {@link #handler} callbacks are removed and {@link
+     * StationInstallFragment} is started to start a new deployment.
      */
-    private void onClickFinish(){
-        if(isSetupComplete) {
+    private void onClickFinish() {
+        if (isSetupComplete) {
             Toast.makeText(getContext(), "Deployment Complete", Toast.LENGTH_LONG).show();
             Intent intent = new Intent(getActivity(), AdminPageActivity.class);
             getActivity().startActivity(intent);
-        } else{
+        } else {
             removeMMSIfromDBTable();
             Log.d(TAG, "AIS Station Installation Cancelled");
             handler.removeCallbacks(aisStationRunnable);
@@ -449,7 +535,7 @@ public class AISStationCoordinateFragment extends Fragment implements View.OnCli
             Bundle bundle = new Bundle();
             bundle.putBoolean("stationTypeAIS", true);
             stationInstallFragment.setArguments(bundle);
-            FragmentChangeListener fc = (FragmentChangeListener)getActivity();
+            FragmentChangeListener fc = (FragmentChangeListener) getActivity();
             if (fc != null) {
                 fc.replaceFragment(stationInstallFragment);
             }
@@ -457,65 +543,69 @@ public class AISStationCoordinateFragment extends Fragment implements View.OnCli
     }
 
     /**
-     * Reads the basic parameters of the Floe's Coordinate system from the Database. Reads the values of {@link #originMMSI}, {@link #originLatitude}, {@link #originLongitude},
+     * Reads the basic parameters of the Floe's Coordinate system from the Database. Reads the
+     * values of {@link #originMMSI}, {@link #originLatitude}, {@link #originLongitude},
      * {@link #beta} from their respective tables.
+     *
      * @param db An instance {@link SQLiteDatabase}
      * @return <code>true</code> if all the values are read successfully.
      */
-    private boolean readParamsFromDatabase(SQLiteDatabase db){
+    private boolean readParamsFromDatabase(SQLiteDatabase db) {
         Cursor baseStationCursor = null;
         Cursor fixedStationCursor = null;
         Cursor betaCursor = null;
         try {
-            baseStationCursor = db.query(DatabaseHelper.baseStationTable,
-                    new String[] {DatabaseHelper.mmsi},
-                    DatabaseHelper.isOrigin +" = ?",
-                    new String[]{String.valueOf(DatabaseHelper.ORIGIN)},
-                    null, null, null);
-            if (baseStationCursor.getCount() != 1){
+            baseStationCursor =
+                    db.query(DatabaseHelper.baseStationTable, new String[]{DatabaseHelper.mmsi},
+                             DatabaseHelper.isOrigin + " = ?",
+                             new String[]{String.valueOf(DatabaseHelper.ORIGIN)}, null, null, null);
+            if (baseStationCursor.getCount() != 1) {
                 Log.d(TAG, "Error Reading from BaseStation Table");
                 return false;
-            } else{
-                if(baseStationCursor.moveToFirst()){
-                    originMMSI = baseStationCursor.getInt(baseStationCursor.getColumnIndex(DatabaseHelper.mmsi));
+            } else {
+                if (baseStationCursor.moveToFirst()) {
+                    originMMSI = baseStationCursor
+                            .getInt(baseStationCursor.getColumnIndex(DatabaseHelper.mmsi));
                 }
             }
             fixedStationCursor = db.query(DatabaseHelper.fixedStationTable,
-                    new String[] {DatabaseHelper.latitude, DatabaseHelper.longitude},
-                    DatabaseHelper.mmsi +" = ?",
-                    new String[] {String.valueOf(originMMSI)},
-                    null, null, null);
-            if (fixedStationCursor.getCount() != 1){
+                                          new String[]{DatabaseHelper.latitude,
+                                                       DatabaseHelper.longitude},
+                                          DatabaseHelper.mmsi + " = ?",
+                                          new String[]{String.valueOf(originMMSI)}, null, null,
+                                          null);
+            if (fixedStationCursor.getCount() != 1) {
                 Log.d(TAG, "Error Reading Origin Latitude Longtidue");
                 return false;
-            } else{
-                if(fixedStationCursor.moveToFirst()){
-                    originLatitude = fixedStationCursor.getDouble(fixedStationCursor.getColumnIndex(DatabaseHelper.latitude));
-                    originLongitude = fixedStationCursor.getDouble(fixedStationCursor.getColumnIndex(DatabaseHelper.longitude));
+            } else {
+                if (fixedStationCursor.moveToFirst()) {
+                    originLatitude = fixedStationCursor
+                            .getDouble(fixedStationCursor.getColumnIndex(DatabaseHelper.latitude));
+                    originLongitude = fixedStationCursor
+                            .getDouble(fixedStationCursor.getColumnIndex(DatabaseHelper.longitude));
                 }
             }
             betaCursor = db.query(DatabaseHelper.betaTable,
-                    new String[]{DatabaseHelper.beta, DatabaseHelper.updateTime},
-                    null, null,
-                    null, null, null);
+                                  new String[]{DatabaseHelper.beta, DatabaseHelper.updateTime},
+                                  null, null, null, null, null);
 
             if (betaCursor.getCount() == 1) {
                 if (betaCursor.moveToFirst()) {
 
                     beta = betaCursor.getDouble(betaCursor.getColumnIndex(DatabaseHelper.beta));
                     //Log.d(TAG, String.valueOf(beta));
-                } else{
+                } else {
                     Log.d(TAG, "Beta Table Move to first failed");
                 }
 
             } else {
-                Log.d(TAG,String.valueOf(betaCursor.getCount()));
+                Log.d(TAG, String.valueOf(betaCursor.getCount()));
 
                 Log.d(TAG, "Error in Beta Table");
                 return false;
             }
             return true;
-        } catch (SQLiteException e){
+        } catch (SQLiteException e) {
             e.printStackTrace();
             Log.d(TAG, "Error reading Database");
             return false;
@@ -533,12 +623,16 @@ public class AISStationCoordinateFragment extends Fragment implements View.OnCli
     }
 
     /**
-     * Registers and implements the {@link BroadcastReceiver}s for the AIS Connectivity and GPS location broadcasts; which are sent from
+     * Registers and implements the {@link BroadcastReceiver}s for the AIS Connectivity and GPS
+     * location broadcasts; which are sent from
      * {@link de.awi.floenavigation.network.NetworkMonitor} and {@link GPS_Service} respectively.
-     * The GPS Broadcast receiver sets the value of {@link #locationStatus} to the value from the {@link GPS_Service}.
+     * The GPS Broadcast receiver sets the value of {@link #locationStatus} to the value from the
+     * {@link GPS_Service}.
      * The AIS Connectivity broadcast receiver sets the boolean {@link #packetStatus}.
-     * This also registers {@link Runnable} with the {@link Handler} {@link #statusHandler} which runs at a regular interval specified by {@link ActionBarActivity#UPDATE_TIME}  and
-     * it checks the booleans {@link #locationStatus} and {@link #packetStatus} and changes the Action Bar icons for GPS and AIS Connectivity
+     * This also registers {@link Runnable} with the {@link Handler} {@link #statusHandler} which
+     * runs at a regular interval specified by {@link ActionBarActivity#UPDATE_TIME}  and
+     * it checks the booleans {@link #locationStatus} and {@link #packetStatus} and changes the
+     * Action Bar icons for GPS and AIS Connectivity
      * accordingly.
      *
      * @see Runnable
@@ -549,7 +643,7 @@ public class AISStationCoordinateFragment extends Fragment implements View.OnCli
     private void actionBarUpdatesFunction() {
 
         //***************ACTION BAR UPDATES*************************/
-        if (broadcastReceiver == null){
+        if (broadcastReceiver == null) {
             broadcastReceiver = new BroadcastReceiver() {
                 @Override
                 public void onReceive(Context context, Intent intent) {
@@ -558,7 +652,7 @@ public class AISStationCoordinateFragment extends Fragment implements View.OnCli
             };
         }
 
-        if (aisPacketBroadcastReceiver == null){
+        if (aisPacketBroadcastReceiver == null) {
             aisPacketBroadcastReceiver = new BroadcastReceiver() {
                 @Override
                 public void onReceive(Context context, Intent intent) {
@@ -567,26 +661,39 @@ public class AISStationCoordinateFragment extends Fragment implements View.OnCli
             };
         }
 
-        getActivity().registerReceiver(aisPacketBroadcastReceiver, new IntentFilter(GPS_Service.AISPacketBroadcast));
-        getActivity().registerReceiver(broadcastReceiver, new IntentFilter(GPS_Service.GPSBroadcast));
+        getActivity().registerReceiver(aisPacketBroadcastReceiver,
+                                       new IntentFilter(GPS_Service.AISPacketBroadcast));
+        getActivity()
+                .registerReceiver(broadcastReceiver, new IntentFilter(GPS_Service.GPSBroadcast));
 
         Runnable gpsLocationRunnable = new Runnable() {
             @Override
             public void run() {
-                if (locationStatus){
-                    if (gpsIconItem != null)
-                        gpsIconItem.getIcon().setColorFilter(Color.parseColor(ActionBarActivity.colorGreen), PorterDuff.Mode.SRC_IN);
+                if (locationStatus) {
+                    if (gpsIconItem != null) {
+                        gpsIconItem.getIcon()
+                                .setColorFilter(Color.parseColor(ActionBarActivity.colorGreen),
+                                                PorterDuff.Mode.SRC_IN);
+                    }
+                } else {
+                    if (gpsIconItem != null) {
+                        gpsIconItem.getIcon()
+                                .setColorFilter(Color.parseColor(ActionBarActivity.colorRed),
+                                                PorterDuff.Mode.SRC_IN);
+                    }
                 }
-                else {
-                    if (gpsIconItem != null)
-                        gpsIconItem.getIcon().setColorFilter(Color.parseColor(ActionBarActivity.colorRed), PorterDuff.Mode.SRC_IN);
-                }
-                if (packetStatus){
-                    if (aisIconItem != null)
-                        aisIconItem.getIcon().setColorFilter(Color.parseColor(ActionBarActivity.colorGreen), PorterDuff.Mode.SRC_IN);
-                }else {
-                    if (aisIconItem != null)
-                        aisIconItem.getIcon().setColorFilter(Color.parseColor(ActionBarActivity.colorRed), PorterDuff.Mode.SRC_IN);
+                if (packetStatus) {
+                    if (aisIconItem != null) {
+                        aisIconItem.getIcon()
+                                .setColorFilter(Color.parseColor(ActionBarActivity.colorGreen),
+                                                PorterDuff.Mode.SRC_IN);
+                    }
+                } else {
+                    if (aisIconItem != null) {
+                        aisIconItem.getIcon()
+                                .setColorFilter(Color.parseColor(ActionBarActivity.colorRed),
+                                                PorterDuff.Mode.SRC_IN);
+                    }
                 }
 
 
