@@ -597,7 +597,7 @@ public class SampleMeasurementActivity extends Activity {
      */
     private void calculateSampledLocationParameters() {
         final NavigationFunctions.TransformedCoordinates t = NavigationFunctions
-                .transform(tabletLat, tabletLon, originLatitude, originLongitude, beta);
+                .transform(originLatitude, originLongitude, tabletLat, tabletLon, beta);
 
         theta = t.getTheta();
         alpha = t.getAlpha();

@@ -157,14 +157,14 @@
     <string name="grid_setup_complete">Grid Setup Complete</string>
     <string name="about_us">About Us</string>
     <string name="about_us_app_name">Sea Ice Navigation System</string>
-    <string name="about_us_version">Sea Ice Navigation System Version 1.1.0</string>
+    <string name="about_us_version">Sea Ice Navigation System Version 1.1.2</string>
     <string name="about_us_developed_by">Developed By:</string>
     <string name="about_us_developer_1">Rintu Daniel</string>
     <string name="about_us_developer_1_email">danielrintu@gmail.com</string>
     <string name="about_us_developer_2">Nadeem Gul</string>
     <string name="about_us_developer_2_email">gul.nadeemm@gmail.com</string>
     <string name="about_us_developed_for">Developed for: \t\tSea Ice Physics Section, AWI</string>
-    <string name="about_us_built_on">Built on: \t\t\t\tDecember 03, 2018</string>
+    <string name="about_us_built_on">Built on: \t\t\t\t2020-01-14</string>
     <string name="about_us_android_version">Android: \t\t\t\t6.0.1</string>
     <string name="about_us_quote">Learning never exhausts the mind. \nLeonardo Da Vinci</string>
     <string name="sample_measurment_comment">Comment</string>

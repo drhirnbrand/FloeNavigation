@@ -216,6 +216,7 @@ public class AlphaCalculationService extends IntentService {
 
         theta = t.getTheta();
         distance = t.getDistance();
+        alpha = t.getAlpha();
 
         stationX = t.getX();
         stationY = t.getY();
