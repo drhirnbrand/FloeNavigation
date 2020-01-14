@@ -305,7 +305,7 @@ public class StaticStationFragment extends Fragment implements View.OnClickListe
     private void calculateStaticStationParameters() {
 
         final NavigationFunctions.TransformedCoordinates t = NavigationFunctions
-                .transform(tabletLat, tabletLon, originLatitude, originLongitude, 0);
+                .transform(originLatitude, originLongitude, tabletLat, tabletLon, beta);
 
         //theta = NavigationFunctions.calculateAngleBeta(tabletLat, tabletLon, originLatitude,
         // originLongitude);

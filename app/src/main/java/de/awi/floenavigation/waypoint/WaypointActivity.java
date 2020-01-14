@@ -480,14 +480,16 @@ public class WaypointActivity extends Activity implements View.OnClickListener {
      */
     private void calculateWaypointParameters() {
         final NavigationFunctions.TransformedCoordinates t = NavigationFunctions
-                .transform(tabletLat, tabletLon, originLatitude, originLongitude, beta);
+                .transform(originLatitude, originLongitude, tabletLat, tabletLon, beta);
 
         theta = t.getTheta();
         alpha = t.getAlpha();
-        Log.d(TAG,
-              String.format("Distance: %.4f, Alpha: %.3f (Theta: %.3f)", distance, alpha, theta));
+        distance = t.getDistance();
         xPosition = t.getX();
         yPosition = t.getY();
+        Log.d(TAG,
+              String.format("Distance: %.4f, Alpha: %.3f (Theta: %.3f) -> x=%.2f,y=%.2f", distance,
+                            alpha, theta, xPosition, yPosition));
     }
 
     /**
