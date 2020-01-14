@@ -1,5 +1,6 @@
 package de.awi.floenavigation.sample_measurement;
 
+import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.ContentValues;
 import android.content.Context;
@@ -13,13 +14,11 @@ import android.database.sqlite.SQLiteOpenHelper;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.os.Bundle;
-import android.app.Activity;
 import android.os.Handler;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
@@ -37,18 +36,20 @@ import java.util.Date;
 import java.util.List;
 import java.util.TimeZone;
 
+import de.awi.floenavigation.R;
 import de.awi.floenavigation.admin.ListViewActivity;
+import de.awi.floenavigation.dashboard.MainActivity;
 import de.awi.floenavigation.helperclasses.ActionBarActivity;
 import de.awi.floenavigation.helperclasses.DatabaseHelper;
-import de.awi.floenavigation.services.GPS_Service;
-import de.awi.floenavigation.dashboard.MainActivity;
 import de.awi.floenavigation.helperclasses.NavigationFunctions;
-import de.awi.floenavigation.R;
+import de.awi.floenavigation.services.GPS_Service;
 
 /**
  * {@link SampleMeasurementActivity} can be used to take sample or measurement on the sea ice.
- * The devices are available on the view in the form of a drop down list with advanced search feature.
- * This class handles sample/measurement selection, device selection, subsequent data is automatically populated,
+ * The devices are available on the view in the form of a drop down list with advanced search
+ * feature.
+ * This class handles sample/measurement selection, device selection, subsequent data is
+ * automatically populated,
  * ais and gps status icon updates, view samples feature.
  */
 public class SampleMeasurementActivity extends Activity {
@@ -189,6 +190,7 @@ public class SampleMeasurementActivity extends Activity {
     /**
      * Intializes all the views
      * and registers listeners for the corresponding views
+     *
      * @param savedInstanceState stores previous instance state
      */
     @Override
@@ -200,26 +202,26 @@ public class SampleMeasurementActivity extends Activity {
         numOfSignificantFigures = DatabaseHelper.readSiginificantDigitsSetting(this);
 
 
-
         //Advanced Search Feature
         DatabaseHelper.loadDeviceList(getApplicationContext());
         setSpinnerValues();
         final AutoCompleteTextView deviceNameTextView = findViewById(R.id.deviceshortname);
-        ArrayAdapter<String> adapter = DatabaseHelper.advancedSearchTextView(getApplicationContext());
+        ArrayAdapter<String> adapter =
+                DatabaseHelper.advancedSearchTextView(getApplicationContext());
         deviceNameTextView.setDropDownBackgroundResource(R.color.backgroundGradStart);
         deviceNameTextView.setThreshold(0);
         deviceNameTextView.setAdapter(adapter);
         deviceNameTextView.setOnFocusChangeListener(new View.OnFocusChangeListener() {
             @Override
             public void onFocusChange(View v, boolean hasFocus) {
-                if(hasFocus){
+                if (hasFocus) {
                     deviceNameTextView.showDropDown();
                 }
             }
         });
-        deviceNameTextView.setOnClickListener(new View.OnClickListener(){
+        deviceNameTextView.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(final View view){
+            public void onClick(final View view) {
                 deviceNameTextView.showDropDown();
             }
 
@@ -230,8 +232,9 @@ public class SampleMeasurementActivity extends Activity {
         deviceNameTextView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                deviceSelectedName = (String)parent.getItemAtPosition(position);
-                selectedDeviceAttributes = DatabaseHelper.getDeviceAttributes((String)parent.getItemAtPosition(position));
+                deviceSelectedName = (String) parent.getItemAtPosition(position);
+                selectedDeviceAttributes = DatabaseHelper
+                        .getDeviceAttributes((String) parent.getItemAtPosition(position));
                 populateDeviceAttributes();
             }
         });
@@ -242,11 +245,13 @@ public class SampleMeasurementActivity extends Activity {
             @Override
             public void onClick(View v) {
                 if (populateDatabaseTable()) {
-                    Toast.makeText(getApplicationContext(), "Data Sample Confirmed", Toast.LENGTH_LONG).show();
+                    Toast.makeText(getApplicationContext(), "Data Sample Confirmed",
+                                   Toast.LENGTH_LONG).show();
                     Log.d(TAG, "Data Sample Confirmed");
 
 
-                    Intent mainActivityIntent = new Intent(getApplicationContext(), MainActivity.class);
+                    Intent mainActivityIntent =
+                            new Intent(getApplicationContext(), MainActivity.class);
                     startActivity(mainActivityIntent);
                 }
             }
@@ -255,27 +260,29 @@ public class SampleMeasurementActivity extends Activity {
 
     /**
      * Registers {@link BroadcastReceiver}s for gps location and ais packet status updates.
-     * Handler {@link #statusHandler} to run the runnable, which takes care of changing the color of the icons based
+     * Handler {@link #statusHandler} to run the runnable, which takes care of changing the color of
+     * the icons based
      * on the received values from the broadcast receivers
      */
     private void actionBarUpdatesFunction() {
 
         /*****************ACTION BAR UPDATES*************************/
-        if (broadcastReceiver == null){
+        if (broadcastReceiver == null) {
             broadcastReceiver = new BroadcastReceiver() {
                 @Override
                 public void onReceive(Context context, Intent intent) {
                     tabletLat = intent.getExtras().getDouble(GPS_Service.latitude);
                     tabletLon = intent.getExtras().getDouble(GPS_Service.longitude);
                     locationStatus = intent.getExtras().getBoolean(GPS_Service.locationStatus);
-                    gpsTime = Long.parseLong(intent.getExtras().get(GPS_Service.GPSTime).toString());
+                    gpsTime =
+                            Long.parseLong(intent.getExtras().get(GPS_Service.GPSTime).toString());
                     timeDiff = System.currentTimeMillis() - gpsTime;
                     populateTabLocation();
                 }
             };
         }
 
-        if (aisPacketBroadcastReceiver == null){
+        if (aisPacketBroadcastReceiver == null) {
             aisPacketBroadcastReceiver = new BroadcastReceiver() {
                 @Override
                 public void onReceive(Context context, Intent intent) {
@@ -284,26 +291,38 @@ public class SampleMeasurementActivity extends Activity {
             };
         }
 
-        registerReceiver(aisPacketBroadcastReceiver, new IntentFilter(GPS_Service.AISPacketBroadcast));
+        registerReceiver(aisPacketBroadcastReceiver,
+                         new IntentFilter(GPS_Service.AISPacketBroadcast));
         registerReceiver(broadcastReceiver, new IntentFilter(GPS_Service.GPSBroadcast));
 
         Runnable gpsLocationRunnable = new Runnable() {
             @Override
             public void run() {
-                if (locationStatus){
-                    if (gpsIconItem != null)
-                        gpsIconItem.getIcon().setColorFilter(Color.parseColor(ActionBarActivity.colorGreen), PorterDuff.Mode.SRC_IN);
+                if (locationStatus) {
+                    if (gpsIconItem != null) {
+                        gpsIconItem.getIcon()
+                                .setColorFilter(Color.parseColor(ActionBarActivity.colorGreen),
+                                                PorterDuff.Mode.SRC_IN);
+                    }
+                } else {
+                    if (gpsIconItem != null) {
+                        gpsIconItem.getIcon()
+                                .setColorFilter(Color.parseColor(ActionBarActivity.colorRed),
+                                                PorterDuff.Mode.SRC_IN);
+                    }
                 }
-                else {
-                    if (gpsIconItem != null)
-                        gpsIconItem.getIcon().setColorFilter(Color.parseColor(ActionBarActivity.colorRed), PorterDuff.Mode.SRC_IN);
-                }
-                if (packetStatus){
-                    if (aisIconItem != null)
-                        aisIconItem.getIcon().setColorFilter(Color.parseColor(ActionBarActivity.colorGreen), PorterDuff.Mode.SRC_IN);
-                }else {
-                    if (aisIconItem != null)
-                        aisIconItem.getIcon().setColorFilter(Color.parseColor(ActionBarActivity.colorRed), PorterDuff.Mode.SRC_IN);
+                if (packetStatus) {
+                    if (aisIconItem != null) {
+                        aisIconItem.getIcon()
+                                .setColorFilter(Color.parseColor(ActionBarActivity.colorGreen),
+                                                PorterDuff.Mode.SRC_IN);
+                    }
+                } else {
+                    if (aisIconItem != null) {
+                        aisIconItem.getIcon()
+                                .setColorFilter(Color.parseColor(ActionBarActivity.colorRed),
+                                                PorterDuff.Mode.SRC_IN);
+                    }
                 }
 
                 statusHandler.postDelayed(this, ActionBarActivity.UPDATE_TIME);
@@ -318,7 +337,7 @@ public class SampleMeasurementActivity extends Activity {
      * {@link #operation} spinner value shows a drop down list to select between sample
      * and measurement
      */
-    private void setSpinnerValues(){
+    private void setSpinnerValues() {
         operation = findViewById(R.id.operationspinner);
         String[] contents = new String[]{"Sample", "Measurement"};
         ArrayAdapter<String> adapter = new ArrayAdapter<>(this, R.layout.spinner_item, contents);
@@ -351,11 +370,12 @@ public class SampleMeasurementActivity extends Activity {
 
     /**
      * This method initializes and sets the menu list
+     *
      * @param menu menu
      * @return parent method
      */
     @Override
-    public boolean onCreateOptionsMenu(Menu menu){
+    public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.main_menu, menu);
 
         MenuItem latLonFormat = menu.findItem(R.id.changeLatLonFormat);
@@ -368,13 +388,17 @@ public class SampleMeasurementActivity extends Activity {
         gpsIconItem.setShowAsActionFlags(MenuItem.SHOW_AS_ACTION_ALWAYS);
         aisIconItem = menu.findItem(iconItems[2]);
         aisIconItem.setShowAsActionFlags(MenuItem.SHOW_AS_ACTION_ALWAYS);
-        if(MainActivity.numOfBaseStations >= DatabaseHelper.INITIALIZATION_SIZE) {
+        if (MainActivity.numOfBaseStations >= DatabaseHelper.INITIALIZATION_SIZE) {
             if (gridSetupIconItem != null) {
-                gridSetupIconItem.getIcon().setColorFilter(Color.parseColor(ActionBarActivity.colorGreen), PorterDuff.Mode.SRC_IN);
+                gridSetupIconItem.getIcon()
+                        .setColorFilter(Color.parseColor(ActionBarActivity.colorGreen),
+                                        PorterDuff.Mode.SRC_IN);
             }
-        } else{
+        } else {
             if (gridSetupIconItem != null) {
-                gridSetupIconItem.getIcon().setColorFilter(Color.parseColor(ActionBarActivity.colorRed), PorterDuff.Mode.SRC_IN);
+                gridSetupIconItem.getIcon()
+                        .setColorFilter(Color.parseColor(ActionBarActivity.colorRed),
+                                        PorterDuff.Mode.SRC_IN);
             }
         }
         return super.onCreateOptionsMenu(menu);
@@ -383,12 +407,13 @@ public class SampleMeasurementActivity extends Activity {
     /**
      * Listener for the menu item clicked
      * Changes the display format of the geographical coordinates in the screen
+     *
      * @param menuItem menu
      * @return true
      */
     @Override
-    public boolean onOptionsItemSelected(MenuItem menuItem){
-        switch (menuItem.getItemId()){
+    public boolean onOptionsItemSelected(MenuItem menuItem) {
+        switch (menuItem.getItemId()) {
             case R.id.changeLatLonFormat:
                 changeFormat = !changeFormat;
                 populateTabLocation();
@@ -402,24 +427,28 @@ public class SampleMeasurementActivity extends Activity {
     }
 
     /**
-     * Invokes {@link ListViewActivity} when the button is pressed, which lists all the samples currently stored in the
+     * Invokes {@link ListViewActivity} when the button is pressed, which lists all the samples
+     * currently stored in the
      * database table
+     *
      * @param view view which was clicked
      */
     public void OnClickViewSamples(View view) {
-        try{
+        try {
             DatabaseHelper dbHelper = DatabaseHelper.getDbInstance(this);
             SQLiteDatabase db = dbHelper.getReadableDatabase();
-            long numOfSamples = DatabaseUtils.queryNumEntries(db, DatabaseHelper.sampleMeasurementTable);
+            long numOfSamples =
+                    DatabaseUtils.queryNumEntries(db, DatabaseHelper.sampleMeasurementTable);
 
-            if(numOfSamples > 0){
+            if (numOfSamples > 0) {
                 Intent listViewIntent = new Intent(this, ListViewActivity.class);
                 listViewIntent.putExtra("GenerateDataOption", "SampleMeasurementActivity");
                 startActivity(listViewIntent);
-            } else{
-                Toast.makeText(this, "No samples have been recorded since the last Sync", Toast.LENGTH_SHORT).show();
+            } else {
+                Toast.makeText(this, "No samples have been recorded since the last Sync",
+                               Toast.LENGTH_SHORT).show();
             }
-        } catch (SQLiteException e){
+        } catch (SQLiteException e) {
             Log.d(TAG, "Error Reading from Database");
             e.printStackTrace();
         }
@@ -428,17 +457,18 @@ public class SampleMeasurementActivity extends Activity {
     /**
      * Populates the views based on the flag {@link #changeFormat} set
      */
-    private void populateTabLocation(){
+    private void populateTabLocation() {
 
         TextView latView = findViewById(R.id.tabLat);
         TextView lonView = findViewById(R.id.tabLon);
-        String formatString = "%."+String.valueOf(numOfSignificantFigures)+"f";
+        String formatString = "%." + String.valueOf(numOfSignificantFigures) + "f";
 
-        if (changeFormat){
-            String[] formattedCoordinates = NavigationFunctions.locationInDegrees(tabletLat, tabletLon);
+        if (changeFormat) {
+            String[] formattedCoordinates =
+                    NavigationFunctions.locationInDegrees(tabletLat, tabletLon);
             latView.setText(formattedCoordinates[DatabaseHelper.LATITUDE_INDEX]);
             lonView.setText(formattedCoordinates[DatabaseHelper.LONGITUDE_INDEX]);
-        } else{
+        } else {
             latView.setText(String.format(formatString, tabletLat));
             lonView.setText(String.format(formatString, tabletLon));
         }
@@ -448,7 +478,7 @@ public class SampleMeasurementActivity extends Activity {
     /**
      * Populates the views with all the device information based on the device selection
      */
-    private void populateDeviceAttributes(){
+    private void populateDeviceAttributes() {
 
         TextView deviceFullNameView = findViewById(R.id.devicefullname);
         TextView deviceIDView = findViewById(R.id.deviceid);
@@ -457,34 +487,41 @@ public class SampleMeasurementActivity extends Activity {
         deviceIDView.setText(selectedDeviceAttributes.get(deviceIDIndex));
         deviceFullNameView.setText(selectedDeviceAttributes.get(deviceFullNameIndex));
         deviceTypeView.setText(selectedDeviceAttributes.get(deviceTypeIndex));
-        InputMethodManager inputManager = (InputMethodManager) this.getSystemService(Context.INPUT_METHOD_SERVICE);
-        inputManager.hideSoftInputFromWindow(this.getCurrentFocus().getWindowToken(), InputMethodManager.HIDE_NOT_ALWAYS);
+        InputMethodManager inputManager =
+                (InputMethodManager) this.getSystemService(Context.INPUT_METHOD_SERVICE);
+        inputManager.hideSoftInputFromWindow(this.getCurrentFocus().getWindowToken(),
+                                             InputMethodManager.HIDE_NOT_ALWAYS);
     }
 
     /**
      * Called from the listener of the confirm button
-     * If valid gps location is available all the sample/measurement fields are stored into the database table {@link DatabaseHelper#sampleMeasurementTable}
+     * If valid gps location is available all the sample/measurement fields are stored into the
+     * database table {@link DatabaseHelper#sampleMeasurementTable}
+     *
      * @return
      */
-    private boolean populateDatabaseTable(){
+    private boolean populateDatabaseTable() {
 
         try {
             SQLiteOpenHelper dbHelper = DatabaseHelper.getDbInstance(getApplicationContext());
             SQLiteDatabase db = dbHelper.getReadableDatabase();
             tabletLat = (tabletLat == null) ? 0.0 : tabletLat;
             tabletLon = (tabletLon == null) ? 0.0 : tabletLon;
-            if (tabletLat == 0.0 && tabletLon == 0.0){
-                Toast.makeText(getApplicationContext(), "Error reading Device Lat and Long", Toast.LENGTH_LONG).show();
+            if (tabletLat == 0.0 && tabletLon == 0.0) {
+                Toast.makeText(getApplicationContext(), "Error reading Device Lat and Long",
+                               Toast.LENGTH_LONG).show();
                 return false;
             }
             EditText labelView = findViewById(R.id.sampleMeasurementLabelId);
-            if (TextUtils.isEmpty(labelView.getText().toString())){
-                Toast.makeText(getApplicationContext(), "Error reading Label ID", Toast.LENGTH_LONG).show();
+            if (TextUtils.isEmpty(labelView.getText().toString())) {
+                Toast.makeText(getApplicationContext(), "Error reading Label ID", Toast.LENGTH_LONG)
+                        .show();
                 return false;
             }
             EditText commentView = findViewById(R.id.sampleMeasurementComment);
-            if(TextUtils.isEmpty(commentView.getText().toString())){
-                Toast.makeText(getApplicationContext(), "Error Reading Comment", Toast.LENGTH_SHORT).show();
+            if (TextUtils.isEmpty(commentView.getText().toString())) {
+                Toast.makeText(getApplicationContext(), "Error Reading Comment", Toast.LENGTH_SHORT)
+                        .show();
                 return false;
             }
 
@@ -492,11 +529,15 @@ public class SampleMeasurementActivity extends Activity {
                 calculateSampledLocationParameters();
                 createLabel();
                 ContentValues mContentValues = new ContentValues();
-                mContentValues.put(DatabaseHelper.deviceID, selectedDeviceAttributes.get(deviceIDIndex));
-                mContentValues.put(DatabaseHelper.deviceName, selectedDeviceAttributes.get(deviceFullNameIndex));
+                mContentValues
+                        .put(DatabaseHelper.deviceID, selectedDeviceAttributes.get(deviceIDIndex));
+                mContentValues.put(DatabaseHelper.deviceName,
+                                   selectedDeviceAttributes.get(deviceFullNameIndex));
                 mContentValues.put(DatabaseHelper.deviceShortName, deviceSelectedName);
-                mContentValues.put(DatabaseHelper.operation, operation.getSelectedItem().toString());
-                mContentValues.put(DatabaseHelper.deviceType, selectedDeviceAttributes.get(deviceTypeIndex));
+                mContentValues
+                        .put(DatabaseHelper.operation, operation.getSelectedItem().toString());
+                mContentValues.put(DatabaseHelper.deviceType,
+                                   selectedDeviceAttributes.get(deviceTypeIndex));
                 mContentValues.put(DatabaseHelper.latitude, tabletLat);
                 mContentValues.put(DatabaseHelper.longitude, tabletLon);
                 mContentValues.put(DatabaseHelper.xPosition, xPosition);
@@ -510,7 +551,7 @@ public class SampleMeasurementActivity extends Activity {
             } else {
                 Log.d(TAG, "Error Inserting new data");
             }
-        }catch(SQLiteException e) {
+        } catch (SQLiteException e) {
             Log.d(TAG, "Database Error");
             e.printStackTrace();
         }
@@ -520,7 +561,7 @@ public class SampleMeasurementActivity extends Activity {
     /**
      * {@link #label} is formed as per a specified format with all the necessary information
      */
-    private void createLabel(){
+    private void createLabel() {
         Date date = new Date(System.currentTimeMillis() - timeDiff);
         SimpleDateFormat displayFormat = new SimpleDateFormat("yyyyMMdd'D'HHmmss");
         displayFormat.setTimeZone(TimeZone.getTimeZone("gmt"));
@@ -546,6 +587,7 @@ public class SampleMeasurementActivity extends Activity {
 
     /**
      * Calculates sample/measurement location on the grid
+     *
      * @see #distance
      * @see #theta
      * @see #alpha
@@ -553,61 +595,66 @@ public class SampleMeasurementActivity extends Activity {
      * @see #xPosition
      * @see #yPosition
      */
-    private void calculateSampledLocationParameters(){
-        distance = NavigationFunctions.calculateDifference(tabletLat, tabletLon, originLatitude, originLongitude);
-        //theta = NavigationFunctions.calculateAngleBeta(tabletLat, tabletLon, originLatitude, originLongitude);
-        theta = NavigationFunctions.calculateAngleBeta(originLatitude, originLongitude, tabletLat, tabletLon);
-        //alpha = Math.abs(theta - beta);
-        alpha = theta - beta;
-        xPosition = distance * Math.cos(Math.toRadians(alpha));
-        yPosition = distance * Math.sin(Math.toRadians(alpha));
+    private void calculateSampledLocationParameters() {
+        final NavigationFunctions.TransformedCoordinates t = NavigationFunctions
+                .transform(tabletLat, tabletLon, originLatitude, originLongitude, beta);
+
+        theta = t.getTheta();
+        alpha = t.getAlpha();
+        distance = t.getDistance();
+        xPosition = t.getX();
+        yPosition = t.getY();
     }
 
     /**
-     * Retrieves origin mmsi/location and beta value from {@link DatabaseHelper#fixedStationTable} and {@link DatabaseHelper#betaTable}
+     * Retrieves origin mmsi/location and beta value from {@link DatabaseHelper#fixedStationTable}
+     * and {@link DatabaseHelper#betaTable}
      * respectively.
      * It is used to calculate location parameters {@link #calculateSampledLocationParameters()}
+     *
      * @return
      */
-    private boolean getOriginCoordinates(){
+    private boolean getOriginCoordinates() {
         Cursor baseStationCursor = null;
         Cursor fixedStationCursor = null;
         Cursor betaCursor = null;
         try {
             DatabaseHelper databaseHelper = DatabaseHelper.getDbInstance(getApplicationContext());
             SQLiteDatabase db = databaseHelper.getReadableDatabase();
-            baseStationCursor = db.query(DatabaseHelper.baseStationTable,
-                    new String[] {DatabaseHelper.mmsi},
-                    DatabaseHelper.isOrigin +" = ?",
-                    new String[]{String.valueOf(DatabaseHelper.ORIGIN)},
-                    null, null, null);
-            if (baseStationCursor.getCount() != 1){
+            baseStationCursor =
+                    db.query(DatabaseHelper.baseStationTable, new String[]{DatabaseHelper.mmsi},
+                             DatabaseHelper.isOrigin + " = ?",
+                             new String[]{String.valueOf(DatabaseHelper.ORIGIN)}, null, null, null);
+            if (baseStationCursor.getCount() != 1) {
                 Log.d(TAG, "Error Reading from BaseStation Table");
                 return false;
-            } else{
-                if(baseStationCursor.moveToFirst()){
-                    originMMSI = baseStationCursor.getInt(baseStationCursor.getColumnIndex(DatabaseHelper.mmsi));
+            } else {
+                if (baseStationCursor.moveToFirst()) {
+                    originMMSI = baseStationCursor
+                            .getInt(baseStationCursor.getColumnIndex(DatabaseHelper.mmsi));
                 }
             }
             fixedStationCursor = db.query(DatabaseHelper.fixedStationTable,
-                    new String[] {DatabaseHelper.latitude, DatabaseHelper.longitude},
-                    DatabaseHelper.mmsi +" = ?",
-                    new String[] {String.valueOf(originMMSI)},
-                    null, null, null);
-            if (fixedStationCursor.getCount() != 1){
+                                          new String[]{DatabaseHelper.latitude,
+                                                       DatabaseHelper.longitude},
+                                          DatabaseHelper.mmsi + " = ?",
+                                          new String[]{String.valueOf(originMMSI)}, null, null,
+                                          null);
+            if (fixedStationCursor.getCount() != 1) {
                 Log.d(TAG, "Error Reading Origin Latitude Longitude");
                 return false;
-            } else{
-                if(fixedStationCursor.moveToFirst()){
-                    originLatitude = fixedStationCursor.getDouble(fixedStationCursor.getColumnIndex(DatabaseHelper.latitude));
-                    originLongitude = fixedStationCursor.getDouble(fixedStationCursor.getColumnIndex(DatabaseHelper.longitude));
+            } else {
+                if (fixedStationCursor.moveToFirst()) {
+                    originLatitude = fixedStationCursor
+                            .getDouble(fixedStationCursor.getColumnIndex(DatabaseHelper.latitude));
+                    originLongitude = fixedStationCursor
+                            .getDouble(fixedStationCursor.getColumnIndex(DatabaseHelper.longitude));
                 }
             }
 
             betaCursor = db.query(DatabaseHelper.betaTable,
-                    new String[]{DatabaseHelper.beta, DatabaseHelper.updateTime},
-                    null, null,
-                    null, null, null);
+                                  new String[]{DatabaseHelper.beta, DatabaseHelper.updateTime},
+                                  null, null, null, null, null);
             if (betaCursor.getCount() == 1) {
                 if (betaCursor.moveToFirst()) {
                     beta = betaCursor.getDouble(betaCursor.getColumnIndex(DatabaseHelper.beta));
@@ -621,18 +668,18 @@ public class SampleMeasurementActivity extends Activity {
             baseStationCursor.close();
             fixedStationCursor.close();
             return true;
-        } catch(SQLiteException e){
+        } catch (SQLiteException e) {
             Log.d(TAG, "Database Error");
             e.printStackTrace();
             return false;
-        }finally {
-            if (baseStationCursor != null){
+        } finally {
+            if (baseStationCursor != null) {
                 baseStationCursor.close();
             }
-            if (fixedStationCursor != null){
+            if (fixedStationCursor != null) {
                 fixedStationCursor.close();
             }
-            if (betaCursor != null){
+            if (betaCursor != null) {
                 betaCursor.close();
             }
         }

@@ -139,7 +139,7 @@ public class AIVDM {
      * Used to change ASCII characters of the payload to decimal and then to binary format
      * @return returns the binary output of the ASCII payload
      */
-    public StringBuilder decodePayload()
+    StringBuilder decodePayload()
     {
 
         char[] array = payload.toCharArray();

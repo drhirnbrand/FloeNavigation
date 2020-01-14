@@ -276,19 +276,19 @@ public class AISStationCoordinateFragment extends Fragment implements View.OnCli
                     if (checkForAISPacket(db)) {
                         Log.d(TAG, "AIS Packet Received");
                         if (readParamsFromDatabase(db)) {
-                            distance = NavigationFunctions
-                                    .calculateDifference(originLatitude, originLongitude,
-                                                         stationLatitude, stationLongitude);
-                            //                            theta = NavigationFunctions
-                            //                            .calculateAngleBeta(originLatitude,
-                            //                            originLongitude, stationLatitude,
-                            //                            stationLongitude);
-                            theta = getTheta(originLatitude, originLongitude, stationLatitude,
-                                             stationLongitude);
-                            //alpha = Math.abs(theta - beta);
-                            alpha = theta - beta;
-                            stationX = distance * Math.cos(Math.toRadians(alpha));
-                            stationY = distance * Math.sin(Math.toRadians(alpha));
+
+                            final NavigationFunctions.TransformedCoordinates t = NavigationFunctions
+                                    .transform(originLatitude, originLongitude, stationLatitude,
+                                               stationLongitude, beta);
+
+                            theta = t.getTheta();
+                            alpha = t.getAlpha();
+
+                            stationX = t.getX();
+                            stationY = t.getY();
+
+                            distance = t.getDistance();
+
                             ContentValues stationUpdate = new ContentValues();
                             stationUpdate
                                     .put(DatabaseHelper.predictionTime, DEFAULT_PREDICTION_TIME);
@@ -332,14 +332,6 @@ public class AISStationCoordinateFragment extends Fragment implements View.OnCli
         handler.post(aisStationRunnable);
         setHasOptionsMenu(true);
         return layout;
-    }
-
-    private double getTheta(final double originLatitude, final double originLongitude,
-                            final double stationLatitude, final double stationLongitude) {
-        theta = NavigationFunctions
-                .calculateAngleBeta(originLatitude, originLongitude, stationLatitude,
-                                    stationLongitude);
-        return theta;
     }
 
     /**

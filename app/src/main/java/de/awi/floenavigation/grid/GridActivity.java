@@ -551,6 +551,7 @@ public class GridActivity extends Activity implements View.OnClickListener {
         tabletAlpha = tabletTheta - beta;
         tabletX = tabletDistance * Math.cos(Math.toRadians(tabletAlpha));
         tabletY = tabletDistance * Math.sin(Math.toRadians(tabletAlpha));
+
         Log.d(TAG, "tabletX " + tabletX);
         myGridView.setTabletX(tabletX);
         myGridView.setTabletY(tabletY);

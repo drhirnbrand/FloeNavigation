@@ -13,7 +13,6 @@ import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.os.Bundle;
 import android.os.Handler;
-import androidx.fragment.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -25,30 +24,36 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.fragment.app.Fragment;
+
+import de.awi.floenavigation.R;
+import de.awi.floenavigation.dashboard.MainActivity;
 import de.awi.floenavigation.helperclasses.ActionBarActivity;
 import de.awi.floenavigation.helperclasses.DatabaseHelper;
-import de.awi.floenavigation.services.GPS_Service;
-import de.awi.floenavigation.dashboard.MainActivity;
 import de.awi.floenavigation.helperclasses.NavigationFunctions;
-import de.awi.floenavigation.R;
+import de.awi.floenavigation.services.GPS_Service;
 
 /**
- * This {@link Fragment} runs on top of the {@link DeploymentActivity} and inserts the Static Station which is being deployed in the Database.
+ * This {@link Fragment} runs on top of the {@link DeploymentActivity} and inserts the Static
+ * Station which is being deployed in the Database.
  * <p>
- *     The Fragment calculates the x,y coordinates of the Static Station from current GPS location of the tablet and inserts the new station
- *     in the Database table {@link DatabaseHelper#staticStationListTable}.
+ * The Fragment calculates the x,y coordinates of the Static Station from current GPS location of
+ * the tablet and inserts the new station
+ * in the Database table {@link DatabaseHelper#staticStationListTable}.
  * </p>
+ *
  * @see DeploymentActivity
  * @see ContentValues
  * @see Runnable
  * @see NavigationFunctions
  */
-public class StaticStationFragment extends Fragment implements View.OnClickListener{
+public class StaticStationFragment extends Fragment implements View.OnClickListener {
 
     private static final String TAG = "StaticStationDeployFrag";
 
     /**
-     * Text which is displayed when the station's parameters are calculated and inserted in to the Database successfully.
+     * Text which is displayed when the station's parameters are calculated and inserted in to the
+     * Database successfully.
      */
     private static final String changeText = "Station Installed";
 
@@ -98,13 +103,15 @@ public class StaticStationFragment extends Fragment implements View.OnClickListe
     private double beta;
 
     /**
-     * Distance of the Static Station from the Origin. Calculated between {@link #originLatitude}, {@link #originLatitude} and {@link #tabletLat}, {@link #tabletLon}
+     * Distance of the Static Station from the Origin. Calculated between {@link #originLatitude},
+     * {@link #originLatitude} and {@link #tabletLat}, {@link #tabletLon}
      * using the Haversine formula
      */
     private double distance;
 
     /**
-     * The Angle alpha of the Fixed Station which it makes with the x-Axis of the Floe's Coordinate System
+     * The Angle alpha of the Fixed Station which it makes with the x-Axis of the Floe's Coordinate
+     * System
      */
     private double alpha;
 
@@ -139,13 +146,15 @@ public class StaticStationFragment extends Fragment implements View.OnClickListe
     private boolean packetStatus = false;
 
     /**
-     * A {@link Handler} which is runs a {@link Runnable} object which changes the Action Bar icons colors according to {@link #packetStatus}
+     * A {@link Handler} which is runs a {@link Runnable} object which changes the Action Bar icons
+     * colors according to {@link #packetStatus}
      * and {@link #locationStatus}.
      */
     private final Handler statusHandler = new Handler();
 
     /**
-     * {@link BroadcastReceiver} for checking the WiFi connection to an AIS Transponder which is broadcast from {@link de.awi.floenavigation.network.NetworkMonitor}.
+     * {@link BroadcastReceiver} for checking the WiFi connection to an AIS Transponder which is
+     * broadcast from {@link de.awi.floenavigation.network.NetworkMonitor}.
      */
     private BroadcastReceiver aisPacketBroadcastReceiver;
 
@@ -157,13 +166,17 @@ public class StaticStationFragment extends Fragment implements View.OnClickListe
     }
 
     /**
-     * Default {@link Fragment#onCreateView(LayoutInflater, ViewGroup, Bundle)}. Reads the name and type of the Static Station passed to it by {@link StationInstallFragment}.
+     * Default {@link Fragment#onCreateView(LayoutInflater, ViewGroup, Bundle)}. Reads the name and
+     * type of the Static Station passed to it by {@link StationInstallFragment}.
      * The layout shows a {@link ProgressBar} with a waiting message and a cancel button.
      * <p>
-     *     The fragment reads the {@link #stationName}, {@link #stationType}, {@link #tabletLat}, {@link #tabletLon} passed to it in the {@link Bundle}.
-     *     It then reads the Origin coordinates and calculates and inserts the new station in the Database. It then changes the Layout to show
-     *     a successful insertion message ({@link #changeText}) and a Finish button.
+     * The fragment reads the {@link #stationName}, {@link #stationType}, {@link #tabletLat}, {@link
+     * #tabletLon} passed to it in the {@link Bundle}.
+     * It then reads the Origin coordinates and calculates and inserts the new station in the
+     * Database. It then changes the Layout to show
+     * a successful insertion message ({@link #changeText}) and a Finish button.
      * </p>
+     *
      * @param inflater
      * @param container
      * @param savedInstanceState
@@ -173,7 +186,7 @@ public class StaticStationFragment extends Fragment implements View.OnClickListe
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        View layout =  inflater.inflate(R.layout.fragment_static_station, container, false);
+        View layout = inflater.inflate(R.layout.fragment_static_station, container, false);
 
         layout.findViewById(R.id.static_station_finish).setOnClickListener(this);
         layout.findViewById(R.id.static_station_finish).setEnabled(false);
@@ -182,7 +195,7 @@ public class StaticStationFragment extends Fragment implements View.OnClickListe
         stationType = getArguments().getString(DatabaseHelper.stationType);
         tabletLat = getArguments().getDouble(GPS_Service.latitude);
         tabletLon = getArguments().getDouble(GPS_Service.longitude);
-        if(getOriginCoordinates()) {
+        if (getOriginCoordinates()) {
             calculateStaticStationParameters();
             insertStaticStation();
             ProgressBar progress = layout.findViewById(R.id.staticStationProgress);
@@ -195,7 +208,7 @@ public class StaticStationFragment extends Fragment implements View.OnClickListe
             Log.d(TAG, "Station Installed");
             Toast.makeText(getContext(), "Station Installed", Toast.LENGTH_LONG).show();
 
-        } else{
+        } else {
             Log.d(TAG, "Error Inserting new Station");
         }
         setHasOptionsMenu(true);
@@ -203,12 +216,14 @@ public class StaticStationFragment extends Fragment implements View.OnClickListe
     }
 
     /**
-     * Default Handler for the Finish button on the Screen. {@link MainActivity} is started when deployment is complete.
+     * Default Handler for the Finish button on the Screen. {@link MainActivity} is started when
+     * deployment is complete.
+     *
      * @param v
      */
     @Override
-    public void onClick(View v){
-        switch (v.getId()){
+    public void onClick(View v) {
+        switch (v.getId()) {
             case R.id.static_station_finish:
                 Intent mainIntent = new Intent(getActivity(), MainActivity.class);
                 getActivity().startActivity(mainIntent);
@@ -217,10 +232,11 @@ public class StaticStationFragment extends Fragment implements View.OnClickListe
     }
 
     /**
-     * Called when the Fragment is no longer in foreground. It unregisters the AIS and GPS {@link BroadcastReceiver}s.
+     * Called when the Fragment is no longer in foreground. It unregisters the AIS and GPS {@link
+     * BroadcastReceiver}s.
      */
     @Override
-    public void onPause(){
+    public void onPause() {
         super.onPause();
         getActivity().unregisterReceiver(broadcastReceiver);
         broadcastReceiver = null;
@@ -229,14 +245,15 @@ public class StaticStationFragment extends Fragment implements View.OnClickListe
     }
 
     /**
-     * Called when the Fragment come back from background to foreground. Disables the Up Button and calls the
+     * Called when the Fragment come back from background to foreground. Disables the Up Button and
+     * calls the
      * {@link #actionBarUpdatesFunction()} to set the correct icon colors in the Action Bar.
      */
     @Override
-    public void onResume(){
+    public void onResume() {
         super.onResume();
         DeploymentActivity activity = (DeploymentActivity) getActivity();
-        if(activity != null){
+        if (activity != null) {
             activity.hideUpButton();
         }
         actionBarUpdatesFunction();
@@ -244,7 +261,9 @@ public class StaticStationFragment extends Fragment implements View.OnClickListe
     }
 
     /**
-     * Creates the Action Bar icons on top of the screen. By default it shows the GPS icon, AIS Connectivity icon and the Grid Setup icon.
+     * Creates the Action Bar icons on top of the screen. By default it shows the GPS icon, AIS
+     * Connectivity icon and the Grid Setup icon.
+     *
      * @param menu
      * @param inflater
      */
@@ -262,42 +281,58 @@ public class StaticStationFragment extends Fragment implements View.OnClickListe
         aisIconItem = menu.findItem(iconItems[2]);
         aisIconItem.setShowAsActionFlags(MenuItem.SHOW_AS_ACTION_ALWAYS);
 
-        if(MainActivity.numOfBaseStations >= DatabaseHelper.INITIALIZATION_SIZE) {
+        if (MainActivity.numOfBaseStations >= DatabaseHelper.INITIALIZATION_SIZE) {
             if (gridSetupIconItem != null) {
-                gridSetupIconItem.getIcon().setColorFilter(Color.parseColor(ActionBarActivity.colorGreen), PorterDuff.Mode.SRC_IN);
+                gridSetupIconItem.getIcon()
+                        .setColorFilter(Color.parseColor(ActionBarActivity.colorGreen),
+                                        PorterDuff.Mode.SRC_IN);
             }
-        } else{
+        } else {
             if (gridSetupIconItem != null) {
-                gridSetupIconItem.getIcon().setColorFilter(Color.parseColor(ActionBarActivity.colorRed), PorterDuff.Mode.SRC_IN);
+                gridSetupIconItem.getIcon()
+                        .setColorFilter(Color.parseColor(ActionBarActivity.colorRed),
+                                        PorterDuff.Mode.SRC_IN);
             }
         }
 
-        super.onCreateOptionsMenu(menu,inflater);
+        super.onCreateOptionsMenu(menu, inflater);
     }
 
     /**
-     * Calculates the location parameters of the Static Station. It calculates and sets {@link #distance}, {@link #theta}, {@link #alpha}, {@link #xPosition}, {@link #yPosition}.
+     * Calculates the location parameters of the Static Station. It calculates and sets {@link
+     * #distance}, {@link #theta}, {@link #alpha}, {@link #xPosition}, {@link #yPosition}.
      */
-    private void calculateStaticStationParameters(){
-        distance = NavigationFunctions.calculateDifference(tabletLat, tabletLon, originLatitude, originLongitude);
-        //theta = NavigationFunctions.calculateAngleBeta(tabletLat, tabletLon, originLatitude, originLongitude);
+    private void calculateStaticStationParameters() {
+
+        final NavigationFunctions.TransformedCoordinates t = NavigationFunctions
+                .transform(tabletLat, tabletLon, originLatitude, originLongitude, 0);
+
+        //theta = NavigationFunctions.calculateAngleBeta(tabletLat, tabletLon, originLatitude,
+        // originLongitude);
         //alpha = Math.abs(theta - beta);
-        theta = NavigationFunctions.calculateAngleBeta(originLatitude, originLongitude, tabletLat, tabletLon);
-        alpha = theta - beta;
+        theta = t.getTheta();
+        alpha = t.getAlpha();
+        distance = t.getDistance();
+
         Log.d(TAG, "Theta: " + theta + " Alpha: " + alpha);
         Log.d(TAG, "StationDistance: " + String.valueOf(distance));
-        Log.d(TAG, "OriginLat: " + String.valueOf(originLatitude) + " OriginLon: " + String.valueOf(originLongitude));
-        Log.d(TAG, "TabletLat: " + String.valueOf(tabletLat) + " TabletLon: " + String.valueOf(tabletLon));
-        xPosition = distance * Math.cos(Math.toRadians(alpha));
-        yPosition = distance * Math.sin(Math.toRadians(alpha));
+        Log.d(TAG, "OriginLat: " + String.valueOf(originLatitude) + " OriginLon: " +
+                String.valueOf(originLongitude));
+        Log.d(TAG, "TabletLat: " + String.valueOf(tabletLat) + " TabletLon: " +
+                String.valueOf(tabletLon));
+
+        xPosition = t.getX();
+        yPosition = t.getY();
 
     }
 
     /**
-     * Inserts the new Static Station and its location paramters into the database table {@link DatabaseHelper#staticStationListTable}.
+     * Inserts the new Static Station and its location paramters into the database table {@link
+     * DatabaseHelper#staticStationListTable}.
+     *
      * @see ContentValues
      */
-    private void insertStaticStation(){
+    private void insertStaticStation() {
         DatabaseHelper databaseHelper = DatabaseHelper.getDbInstance(getActivity());
         SQLiteDatabase db = databaseHelper.getReadableDatabase();
 
@@ -313,11 +348,13 @@ public class StaticStationFragment extends Fragment implements View.OnClickListe
     }
 
     /**
-     * Reads the basic parameters of the Floe's Coordinate system from the Database. Reads the values of {@link #originMMSI}, {@link #originLatitude}, {@link #originLongitude},
+     * Reads the basic parameters of the Floe's Coordinate system from the Database. Reads the
+     * values of {@link #originMMSI}, {@link #originLatitude}, {@link #originLongitude},
      * {@link #beta} from their respective tables.
+     *
      * @return <code>true</code> if all the values are read successfully.
      */
-    private boolean getOriginCoordinates(){
+    private boolean getOriginCoordinates() {
         Cursor baseStationCursor = null;
         Cursor fixedStationCursor = null;
         Cursor betaCursor = null;
@@ -325,38 +362,40 @@ public class StaticStationFragment extends Fragment implements View.OnClickListe
         try {
             DatabaseHelper databaseHelper = DatabaseHelper.getDbInstance(getActivity());
             SQLiteDatabase db = databaseHelper.getReadableDatabase();
-            baseStationCursor = db.query(DatabaseHelper.baseStationTable,
-                    new String[] {DatabaseHelper.mmsi},
-                    DatabaseHelper.isOrigin +" = ?",
-                    new String[]{String.valueOf(DatabaseHelper.ORIGIN)},
-                    null, null, null);
-            if (baseStationCursor.getCount() != 1){
+            baseStationCursor =
+                    db.query(DatabaseHelper.baseStationTable, new String[]{DatabaseHelper.mmsi},
+                             DatabaseHelper.isOrigin + " = ?",
+                             new String[]{String.valueOf(DatabaseHelper.ORIGIN)}, null, null, null);
+            if (baseStationCursor.getCount() != 1) {
                 Log.d(TAG, "Error Reading from BaseStation Table");
                 return false;
-            } else{
-                if(baseStationCursor.moveToFirst()){
-                    originMMSI = baseStationCursor.getInt(baseStationCursor.getColumnIndex(DatabaseHelper.mmsi));
+            } else {
+                if (baseStationCursor.moveToFirst()) {
+                    originMMSI = baseStationCursor
+                            .getInt(baseStationCursor.getColumnIndex(DatabaseHelper.mmsi));
                 }
             }
             fixedStationCursor = db.query(DatabaseHelper.fixedStationTable,
-                    new String[] {DatabaseHelper.latitude, DatabaseHelper.longitude},
-                    DatabaseHelper.mmsi +" = ?",
-                    new String[] {String.valueOf(originMMSI)},
-                    null, null, null);
-            if (fixedStationCursor.getCount() != 1){
+                                          new String[]{DatabaseHelper.latitude,
+                                                       DatabaseHelper.longitude},
+                                          DatabaseHelper.mmsi + " = ?",
+                                          new String[]{String.valueOf(originMMSI)}, null, null,
+                                          null);
+            if (fixedStationCursor.getCount() != 1) {
                 Log.d(TAG, "Error Reading Origin Latitude Longitude");
                 return false;
-            } else{
-                if(fixedStationCursor.moveToFirst()){
-                    originLatitude = fixedStationCursor.getDouble(fixedStationCursor.getColumnIndex(DatabaseHelper.latitude));
-                    originLongitude = fixedStationCursor.getDouble(fixedStationCursor.getColumnIndex(DatabaseHelper.longitude));
+            } else {
+                if (fixedStationCursor.moveToFirst()) {
+                    originLatitude = fixedStationCursor
+                            .getDouble(fixedStationCursor.getColumnIndex(DatabaseHelper.latitude));
+                    originLongitude = fixedStationCursor
+                            .getDouble(fixedStationCursor.getColumnIndex(DatabaseHelper.longitude));
                 }
             }
 
             betaCursor = db.query(DatabaseHelper.betaTable,
-                    new String[]{DatabaseHelper.beta, DatabaseHelper.updateTime},
-                    null, null,
-                    null, null, null);
+                                  new String[]{DatabaseHelper.beta, DatabaseHelper.updateTime},
+                                  null, null, null, null, null);
             if (betaCursor.getCount() == 1) {
                 if (betaCursor.moveToFirst()) {
                     beta = betaCursor.getDouble(betaCursor.getColumnIndex(DatabaseHelper.beta));
@@ -367,7 +406,7 @@ public class StaticStationFragment extends Fragment implements View.OnClickListe
                 return false;
             }
             return true;
-        } catch(SQLiteException e){
+        } catch (SQLiteException e) {
             Log.d(TAG, "Database Error");
             e.printStackTrace();
             return false;
@@ -386,12 +425,16 @@ public class StaticStationFragment extends Fragment implements View.OnClickListe
 
 
     /**
-     * Registers and implements the {@link BroadcastReceiver}s for the AIS Connectivity and GPS location broadcasts; which are sent from
+     * Registers and implements the {@link BroadcastReceiver}s for the AIS Connectivity and GPS
+     * location broadcasts; which are sent from
      * {@link de.awi.floenavigation.network.NetworkMonitor} and {@link GPS_Service} respectively.
-     * The GPS Broadcast receiver sets the value of {@link #locationStatus} to the value from the {@link GPS_Service}.
+     * The GPS Broadcast receiver sets the value of {@link #locationStatus} to the value from the
+     * {@link GPS_Service}.
      * The AIS Connectivity broadcast receiver sets the boolean {@link #packetStatus}.
-     * This also registers {@link Runnable} with the {@link Handler} {@link #statusHandler} which runs at a regular interval specified by {@link ActionBarActivity#UPDATE_TIME}  and
-     * it checks the booleans {@link #locationStatus} and {@link #packetStatus} and changes the Action Bar icons for GPS and AIS Connectivity
+     * This also registers {@link Runnable} with the {@link Handler} {@link #statusHandler} which
+     * runs at a regular interval specified by {@link ActionBarActivity#UPDATE_TIME}  and
+     * it checks the booleans {@link #locationStatus} and {@link #packetStatus} and changes the
+     * Action Bar icons for GPS and AIS Connectivity
      * accrodingly.
      *
      * @see Runnable
@@ -402,7 +445,7 @@ public class StaticStationFragment extends Fragment implements View.OnClickListe
     private void actionBarUpdatesFunction() {
 
         //***************ACTION BAR UPDATES*************************/
-        if (broadcastReceiver == null){
+        if (broadcastReceiver == null) {
             broadcastReceiver = new BroadcastReceiver() {
                 @Override
                 public void onReceive(Context context, Intent intent) {
@@ -414,7 +457,7 @@ public class StaticStationFragment extends Fragment implements View.OnClickListe
             };
         }
 
-        if (aisPacketBroadcastReceiver == null){
+        if (aisPacketBroadcastReceiver == null) {
             aisPacketBroadcastReceiver = new BroadcastReceiver() {
                 @Override
                 public void onReceive(Context context, Intent intent) {
@@ -423,26 +466,39 @@ public class StaticStationFragment extends Fragment implements View.OnClickListe
             };
         }
 
-        getActivity().registerReceiver(aisPacketBroadcastReceiver, new IntentFilter(GPS_Service.AISPacketBroadcast));
-        getActivity().registerReceiver(broadcastReceiver, new IntentFilter(GPS_Service.GPSBroadcast));
+        getActivity().registerReceiver(aisPacketBroadcastReceiver,
+                                       new IntentFilter(GPS_Service.AISPacketBroadcast));
+        getActivity()
+                .registerReceiver(broadcastReceiver, new IntentFilter(GPS_Service.GPSBroadcast));
 
         Runnable gpsLocationRunnable = new Runnable() {
             @Override
             public void run() {
-                if (locationStatus){
-                    if (gpsIconItem != null)
-                        gpsIconItem.getIcon().setColorFilter(Color.parseColor(ActionBarActivity.colorGreen), PorterDuff.Mode.SRC_IN);
+                if (locationStatus) {
+                    if (gpsIconItem != null) {
+                        gpsIconItem.getIcon()
+                                .setColorFilter(Color.parseColor(ActionBarActivity.colorGreen),
+                                                PorterDuff.Mode.SRC_IN);
+                    }
+                } else {
+                    if (gpsIconItem != null) {
+                        gpsIconItem.getIcon()
+                                .setColorFilter(Color.parseColor(ActionBarActivity.colorRed),
+                                                PorterDuff.Mode.SRC_IN);
+                    }
                 }
-                else {
-                    if (gpsIconItem != null)
-                        gpsIconItem.getIcon().setColorFilter(Color.parseColor(ActionBarActivity.colorRed), PorterDuff.Mode.SRC_IN);
-                }
-                if (packetStatus){
-                    if (aisIconItem != null)
-                        aisIconItem.getIcon().setColorFilter(Color.parseColor(ActionBarActivity.colorGreen), PorterDuff.Mode.SRC_IN);
-                }else {
-                    if (aisIconItem != null)
-                        aisIconItem.getIcon().setColorFilter(Color.parseColor(ActionBarActivity.colorRed), PorterDuff.Mode.SRC_IN);
+                if (packetStatus) {
+                    if (aisIconItem != null) {
+                        aisIconItem.getIcon()
+                                .setColorFilter(Color.parseColor(ActionBarActivity.colorGreen),
+                                                PorterDuff.Mode.SRC_IN);
+                    }
+                } else {
+                    if (aisIconItem != null) {
+                        aisIconItem.getIcon()
+                                .setColorFilter(Color.parseColor(ActionBarActivity.colorRed),
+                                                PorterDuff.Mode.SRC_IN);
+                    }
                 }
 
 

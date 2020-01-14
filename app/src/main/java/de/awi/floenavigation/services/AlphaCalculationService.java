@@ -210,19 +210,19 @@ public class AlphaCalculationService extends IntentService {
             return;
         }
 
-        theta = getTheta(originLatitude, originLongitude, stationLatitude, stationLongitude);
+        final NavigationFunctions.TransformedCoordinates t = NavigationFunctions
+                .transform(originLatitude, originLongitude, stationLatitude, stationLongitude,
+                           beta);
 
-        //alpha = Math.abs(theta - beta);
-        double alpha = theta - beta;
+        theta = t.getTheta();
+        distance = t.getDistance();
 
-        distance = getDistance(originLatitude, originLongitude, stationLatitude, stationLongitude);
-
-        stationX = distance * Math.cos(Math.toRadians(alpha));
-        stationY = distance * Math.sin(Math.toRadians(alpha));
+        stationX = t.getX();
+        stationY = t.getY();
 
         Log.i(TAG, String.format("Station %s, %.5f,%.5f", stationMMSI, stationLatitude,
                                  stationLongitude));
-        Log.i(TAG, String.format("Station %s with Origin %s %.5f,%.5f that is d=%" + ".2f, a=%.2f",
+        Log.i(TAG, String.format("Station %s with Origin %s %.5f,%.5f that is d=%.2f, a=%.2f",
                                  stationMMSI, originMMSI, originLatitude, originLongitude, distance,
                                  alpha));
         Log.i(TAG, String.format("Station %s on grid %.2f, %.2f", stationMMSI, stationX, stationY));
@@ -431,19 +431,6 @@ public class AlphaCalculationService extends IntentService {
         return true;
     }
 
-
-    public double getDistance(final double lat1, final double lon1, final double lat2,
-                              final double lon2) {
-        return NavigationFunctions.calculateDifference(lat1, lon1, lat2, lon2);
-    }
-
-
-    public double getTheta(final double lat1, final double lon1, final double lat2,
-                           final double lon2) {
-        final double t = NavigationFunctions.calculateBearing(lat1, lon1, lat2, lon2);
-        return NavigationFunctions.calculateBetaFromBearing(t);
-        //        return  NavigationFunctions.calculateBearing(lat1, lon1, lat2, lon2);
-    }
 
     public void updateDatabase(final int stationMMSI, final double x, final double y,
                                final double alpha, final double distance) {

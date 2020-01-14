@@ -130,6 +130,12 @@ public class NavigationFunctions {
         return Math.toDegrees(Math.atan2(y, x));
     }
 
+    public static double calculateNormalizedBearing(double bearing) {
+        final double normalizedBearing = (bearing + 360) % 360;
+        return normalizedBearing;
+
+    }
+
     public static double calculateNormalizedBearing(final double lat1, final double lon1,
                                                     final double lat2, final double lon2) {
         final double bearing = calculateBearing(lat1, lon1, lat2, lon2);
@@ -270,4 +276,80 @@ public class NavigationFunctions {
     }
 
 
+    public static class TransformedCoordinates {
+
+        private final double x;
+
+        private final double y;
+        private final double distance;
+
+        private final double bearing;
+        private final double alpha;
+        private final double theta;
+        private final double beta;
+
+        public TransformedCoordinates(double x, double y, double distance, final double bearing,
+                                      final double alpha, final double theta, final double beta) {
+
+            this.x = x;
+            this.y = y;
+            this.distance = distance;
+            this.bearing = bearing;
+            this.alpha = alpha;
+            this.theta = theta;
+            this.beta = beta;
+        }
+
+
+        public double getX() {
+            return x;
+        }
+
+        public double getY() {
+            return y;
+        }
+
+        public double getDistance() {
+            return distance;
+        }
+
+        public double getAlpha() {
+            return alpha;
+        }
+
+        public double getTheta() {
+            return theta;
+        }
+
+        public double getBeta() {
+            return beta;
+        }
+
+        public double getBearing() {
+            return bearing;
+        }
+
+        public double getNormalizedBearing() {
+            return NavigationFunctions.calculateNormalizedBearing(bearing);
+        }
+    }
+
+
+    public static TransformedCoordinates transform(double lat1, double lon1, double lat2,
+                                                   double lon2, double globalBeta) {
+
+        final double bearing = NavigationFunctions.calculateBearing(lat1, lon1, lat2, lon2);
+        final double theta = NavigationFunctions.calculateBetaFromBearing(bearing);
+
+        final double alpha = theta - globalBeta;
+
+        final double alphaRadians = Math.toRadians(alpha);
+
+        final double d = NavigationFunctions.calculateDifference(lat1, lon1, lat2, lon2);
+
+        final double x = d * Math.cos(alphaRadians);
+        final double y = d * Math.sin(alphaRadians);
+
+        return new TransformedCoordinates(x, y, d, bearing, alpha, theta, globalBeta);
+    }
 }

@@ -35,26 +35,29 @@ import java.util.Date;
 import java.util.List;
 import java.util.TimeZone;
 
-import de.awi.floenavigation.helperclasses.ActionBarActivity;
-import de.awi.floenavigation.helperclasses.DatabaseHelper;
-import de.awi.floenavigation.services.GPS_Service;
+import de.awi.floenavigation.R;
 import de.awi.floenavigation.admin.ListViewActivity;
 import de.awi.floenavigation.dashboard.MainActivity;
+import de.awi.floenavigation.helperclasses.ActionBarActivity;
+import de.awi.floenavigation.helperclasses.DatabaseHelper;
 import de.awi.floenavigation.helperclasses.NavigationFunctions;
-import de.awi.floenavigation.R;
+import de.awi.floenavigation.services.GPS_Service;
 
 /**
- * {@link WaypointActivity} activity is used to install the waypoints at specific points of interest on the sea ice.
- * The app takes into consideration the tablet's current geographic coordinates to record the location of the waypoint.
+ * {@link WaypointActivity} activity is used to install the waypoints at specific points of interest
+ * on the sea ice.
+ * The app takes into consideration the tablet's current geographic coordinates to record the
+ * location of the waypoint.
  */
-public class WaypointActivity extends Activity implements View.OnClickListener{
+public class WaypointActivity extends Activity implements View.OnClickListener {
 
     private static final String TAG = "WaypointActivity";
 
     private static final String changeText = "Waypoint Installed";
 
     /**
-     * {@link BroadcastReceiver} is used to receive the latest gps coordinates from the {@link GPS_Service}
+     * {@link BroadcastReceiver} is used to receive the latest gps coordinates from the {@link
+     * GPS_Service}
      */
     private BroadcastReceiver broadcastReceiver;
     /**
@@ -100,7 +103,8 @@ public class WaypointActivity extends Activity implements View.OnClickListener{
      */
     private double yPosition;
     /**
-     * Angle calculated between the axis connecting origin fixed station and the longitudinal axis and the waypoint
+     * Angle calculated between the axis connecting origin fixed station and the longitudinal axis
+     * and the waypoint
      */
     private double theta;
     /**
@@ -112,12 +116,14 @@ public class WaypointActivity extends Activity implements View.OnClickListener{
      */
     private String time;
     /**
-     * Toggle flag to change the format of geographical coordinates display either in deg.min.sec or in decimal
+     * Toggle flag to change the format of geographical coordinates display either in deg.min.sec or
+     * in decimal
      * depending on the selection
      */
     private boolean changeFormat;
     /**
-     * reads the admin defined number of significant figures from the {@link DatabaseHelper#decimal_number_significant_figures}, used to
+     * reads the admin defined number of significant figures from the {@link
+     * DatabaseHelper#decimal_number_significant_figures}, used to
      * display the number of digits after the decimal point to be displayed
      */
     private int numOfSignificantFigures;
@@ -168,6 +174,7 @@ public class WaypointActivity extends Activity implements View.OnClickListener{
     /**
      * onCreate method to setup the xml layout and
      * to setting up the on click listeners
+     *
      * @param savedInstanceState stores the previous instance state
      */
     @Override
@@ -207,21 +214,22 @@ public class WaypointActivity extends Activity implements View.OnClickListener{
     private void actionBarUpdatesFunction() {
 
         /*****************ACTION BAR UPDATES*************************/
-        if (broadcastReceiver == null){
+        if (broadcastReceiver == null) {
             broadcastReceiver = new BroadcastReceiver() {
                 @Override
                 public void onReceive(Context context, Intent intent) {
                     tabletLat = intent.getExtras().getDouble(GPS_Service.latitude);
                     tabletLon = intent.getExtras().getDouble(GPS_Service.longitude);
                     locationStatus = intent.getExtras().getBoolean(GPS_Service.locationStatus);
-                    gpsTime = Long.parseLong(intent.getExtras().get(GPS_Service.GPSTime).toString());
+                    gpsTime =
+                            Long.parseLong(intent.getExtras().get(GPS_Service.GPSTime).toString());
                     timeDiff = System.currentTimeMillis() - gpsTime;
                     populateTabLocation();
                 }
             };
         }
 
-        if (aisPacketBroadcastReceiver == null){
+        if (aisPacketBroadcastReceiver == null) {
             aisPacketBroadcastReceiver = new BroadcastReceiver() {
                 @Override
                 public void onReceive(Context context, Intent intent) {
@@ -231,26 +239,38 @@ public class WaypointActivity extends Activity implements View.OnClickListener{
             };
         }
 
-        registerReceiver(aisPacketBroadcastReceiver, new IntentFilter(GPS_Service.AISPacketBroadcast));
+        registerReceiver(aisPacketBroadcastReceiver,
+                         new IntentFilter(GPS_Service.AISPacketBroadcast));
         registerReceiver(broadcastReceiver, new IntentFilter(GPS_Service.GPSBroadcast));
 
         Runnable gpsLocationRunnable = new Runnable() {
             @Override
             public void run() {
-                if (locationStatus){
-                    if (gpsIconItem != null)
-                        gpsIconItem.getIcon().setColorFilter(Color.parseColor(ActionBarActivity.colorGreen), PorterDuff.Mode.SRC_IN);
+                if (locationStatus) {
+                    if (gpsIconItem != null) {
+                        gpsIconItem.getIcon()
+                                .setColorFilter(Color.parseColor(ActionBarActivity.colorGreen),
+                                                PorterDuff.Mode.SRC_IN);
+                    }
+                } else {
+                    if (gpsIconItem != null) {
+                        gpsIconItem.getIcon()
+                                .setColorFilter(Color.parseColor(ActionBarActivity.colorRed),
+                                                PorterDuff.Mode.SRC_IN);
+                    }
                 }
-                else {
-                    if (gpsIconItem != null)
-                        gpsIconItem.getIcon().setColorFilter(Color.parseColor(ActionBarActivity.colorRed), PorterDuff.Mode.SRC_IN);
-                }
-                if (packetStatus){
-                    if (aisIconItem != null)
-                        aisIconItem.getIcon().setColorFilter(Color.parseColor(ActionBarActivity.colorGreen), PorterDuff.Mode.SRC_IN);
-                }else {
-                    if (aisIconItem != null)
-                        aisIconItem.getIcon().setColorFilter(Color.parseColor(ActionBarActivity.colorRed), PorterDuff.Mode.SRC_IN);
+                if (packetStatus) {
+                    if (aisIconItem != null) {
+                        aisIconItem.getIcon()
+                                .setColorFilter(Color.parseColor(ActionBarActivity.colorGreen),
+                                                PorterDuff.Mode.SRC_IN);
+                    }
+                } else {
+                    if (aisIconItem != null) {
+                        aisIconItem.getIcon()
+                                .setColorFilter(Color.parseColor(ActionBarActivity.colorRed),
+                                                PorterDuff.Mode.SRC_IN);
+                    }
                 }
 
                 statusHandler.postDelayed(this, ActionBarActivity.UPDATE_TIME);
@@ -264,13 +284,14 @@ public class WaypointActivity extends Activity implements View.OnClickListener{
     /**
      * Function used to change the display format of the latitude and longitude values in the views
      */
-    private void populateTabLocation(){
+    private void populateTabLocation() {
 
         TextView latView = findViewById(R.id.waypointTabletLat);
         TextView lonView = findViewById(R.id.waypointTabletLon);
         String formatString = "%." + String.valueOf(numOfSignificantFigures) + "f";
-        if(changeFormat){
-            String[] formattedCoordinates = NavigationFunctions.locationInDegrees(tabletLat, tabletLon);
+        if (changeFormat) {
+            String[] formattedCoordinates =
+                    NavigationFunctions.locationInDegrees(tabletLat, tabletLon);
             latView.setText(formattedCoordinates[DatabaseHelper.LATITUDE_INDEX]);
             lonView.setText(formattedCoordinates[DatabaseHelper.LONGITUDE_INDEX]);
         } else {
@@ -281,11 +302,12 @@ public class WaypointActivity extends Activity implements View.OnClickListener{
 
     /**
      * This function takes care of implementation of status bar icons in the activity
+     *
      * @param menu menu
      * @return returns menu to parent function
      */
     @Override
-    public boolean onCreateOptionsMenu(Menu menu){
+    public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.main_menu, menu);
         MenuItem latLonFormat = menu.findItem(R.id.changeLatLonFormat);
         latLonFormat.setVisible(true);
@@ -297,13 +319,17 @@ public class WaypointActivity extends Activity implements View.OnClickListener{
         aisIconItem = menu.findItem(iconItems[2]);
         aisIconItem.setShowAsActionFlags(MenuItem.SHOW_AS_ACTION_ALWAYS);
 
-        if(MainActivity.numOfBaseStations >= DatabaseHelper.INITIALIZATION_SIZE) {
+        if (MainActivity.numOfBaseStations >= DatabaseHelper.INITIALIZATION_SIZE) {
             if (gridSetupIconItem != null) {
-                gridSetupIconItem.getIcon().setColorFilter(Color.parseColor(ActionBarActivity.colorGreen), PorterDuff.Mode.SRC_IN);
+                gridSetupIconItem.getIcon()
+                        .setColorFilter(Color.parseColor(ActionBarActivity.colorGreen),
+                                        PorterDuff.Mode.SRC_IN);
             }
-        } else{
+        } else {
             if (gridSetupIconItem != null) {
-                gridSetupIconItem.getIcon().setColorFilter(Color.parseColor(ActionBarActivity.colorRed), PorterDuff.Mode.SRC_IN);
+                gridSetupIconItem.getIcon()
+                        .setColorFilter(Color.parseColor(ActionBarActivity.colorRed),
+                                        PorterDuff.Mode.SRC_IN);
             }
         }
         return super.onCreateOptionsMenu(menu);
@@ -311,12 +337,13 @@ public class WaypointActivity extends Activity implements View.OnClickListener{
 
     /**
      * Listener function to handle functions when an item in the menu list is clicked
+     *
      * @param menuItem menu item
      * @return returns true
      */
     @Override
-    public boolean onOptionsItemSelected(MenuItem menuItem){
-        switch (menuItem.getItemId()){
+    public boolean onOptionsItemSelected(MenuItem menuItem) {
+        switch (menuItem.getItemId()) {
             case R.id.changeLatLonFormat:
                 changeFormat = !changeFormat;
                 populateTabLocation();
@@ -343,11 +370,12 @@ public class WaypointActivity extends Activity implements View.OnClickListener{
 
     /**
      * OnClick listener to handle view clicks
+     *
      * @param v view which was clicked
      */
-    public void onClick(View v){
+    public void onClick(View v) {
 
-        switch (v.getId()){
+        switch (v.getId()) {
             case R.id.waypoint_confirm:
                 onClickConfirm();
                 break;
@@ -360,13 +388,15 @@ public class WaypointActivity extends Activity implements View.OnClickListener{
     }
 
     /**
-     * When the confirm button is pressed, the function checks whether there are duplicate waypoints already existing in the local database,
-     * then it checks whether valid and proper gps location is available, if all the conditions are met, it stores the waypoint into the
+     * When the confirm button is pressed, the function checks whether there are duplicate waypoints
+     * already existing in the local database,
+     * then it checks whether valid and proper gps location is available, if all the conditions are
+     * met, it stores the waypoint into the
      * local database.
-     * Exception handling and error checks are taken care of by displaying proper toast and log messages
-     *
+     * Exception handling and error checks are taken care of by displaying proper toast and log
+     * messages
      */
-    private void onClickConfirm(){
+    private void onClickConfirm() {
 
         TextView wayPointLabel = findViewById(R.id.waypointLabelId);
         if (TextUtils.isEmpty(wayPointLabel.getText().toString())) {
@@ -403,18 +433,21 @@ public class WaypointActivity extends Activity implements View.OnClickListener{
                 Log.d(TAG, "Error with GPS Service");
                 Toast.makeText(this, "Error reading Device Lat and Long", Toast.LENGTH_LONG).show();
             }
-        }else{
-                Toast.makeText(getApplicationContext(), "Duplicate Waypoint, already exists", Toast.LENGTH_LONG).show();
+        } else {
+            Toast.makeText(getApplicationContext(), "Duplicate Waypoint, already exists",
+                           Toast.LENGTH_LONG).show();
         }
     }
 
     /**
-     * Inserts the waypoint with all the required and necessary parameters into the database table {@link DatabaseHelper#waypointsTable}
+     * Inserts the waypoint with all the required and necessary parameters into the database table
+     * {@link DatabaseHelper#waypointsTable}
+     *
      * @param db SQLiteDatabase object
      * @return <code>true</code> if the data is successfully inserted into the database table
-     *         <code>false</code> otherwise
+     * <code>false</code> otherwise
      */
-    private boolean insertInDatabase(SQLiteDatabase db){
+    private boolean insertInDatabase(SQLiteDatabase db) {
         ContentValues waypoint = new ContentValues();
         waypoint.put(DatabaseHelper.latitude, tabletLat);
         waypoint.put(DatabaseHelper.longitude, tabletLon);
@@ -424,10 +457,10 @@ public class WaypointActivity extends Activity implements View.OnClickListener{
         waypoint.put(DatabaseHelper.labelID, labelId);
         waypoint.put(DatabaseHelper.label, waypointLabel);
         long result = db.insert(DatabaseHelper.waypointsTable, null, waypoint);
-        if(result != -1){
+        if (result != -1) {
             Log.d(TAG, "Waypoint Inserted Successfully");
             return true;
-        } else{
+        } else {
             Log.d(TAG, "Error Inserting Waypoint");
             return false;
         }
@@ -436,7 +469,7 @@ public class WaypointActivity extends Activity implements View.OnClickListener{
     /**
      * Starts the {@link MainActivity} when the user presses the finish button
      */
-    private void onClickFinish(){
+    private void onClickFinish() {
         Log.d(TAG, "Activity Finished");
         Intent mainActivityIntent = new Intent(this, MainActivity.class);
         startActivity(mainActivityIntent);
@@ -445,21 +478,22 @@ public class WaypointActivity extends Activity implements View.OnClickListener{
     /**
      * calculates waypoint location in the grid
      */
-    private void calculateWaypointParameters(){
-        distance = NavigationFunctions.calculateDifference(tabletLat, tabletLon, originLatitude, originLongitude);
-        //theta = NavigationFunctions.calculateAngleBeta(tabletLat, tabletLon, originLatitude, originLongitude);
-        theta = NavigationFunctions.calculateAngleBeta(originLatitude, originLongitude, tabletLat, tabletLon);
-        //alpha = Math.abs(theta - beta);
-        alpha = theta - beta;
-        Log.d(TAG, "Theta: " + theta + " Alpha: " + alpha);
-        xPosition = distance * Math.cos(Math.toRadians(alpha));
-        yPosition = distance * Math.sin(Math.toRadians(alpha));
+    private void calculateWaypointParameters() {
+        final NavigationFunctions.TransformedCoordinates t = NavigationFunctions
+                .transform(tabletLat, tabletLon, originLatitude, originLongitude, beta);
+
+        theta = t.getTheta();
+        alpha = t.getAlpha();
+        Log.d(TAG,
+              String.format("Distance: %.4f, Alpha: %.3f (Theta: %.3f)", distance, alpha, theta));
+        xPosition = t.getX();
+        yPosition = t.getY();
     }
 
     /**
      * Create label in a particular format
      */
-    private void createLabel(){
+    private void createLabel() {
         Date date = new Date(System.currentTimeMillis() - timeDiff);
         SimpleDateFormat displayFormat = new SimpleDateFormat("yyyyMMdd'D'HHmmss");
         displayFormat.setTimeZone(TimeZone.getTimeZone("gmt"));
@@ -482,25 +516,28 @@ public class WaypointActivity extends Activity implements View.OnClickListener{
     /**
      * Checks whether there are duplicate waypoints in the database table
      * based on the label ID
+     *
      * @param db SQLiteDatabase object
      * @return <code>true</code> if present; <code>false</code> otherwise
      */
-    private boolean checkWaypointInDBTables(SQLiteDatabase db){
+    private boolean checkWaypointInDBTables(SQLiteDatabase db) {
         boolean isPresent = false;
         Cursor mWaypointCursor = null;
         labelId_TV = findViewById(R.id.waypointLabelId);
         labelId = labelId_TV.getText().toString();
         labelId = tabletID + "_" + labelId;
-        try{
-            mWaypointCursor = db.query(DatabaseHelper.waypointsTable, new String[]{DatabaseHelper.labelID}, DatabaseHelper.labelID + " = ?",
-                    new String[]{labelId}, null, null, null);
+        try {
+            mWaypointCursor =
+                    db.query(DatabaseHelper.waypointsTable, new String[]{DatabaseHelper.labelID},
+                             DatabaseHelper.labelID + " = ?", new String[]{labelId}, null, null,
+                             null);
 
-            isPresent =  mWaypointCursor.moveToFirst();
-        }catch (SQLException e){
+            isPresent = mWaypointCursor.moveToFirst();
+        } catch (SQLException e) {
             Log.d(TAG, "SQLiteException");
             e.printStackTrace();
         } finally {
-            if(mWaypointCursor != null){
+            if (mWaypointCursor != null) {
                 mWaypointCursor.close();
             }
         }
@@ -508,46 +545,50 @@ public class WaypointActivity extends Activity implements View.OnClickListener{
     }
 
     /**
-     * Get origin geographic coordinates and mmsi from the database tables {@link DatabaseHelper#baseStationTable} and {@link DatabaseHelper#fixedStationTable}
+     * Get origin geographic coordinates and mmsi from the database tables {@link
+     * DatabaseHelper#baseStationTable} and {@link DatabaseHelper#fixedStationTable}
+     *
      * @param db SQLiteDatabase object
      * @return <code>true</code> if retrieval is successful; <code>false</code> otherwise
      */
-    private boolean getOriginCoordinates(SQLiteDatabase db){
+    private boolean getOriginCoordinates(SQLiteDatabase db) {
 
         try {
 
-            Cursor baseStationCursor = db.query(DatabaseHelper.baseStationTable,
-                    new String[] {DatabaseHelper.mmsi},
-                    DatabaseHelper.isOrigin +" = ?",
-                    new String[]{String.valueOf(DatabaseHelper.ORIGIN)},
-                    null, null, null);
-            if (baseStationCursor.getCount() != 1){
+            Cursor baseStationCursor =
+                    db.query(DatabaseHelper.baseStationTable, new String[]{DatabaseHelper.mmsi},
+                             DatabaseHelper.isOrigin + " = ?",
+                             new String[]{String.valueOf(DatabaseHelper.ORIGIN)}, null, null, null);
+            if (baseStationCursor.getCount() != 1) {
                 Log.d(TAG, "Error Reading from BaseStation Table");
                 return false;
-            } else{
-                if(baseStationCursor.moveToFirst()){
-                    originMMSI = baseStationCursor.getInt(baseStationCursor.getColumnIndex(DatabaseHelper.mmsi));
+            } else {
+                if (baseStationCursor.moveToFirst()) {
+                    originMMSI = baseStationCursor
+                            .getInt(baseStationCursor.getColumnIndex(DatabaseHelper.mmsi));
                 }
             }
             Cursor fixedStationCursor = db.query(DatabaseHelper.fixedStationTable,
-                    new String[] {DatabaseHelper.latitude, DatabaseHelper.longitude},
-                    DatabaseHelper.mmsi +" = ?",
-                    new String[] {String.valueOf(originMMSI)},
-                    null, null, null);
-            if (fixedStationCursor.getCount() != 1){
+                                                 new String[]{DatabaseHelper.latitude,
+                                                              DatabaseHelper.longitude},
+                                                 DatabaseHelper.mmsi + " = ?",
+                                                 new String[]{String.valueOf(originMMSI)}, null,
+                                                 null, null);
+            if (fixedStationCursor.getCount() != 1) {
                 Log.d(TAG, "Error Reading Origin Latitude Longitude");
                 return false;
-            } else{
-                if(fixedStationCursor.moveToFirst()){
-                    originLatitude = fixedStationCursor.getDouble(fixedStationCursor.getColumnIndex(DatabaseHelper.latitude));
-                    originLongitude = fixedStationCursor.getDouble(fixedStationCursor.getColumnIndex(DatabaseHelper.longitude));
+            } else {
+                if (fixedStationCursor.moveToFirst()) {
+                    originLatitude = fixedStationCursor
+                            .getDouble(fixedStationCursor.getColumnIndex(DatabaseHelper.latitude));
+                    originLongitude = fixedStationCursor
+                            .getDouble(fixedStationCursor.getColumnIndex(DatabaseHelper.longitude));
                 }
             }
 
-            Cursor betaCursor = db.query(DatabaseHelper.betaTable,
-                    new String[]{DatabaseHelper.beta, DatabaseHelper.updateTime},
-                    null, null,
-                    null, null, null);
+            Cursor betaCursor = db.query(DatabaseHelper.betaTable, new String[]{DatabaseHelper.beta,
+                                                                                DatabaseHelper.updateTime},
+                                         null, null, null, null, null);
             if (betaCursor.getCount() == 1) {
                 if (betaCursor.moveToFirst()) {
                     beta = betaCursor.getDouble(betaCursor.getColumnIndex(DatabaseHelper.beta));
@@ -561,7 +602,7 @@ public class WaypointActivity extends Activity implements View.OnClickListener{
             baseStationCursor.close();
             fixedStationCursor.close();
             return true;
-        } catch(SQLiteException e){
+        } catch (SQLiteException e) {
             Log.d(TAG, "Database Error");
             e.printStackTrace();
             return false;
@@ -569,8 +610,10 @@ public class WaypointActivity extends Activity implements View.OnClickListener{
     }
 
     /**
-     * On pressing the View Waypoints List button, the activity starts a new activity listing all the waypoints currently
+     * On pressing the View Waypoints List button, the activity starts a new activity listing all
+     * the waypoints currently
      * stored in the database table
+     *
      * @param view view which was clicked
      */
     public void onClickViewWaypoints(View view) {
@@ -579,14 +622,15 @@ public class WaypointActivity extends Activity implements View.OnClickListener{
             SQLiteDatabase db = dbHelper.getReadableDatabase();
             long numOfWaypoints = DatabaseUtils.queryNumEntries(db, DatabaseHelper.waypointsTable);
 
-            if (numOfWaypoints > 0){
+            if (numOfWaypoints > 0) {
                 Intent listViewIntent = new Intent(this, ListViewActivity.class);
                 listViewIntent.putExtra("GenerateDataOption", "WaypointActivity");
                 startActivity(listViewIntent);
-            }else {
-                Toast.makeText(this, "No waypoints are marked in the grid", Toast.LENGTH_LONG).show();
+            } else {
+                Toast.makeText(this, "No waypoints are marked in the grid", Toast.LENGTH_LONG)
+                        .show();
             }
-        }catch (SQLiteException e){
+        } catch (SQLiteException e) {
             Log.d(TAG, "Error in reading database");
             e.printStackTrace();
         }
@@ -606,38 +650,40 @@ public class WaypointActivity extends Activity implements View.OnClickListener{
     /**
      * Async task to read tablet id from the database table
      */
-    private class ReadTabletID extends AsyncTask<Void, Void, Boolean>{
+    private class ReadTabletID extends AsyncTask<Void, Void, Boolean> {
 
         @Override
-        protected void onPreExecute(){
+        protected void onPreExecute() {
 
         }
 
         @Override
         protected Boolean doInBackground(Void... voids) {
             boolean success = false;
-            try{
+            try {
                 DatabaseHelper dbHelper = DatabaseHelper.getDbInstance(getApplicationContext());
                 SQLiteDatabase db = dbHelper.getReadableDatabase();
                 Cursor paramCursor = db.query(DatabaseHelper.configParametersTable,
-                        new String[] {DatabaseHelper.parameterName, DatabaseHelper.parameterValue},
-                        DatabaseHelper.parameterName +" = ?",
-                        new String[] {DatabaseHelper.tabletId},
-                        null, null, null);
-                if (paramCursor.moveToFirst()){
-                    String paramValue = paramCursor.getString(paramCursor.getColumnIndexOrThrow(DatabaseHelper.parameterValue));
-                    if(!paramValue.isEmpty()){
+                                              new String[]{DatabaseHelper.parameterName,
+                                                           DatabaseHelper.parameterValue},
+                                              DatabaseHelper.parameterName + " = ?",
+                                              new String[]{DatabaseHelper.tabletId}, null, null,
+                                              null);
+                if (paramCursor.moveToFirst()) {
+                    String paramValue = paramCursor.getString(
+                            paramCursor.getColumnIndexOrThrow(DatabaseHelper.parameterValue));
+                    if (!paramValue.isEmpty()) {
                         success = true;
                         tabletID = paramValue;
-                    } else{
+                    } else {
                         Log.d(TAG, "Blank TabletID");
                     }
-                } else{
+                } else {
                     Log.d(TAG, "TabletID not set");
                 }
                 paramCursor.close();
 
-            } catch(SQLiteException e){
+            } catch (SQLiteException e) {
                 Log.d(TAG, "Error Reading from Database");
             }
             return success;
@@ -645,7 +691,7 @@ public class WaypointActivity extends Activity implements View.OnClickListener{
 
         @Override
         protected void onPostExecute(Boolean result) {
-            if (!result){
+            if (!result) {
                 Log.d(TAG, "Waypoint AsyncTask: Database Error");
             }
         }
